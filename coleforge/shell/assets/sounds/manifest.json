@@ -1,0 +1,120 @@
+{
+  "scheme": "ColeForge Classic",
+  "sampleRate": 44100,
+  "sounds": [
+    {
+      "name": "startup",
+      "file": "startup.wav",
+      "seconds": 5.2,
+      "description": "Boot chime: rising pad swell under a glassy bell arpeggio."
+    },
+    {
+      "name": "shutdown",
+      "file": "shutdown.wav",
+      "seconds": 3.6,
+      "description": "Goodbye: descending bell phrase settling onto a soft low pad."
+    },
+    {
+      "name": "logon",
+      "file": "logon.wav",
+      "seconds": 2.2,
+      "description": "Short welcome swell for signing in."
+    },
+    {
+      "name": "ding",
+      "file": "ding.wav",
+      "seconds": 1.2,
+      "description": "Default beep: a single rounded bell."
+    },
+    {
+      "name": "notify",
+      "file": "notify.wav",
+      "seconds": 1.3,
+      "description": "Toast notification: two-note upward glint."
+    },
+    {
+      "name": "exclamation",
+      "file": "exclamation.wav",
+      "seconds": 1.3,
+      "description": "Warning dialog: bright minor-third stab."
+    },
+    {
+      "name": "critical_stop",
+      "file": "critical_stop.wav",
+      "seconds": 1.4,
+      "description": "Error dialog: low dissonant thump with a bell cluster."
+    },
+    {
+      "name": "question",
+      "file": "question.wav",
+      "seconds": 1.2,
+      "description": "Confirmation dialog: gentle rising fourth."
+    },
+    {
+      "name": "menu_click",
+      "file": "menu_click.wav",
+      "seconds": 0.09,
+      "description": "Start menu / button click: tight glassy tick."
+    },
+    {
+      "name": "menu_popup",
+      "file": "menu_popup.wav",
+      "seconds": 0.16,
+      "description": "Menu open: tiny airy blip."
+    },
+    {
+      "name": "minimize",
+      "file": "minimize.wav",
+      "seconds": 0.32,
+      "description": "Window minimize: downward swoosh."
+    },
+    {
+      "name": "maximize",
+      "file": "maximize.wav",
+      "seconds": 0.3,
+      "description": "Window maximize / restore: upward swoosh."
+    },
+    {
+      "name": "recycle",
+      "file": "recycle.wav",
+      "seconds": 0.8,
+      "description": "Empty Recycle Bin: crumple of short noise bursts."
+    },
+    {
+      "name": "chat_in",
+      "file": "chat_in.wav",
+      "seconds": 0.8,
+      "description": "ForgeChat message received: two quick soft bells."
+    },
+    {
+      "name": "chat_out",
+      "file": "chat_out.wav",
+      "seconds": 0.18,
+      "description": "ForgeChat message sent: soft whoosh-tick."
+    },
+    {
+      "name": "buddy_in",
+      "file": "buddy_in.wav",
+      "seconds": 1.4,
+      "description": "Buddy signed on: creaky door swing up into a chime."
+    },
+    {
+      "name": "buddy_out",
+      "file": "buddy_out.wav",
+      "seconds": 1.2,
+      "description": "Buddy signed off: chime falling into a door thud."
+    },
+    {
+      "name": "lobby_ready",
+      "file": "lobby_ready.wav",
+      "seconds": 1.8,
+      "description": "Game lobby: all players ready fanfare."
+    },
+    {
+      "name": "call_ring",
+      "file": "call_ring.wav",
+      "seconds": 1.6,
+      "description": "ForgeChat incoming video call ring (one cycle)."
+    }
+  ]
+}

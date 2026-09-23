@@ -1,27 +1,175 @@
 {
-  "project": { "name": "ColeForge OS", "id": "dd027089-8827-45de-948d-72dba6fe2704" },
+  "project": {
+    "name": "ColeForge OS",
+    "id": "dd027089-8827-45de-948d-72dba6fe2704"
+  },
   "model": "gpt-image-2.5-sunburst",
   "note": "Generated with SpriteCook. Download each asset (PNG) and save it at 'target' (relative to coleforge/shell/). The shell picks them up automatically and falls back to its vector icons for anything missing.",
   "assets": [
-    { "target": "assets/art/icons/logo.png", "asset_id": "58b4818e-123c-418e-a711-bcad4ce6ed93", "what": "ColeForge emblem (glass anvil in a crystal badge), variant A" },
-    { "target": "assets/art/icons/logo-alt.png", "asset_id": "fec4ffd6-c264-42f2-a40f-716b33d2a0a5", "what": "ColeForge emblem, variant B (rename to logo.png if you prefer it)" },
-    { "target": "assets/art/boot-bg.png", "asset_id": "2248a864-d670-46d6-abfc-c9516f4d98eb", "what": "Boot splash background, 2048x1152" },
-    { "target": "assets/art/wallpapers/lake.png", "asset_id": "a7199489-a77d-4836-9a79-967d68d6a394", "what": "Wallpaper: Twilight Lake, 2048x1152" },
-    { "target": "assets/art/wallpapers/energy.png", "asset_id": "398f826d-d74f-4665-8dc9-363f9ccd8c7c", "what": "Wallpaper: Blue Energy, 2048x1152" },
-    { "target": "assets/art/icons/computer.png", "asset_id": "fd31db4c-6dda-4ae8-9d29-8c8fd35f6635", "what": "My Computer" },
-    { "target": "assets/art/icons/documents.png", "asset_id": "6db71326-621a-4249-b01f-446e895e9a69", "what": "My Documents" },
-    { "target": "assets/art/icons/recycle.png", "asset_id": "5a862311-157c-42fb-a195-c599dbbd31ee", "what": "Recycle Bin" },
-    { "target": "assets/art/icons/forgeamp.png", "asset_id": "2c1ff010-8332-4f0f-a8d1-b9ee45fc45a5", "what": "ForgeAmp" },
-    { "target": "assets/art/icons/forgevision.png", "asset_id": "a51af762-0427-4d11-81c1-52990fee65ad", "what": "ForgeVision" },
-    { "target": "assets/art/icons/forgecraft.png", "asset_id": "ee33363c-e3f4-4267-9aa2-967d72158083", "what": "Forgecraft" },
-    { "target": "assets/art/icons/forgechat.png", "asset_id": "70702bbb-e7d9-42be-8fff-83201be7ce2a", "what": "ForgeChat" },
-    { "target": "assets/art/icons/browser.png", "asset_id": "5a166302-a4f1-4923-8416-a58b5011861b", "what": "Forge Browser" },
-    { "target": "assets/art/icons/notepad.png", "asset_id": "92888b12-8cbd-4ea0-a957-882a7c6cf8d5", "what": "Notepad" },
-    { "target": "assets/art/icons/control.png", "asset_id": "3255f25c-a08a-4b59-a1eb-5eedaec4112b", "what": "Control Panel" },
-    { "target": "assets/art/icons/arcade.png", "asset_id": "428884e8-2eec-44b8-992f-b4100b6cf10f", "what": "Forge Arcade" }
+    {
+      "target": "assets/art/icons/logo.png",
+      "asset_id": "58b4818e-123c-418e-a711-bcad4ce6ed93",
+      "what": "ColeForge emblem (glass anvil in a crystal badge), variant A"
+    },
+    {
+      "target": "assets/art/icons/logo-alt.png",
+      "asset_id": "fec4ffd6-c264-42f2-a40f-716b33d2a0a5",
+      "what": "ColeForge emblem, variant B (rename to logo.png if you prefer it)"
+    },
+    {
+      "target": "assets/art/boot-bg.png",
+      "asset_id": "2248a864-d670-46d6-abfc-c9516f4d98eb",
+      "what": "Boot splash background, 2048x1152"
+    },
+    {
+      "target": "assets/art/wallpapers/lake.png",
+      "asset_id": "a7199489-a77d-4836-9a79-967d68d6a394",
+      "what": "Wallpaper: Twilight Lake, 2048x1152"
+    },
+    {
+      "target": "assets/art/wallpapers/energy.png",
+      "asset_id": "398f826d-d74f-4665-8dc9-363f9ccd8c7c",
+      "what": "Wallpaper: Blue Energy, 2048x1152"
+    },
+    {
+      "target": "assets/art/icons/computer.png",
+      "asset_id": "fd31db4c-6dda-4ae8-9d29-8c8fd35f6635",
+      "what": "My Computer"
+    },
+    {
+      "target": "assets/art/icons/documents.png",
+      "asset_id": "6db71326-621a-4249-b01f-446e895e9a69",
+      "what": "My Documents"
+    },
+    {
+      "target": "assets/art/icons/recycle.png",
+      "asset_id": "5a862311-157c-42fb-a195-c599dbbd31ee",
+      "what": "Recycle Bin"
+    },
+    {
+      "target": "assets/art/icons/forgeamp.png",
+      "asset_id": "2c1ff010-8332-4f0f-a8d1-b9ee45fc45a5",
+      "what": "ForgeAmp"
+    },
+    {
+      "target": "assets/art/icons/forgevision.png",
+      "asset_id": "a51af762-0427-4d11-81c1-52990fee65ad",
+      "what": "ForgeVision"
+    },
+    {
+      "target": "assets/art/icons/forgecraft.png",
+      "asset_id": "ee33363c-e3f4-4267-9aa2-967d72158083",
+      "what": "Forgecraft"
+    },
+    {
+      "target": "assets/art/icons/forgechat.png",
+      "asset_id": "70702bbb-e7d9-42be-8fff-83201be7ce2a",
+      "what": "ForgeChat"
+    },
+    {
+      "target": "assets/art/icons/browser.png",
+      "asset_id": "5a166302-a4f1-4923-8416-a58b5011861b",
+      "what": "Forge Browser"
+    },
+    {
+      "target": "assets/art/icons/notepad.png",
+      "asset_id": "92888b12-8cbd-4ea0-a957-882a7c6cf8d5",
+      "what": "Notepad"
+    },
+    {
+      "target": "assets/art/icons/control.png",
+      "asset_id": "3255f25c-a08a-4b59-a1eb-5eedaec4112b",
+      "what": "Control Panel"
+    },
+    {
+      "target": "assets/art/icons/arcade.png",
+      "asset_id": "428884e8-2eec-44b8-992f-b4100b6cf10f",
+      "what": "Forge Arcade"
+    },
+    {
+      "target": "assets/art/icons/folder.png",
+      "asset_id": "5afab82b-57dd-462a-8dcf-f3002c427887",
+      "what": "Folder"
+    },
+    {
+      "target": "assets/art/icons/file.png",
+      "asset_id": "e3cb429e-b78b-4326-b678-452aec11a0d8",
+      "what": "Text document"
+    },
+    {
+      "target": "assets/art/icons/image.png",
+      "asset_id": "49955234-9496-4578-a2f3-88c1f5f09b9e",
+      "what": "Picture file"
+    },
+    {
+      "target": "assets/art/icons/network.png",
+      "asset_id": "107b5e09-466f-4976-b7f4-a1b5ebe17ba3",
+      "what": "Network"
+    },
+    {
+      "target": "assets/art/icons/info.png",
+      "asset_id": "7b163f9a-65a1-42e3-8e9b-95452b27fcbc",
+      "what": "Dialog: information"
+    },
+    {
+      "target": "assets/art/icons/warning.png",
+      "asset_id": "becc44c5-cfb4-488f-b2bc-c39064aeb95b",
+      "what": "Dialog: warning"
+    },
+    {
+      "target": "assets/art/icons/question.png",
+      "asset_id": "e06baf93-2674-41a0-a875-9c5a8f6982e5",
+      "what": "Dialog: question"
+    },
+    {
+      "target": "assets/art/icons/error.png",
+      "asset_id": "67c38716-e3dd-4f29-93c7-0471a02961e6",
+      "what": "Dialog: error"
+    },
+    {
+      "target": "assets/art/icons/volume.png",
+      "asset_id": "c8c87f3d-cd5e-4d87-8827-697179f9dd31",
+      "what": "Tray: volume"
+    },
+    {
+      "target": "assets/art/icons/run.png",
+      "asset_id": "b7ea6d9b-19ba-4e96-af3e-d1e9caf3457f",
+      "what": "Start menu: Run"
+    },
+    {
+      "target": "assets/art/icons/shutdown.png",
+      "asset_id": "c3a0739e-1b82-4af3-9016-6f5564291442",
+      "what": "Start menu: Shut Down"
+    },
+    {
+      "target": "assets/cursors/arrow.png",
+      "asset_id": "97faa7f4-1d4f-40b3-bee5-b4f750aab83e",
+      "what": "Cursor: arrow (pixel art; use the 'pixel' variant, scale to 32px)"
+    },
+    {
+      "target": "assets/cursors/hand.png",
+      "asset_id": "34de249b-9d54-44eb-9687-4b8f1da92bdc",
+      "what": "Cursor: pointing hand (pixel art)"
+    },
+    {
+      "target": "assets/cursors/text.png",
+      "asset_id": "2abf925b-8f2d-4fca-b8a0-cc455e2d11a5",
+      "what": "Cursor: text I-beam (pixel art)"
+    },
+    {
+      "target": "assets/cursors/busy.png",
+      "asset_id": "cc401cba-bdb0-48b2-98c9-1dea398e3349",
+      "what": "Cursor: busy spinner (pixel art)"
+    }
   ],
   "user_supplied": [
-    { "target": "assets/art/boot-splash.webp", "what": "Boot splash concept by Cole (in repo)" },
-    { "target": "assets/art/games/doom-legacy.png", "what": "Doom Legacy – ColeForge Edition cover art by Cole (add the file; Forge Arcade shows it automatically)" }
+    {
+      "target": "assets/art/boot-splash.webp",
+      "what": "Boot splash concept by Cole (in repo)"
+    },
+    {
+      "target": "assets/art/games/doom-legacy.png",
+      "what": "Currently built from the Doom Legacy site logo (art/game-ports). Overwrite with Cole's Doom Legacy \u2013 ColeForge Edition cover to use it instead."
+    }
   ]
 }

@@ -70,7 +70,7 @@
 
   function cleanLobby(l, host) {
     return {
-      id: clip(l.id, 40) || "L" + Date.now().toString(36),
+      id: "L" + Date.now().toString(36) + Math.random().toString(36).slice(2, 7), // never trust a client-chosen id
       name: clip(l.name, 48) || "LAN Party",
       game: clip(l.game, 32) || "doom",
       map: clip(l.map, 24) || "MAP01",

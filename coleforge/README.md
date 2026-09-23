@@ -70,11 +70,13 @@ Browsers visiting `http://<lan-ip>` may block the camera; use ColeForge.exe on e
 ## Art
 
 - `shell/assets/art/boot-splash.webp`: your boot splash concept (used as-is).
-- SpriteCook generated the logo, 11 app icons, 2 wallpapers and a boot background into the
-  **ColeForge OS** project. `art/spritecook-assets.json` lists each asset ID and where it goes.
-  Drop the PNGs at those paths and the shell uses them automatically; until then it uses its
-  built-in vector icons.
-- Drop the Doom Legacy cover at `shell/assets/art/games/doom-legacy.png` for the Arcade and lobby cards.
+- **SpriteCook** (project "ColeForge OS"): logo (2 variants), boot background, 2 wallpapers,
+  22 icons (desktop, apps, dialogs, tray, Start menu) and a 4-piece cursor set: 31 assets in all.
+  `art/spritecook-assets.json` maps each asset ID to its path under `shell/`. Drop the PNGs there
+  and the shell uses them automatically; until then it falls back to its built-in vector icons.
+- **Game covers** (`shell/assets/art/games/`): built from the ports' own freely licensed art by
+  `art/game-ports/build_game_covers.py` (sources and licenses in `art/game-ports/SOURCES.md`).
+  Overwrite `games/doom-legacy.png` with your Doom Legacy – ColeForge Edition cover to use it.
 
 ## Sounds
 

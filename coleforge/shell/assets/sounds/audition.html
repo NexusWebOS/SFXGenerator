@@ -1,0 +1,42 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>ColeForge Sound Schemes</title>
+<style>
+  :root { color-scheme: dark; }
+  body { margin: 0; padding: 24px 16px; background: radial-gradient(circle at 50% 0, #1d3f86, #050b1c 70%) fixed; color: #e8f1ff; font: 14px/1.4 Tahoma, "Segoe UI", sans-serif; }
+  main { max-width: 900px; margin: auto; }
+  h1 { margin: 0; font-size: 28px; } p { color: #9fb2d4; }
+  table { width: 100%; border-collapse: collapse; background: #0a1430; border: 1px solid #3c6bb5; border-radius: 8px; overflow: hidden; }
+  th, td { padding: 8px 10px; border-bottom: 1px solid #1f3a70; text-align: left; vertical-align: middle; }
+  th { background: linear-gradient(#3f8cff, #1450c8); }
+  td small { color: #9fb2d4; }
+  audio { width: 220px; height: 32px; }
+  @media (max-width: 640px) { audio { width: 140px; } td small { display: none; } }
+</style>
+</head>
+<body>
+<main>
+  <h1>ColeForge Sound Schemes</h1>
+  <p><b>Studio</b> is generated with ElevenLabs (default). <b>Classic</b> is synthesized by <code>generate_coleforge_system_sounds.js</code>.</p>
+  <table>
+    <thead><tr><th>Event</th><th>Studio (ElevenLabs)</th><th>Classic (synth)</th></tr></thead>
+    <tbody id="rows"></tbody>
+  </table>
+</main>
+<script>
+  const EVENTS = [["startup", "Start ColeForge"], ["shutdown", "Exit ColeForge"], ["logon", "Log on"], ["ding", "Default beep"], ["notify", "Notification"],
+    ["exclamation", "Exclamation"], ["critical_stop", "Critical stop"], ["question", "Question"], ["menu_click", "Menu command"], ["menu_popup", "Menu popup"],
+    ["minimize", "Minimize"], ["maximize", "Maximize"], ["recycle", "Empty Recycle Bin"], ["chat_in", "ForgeChat: message in"], ["chat_out", "ForgeChat: message out"],
+    ["buddy_in", "ForgeChat: buddy signs on"], ["buddy_out", "ForgeChat: buddy signs off"], ["lobby_ready", "Arcade: lobby ready"], ["call_ring", "ForgeChat: incoming call"]];
+  const rows = document.getElementById("rows");
+  for (const [id, label] of EVENTS) {
+    const tr = document.createElement("tr");
+    tr.innerHTML = `<td>${label}<br><small>${id}.wav</small></td><td><audio controls preload="none" src="studio/${id}.wav"></audio></td><td><audio controls preload="none" src="${id}.wav"></audio></td>`;
+    rows.append(tr);
+  }
+</script>
+</body>
+</html>

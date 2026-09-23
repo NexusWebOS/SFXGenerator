@@ -26,7 +26,7 @@
 
   const DEFAULTS = {
     user: "Cole", avatar: null, wallpaper: "lake", customWall: null, accent: "#1f6fff",
-    cursors: true, sounds: true, volume: 0.8, uiScale: 1, showBrand: true, fastBoot: false, clock24: false,
+    cursors: true, sounds: true, soundScheme: "studio", volume: 0.8, uiScale: 1, showBrand: true, fastBoot: false, clock24: false,
   };
   const settings = Object.assign({}, DEFAULTS, store.get("cf.settings", {}));
 
@@ -64,11 +64,15 @@
   CF.avatar = () => settings.avatar || CF.icon("logo");
 
   /* ---------------- sounds ---------------- */
+  // "studio" = ElevenLabs-generated scheme in assets/sounds/studio/, "classic" = procedural synth scheme.
+  CF.SOUND_SCHEMES = [["studio", "ColeForge Studio (ElevenLabs)"], ["classic", "ColeForge Classic (synth)"]];
+  CF.soundUrl = (name) => `assets/sounds/${settings.soundScheme === "classic" ? "" : "studio/"}${name}.wav`;
   const soundCache = {};
   CF.sound = (name) => {
     if (!settings.sounds) return;
     try {
-      const base = soundCache[name] || (soundCache[name] = new Audio(`assets/sounds/${name}.wav`));
+      const url = CF.soundUrl(name);
+      const base = soundCache[url] || (soundCache[url] = new Audio(url));
       const a = base.cloneNode();
       a.volume = settings.volume;
       a.play().catch(() => {});

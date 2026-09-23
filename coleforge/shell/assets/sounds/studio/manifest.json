@@ -1,0 +1,159 @@
+{
+  "scheme": "ColeForge Studio",
+  "source": "ElevenLabs eleven_text_to_sound_v2",
+  "sampleRate": 44100,
+  "sounds": [
+    {
+      "name": "startup",
+      "file": "startup.wav",
+      "take": "a",
+      "seconds": 6.0,
+      "prompt": "Computer operating system startup chime, warm ethereal synth pad swelling up under sparkling glassy bell arpeggio, late 1990s desktop, uplifting, about five seconds, clean ending",
+      "generation_id": "JLJZTGremnvFSSJYVeEU"
+    },
+    {
+      "name": "shutdown",
+      "file": "shutdown.wav",
+      "take": "a",
+      "seconds": 2.0,
+      "prompt": "Computer shutdown chime, gentle descending glassy bell phrase settling onto a soft low synth pad, calm farewell, about three seconds",
+      "generation_id": "bXNg73cUW8r8MihYTL7E"
+    },
+    {
+      "name": "logon",
+      "file": "logon.wav",
+      "take": "b",
+      "seconds": 0.892,
+      "prompt": "User log-on welcome sound, short bright synth swell with a single shimmering bell on top, friendly, two seconds",
+      "generation_id": "q5A6Vc0rsbfSJWxfCrkO"
+    },
+    {
+      "name": "ding",
+      "file": "ding.wav",
+      "take": "a",
+      "seconds": 0.961,
+      "prompt": "Single soft rounded computer ding, clean glass bell tone, short decay, desktop default beep",
+      "generation_id": "DKW5539yxOrGwVlgulKf"
+    },
+    {
+      "name": "notify",
+      "file": "notify.wav",
+      "take": "b",
+      "seconds": 0.627,
+      "prompt": "Desktop notification pop, two quick rising glassy chime notes, light and pleasant, under one second",
+      "generation_id": "MQfWHqiBLyoSZvOEAp6e"
+    },
+    {
+      "name": "exclamation",
+      "file": "exclamation.wav",
+      "take": "b",
+      "seconds": 1.339,
+      "prompt": "Computer warning alert, bright attention-grabbing chord stab of bell tones, slightly tense, short",
+      "generation_id": "RankpZxCiJ58WiaIKmhq"
+    },
+    {
+      "name": "critical_stop",
+      "file": "critical_stop.wav",
+      "take": "b",
+      "seconds": 1.648,
+      "prompt": "Computer critical error sound, low dissonant electronic thud with a harsh metallic chord, short and serious",
+      "generation_id": "JLp8yXU6bMMUcuVGx5YP"
+    },
+    {
+      "name": "question",
+      "file": "question.wav",
+      "take": "b",
+      "seconds": 1.0,
+      "prompt": "Gentle questioning computer chime, two soft bell notes rising a fourth, curious tone, short",
+      "generation_id": "j41GJUfUzeagKUCvx6AF"
+    },
+    {
+      "name": "menu_click",
+      "file": "menu_click.wav",
+      "take": "b",
+      "seconds": 0.338,
+      "prompt": "One single soft mouse button click, short plastic tick, close-mic, no repeats",
+      "generation_id": "LZ10EGBazuNlHJKlwf7U"
+    },
+    {
+      "name": "menu_popup",
+      "file": "menu_popup.wav",
+      "take": "a",
+      "seconds": 0.698,
+      "prompt": "Soft airy menu open blip, quick breathy swish with a tiny high chime, very short user interface sound",
+      "generation_id": "IlVEY58Dtf14hix5vty5"
+    },
+    {
+      "name": "minimize",
+      "file": "minimize.wav",
+      "take": "a",
+      "seconds": 0.784,
+      "prompt": "Window minimize whoosh, quick downward airy swoosh falling in pitch, short user interface sound",
+      "generation_id": "LPlXhKlvIyKT0Ee2Q3Xm"
+    },
+    {
+      "name": "maximize",
+      "file": "maximize.wav",
+      "take": "b",
+      "seconds": 0.835,
+      "prompt": "Window maximize whoosh, quick upward airy swoosh rising in pitch, short user interface sound",
+      "generation_id": "TMt4FlVWN1zf1VDukeDq"
+    },
+    {
+      "name": "recycle",
+      "file": "recycle.wav",
+      "take": "a",
+      "seconds": 1.604,
+      "prompt": "Crumpling paper tossed into a metal wastebasket, crinkly and quick, close-mic",
+      "generation_id": "gVWjeTAXoAiUo7f5ICH2"
+    },
+    {
+      "name": "chat_in",
+      "file": "chat_in.wav",
+      "take": "a",
+      "seconds": 0.623,
+      "prompt": "Instant messenger message received, two quick soft bright chime notes, friendly pop, very short",
+      "generation_id": "CS7vItNFbcjjPRCIORT9"
+    },
+    {
+      "name": "chat_out",
+      "file": "chat_out.wav",
+      "take": "b",
+      "seconds": 0.415,
+      "prompt": "Chat message sent, soft quick whoosh ending in a tiny click, very short user interface sound",
+      "generation_id": "YN4RTsSsqsmUvZMBXmhl"
+    },
+    {
+      "name": "buddy_in",
+      "file": "buddy_in.wav",
+      "take": "a",
+      "seconds": 0.831,
+      "prompt": "Creaky wooden door swinging open, short and playful, followed by a bright little chime",
+      "generation_id": "nsUJ8fHi3A9vVUTkcWXN"
+    },
+    {
+      "name": "buddy_out",
+      "file": "buddy_out.wav",
+      "take": "a",
+      "seconds": 0.467,
+      "prompt": "Wooden door closing with a soft solid thud, short, slightly echoey hallway",
+      "generation_id": "q3ImOj3P7AS27hoirUs4"
+    },
+    {
+      "name": "lobby_ready",
+      "file": "lobby_ready.wav",
+      "take": "a",
+      "seconds": 1.071,
+      "prompt": "Short triumphant retro video game ready fanfare, bright synth brass arpeggio, 16-bit arcade, two seconds",
+      "generation_id": "uSTwYH1XSZDgjhEMdQLG"
+    },
+    {
+      "name": "call_ring",
+      "file": "call_ring.wav",
+      "take": "a",
+      "seconds": 0.845,
+      "prompt": "Incoming video call ringtone, cheerful three-note bell melody played twice, clean electronic, under two seconds",
+      "generation_id": "v0yEhBTAGq8wnV2s6npH"
+    }
+  ]
+}

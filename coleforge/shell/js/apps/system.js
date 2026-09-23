@@ -274,7 +274,9 @@
           const vol = h("input", { type: "range", min: 0, max: 1, step: 0.05, value: s.volume });
           vol.addEventListener("change", () => { s.volume = +vol.value; save(); CF.sound("ding"); });
           const events = [["startup", "Start ColeForge"], ["shutdown", "Exit ColeForge"], ["logon", "Log on"], ["ding", "Default beep"], ["notify", "Notification"], ["exclamation", "Exclamation"], ["critical_stop", "Critical stop"], ["question", "Question"], ["menu_click", "Menu command"], ["menu_popup", "Menu popup"], ["minimize", "Minimize"], ["maximize", "Maximize"], ["recycle", "Empty Recycle Bin"], ["chat_in", "ForgeChat: message in"], ["chat_out", "ForgeChat: message out"], ["buddy_in", "ForgeChat: buddy signs on"], ["buddy_out", "ForgeChat: buddy signs off"], ["call_ring", "ForgeChat: incoming call"], ["lobby_ready", "Arcade: lobby ready"]];
-          return [h("div", { class: "group" }, h("div", { class: "legend" }, "Sound scheme: ColeForge Classic"), check("Play system sounds", "sounds"), h("div", { class: "row" }, "Volume", vol)),
+          const scheme = h("select", { class: "field" }, CF.SOUND_SCHEMES.map(([id, label]) => h("option", { value: id, selected: s.soundScheme === id }, label)));
+          scheme.addEventListener("change", () => { s.soundScheme = scheme.value; save(); CF.sound("logon"); });
+          return [h("div", { class: "group" }, h("div", { class: "legend" }, "Sound scheme"), h("div", { class: "row" }, "Scheme:", scheme), check("Play system sounds", "sounds"), h("div", { class: "row" }, "Volume", vol)),
             h("div", { class: "list", style: "height:230px" }, events.map(([id, label]) => { const r = h("div", { class: "item clickable" }, h("img", { src: CF.icon("volume"), alt: "", style: "filter:invert(.3)" }), h("span", { style: "flex:1" }, label), h("small", { class: "muted" }, id + ".wav")); r.addEventListener("click", () => CF.sound(id)); return r; }))];
         },
         account: () => {

@@ -1,0 +1,195 @@
+/* Per-application styles for the ColeForge Edition shell. */
+
+/* ---------- Explorer / My Computer ---------- */
+.explorer { position: absolute; inset: 0; display: flex; }
+.exp-side { width: 200px; flex: none; padding: 8px; overflow: auto; background: linear-gradient(#1a2d55, #0f1d3a); border-right: 1px solid #06122a; }
+.exp-panel { margin-bottom: 10px; border-radius: 5px; overflow: hidden; background: rgba(255,255,255,.05); border: 1px solid #2c4d8a; }
+.exp-ph { padding: 5px 8px; font-weight: 700; background: linear-gradient(#3f8cff, #1450c8); }
+.exp-link { padding: 4px 10px; color: #bfe3ff; }
+.exp-link:hover { text-decoration: underline; color: #fff; }
+.exp-main { flex: 1; overflow: auto; padding: 10px 14px; background: #f3f7fd; color: var(--ink-dark); }
+.exp-h { font-weight: 700; color: #0b2f86; border-bottom: 1px solid #b8c9e4; margin: 8px 0; padding-bottom: 3px; }
+.exp-grid { display: flex; flex-wrap: wrap; gap: 10px; }
+.drive { display: flex; align-items: center; gap: 8px; width: 210px; padding: 6px 8px; border: 1px solid transparent; border-radius: 4px; }
+.drive:hover { border-color: #9fc3f5; background: #e2edfb; }
+.drive img { width: 40px; height: 40px; }
+.drive small { display: block; color: #52617a; }
+.hw-list { display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 6px; }
+.hw { display: grid; grid-template-columns: 26px 80px 1fr; align-items: center; gap: 6px; padding: 4px 6px; background: #fff; border: 1px solid #d3deef; border-radius: 4px; }
+.hw img { width: 22px; height: 22px; }
+.hw span { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.exp-main .muted { color: #52617a; }
+
+/* ---------- Notepad ---------- */
+textarea.notepad { position: absolute; inset: 0; width: 100%; height: 100%; border: none; resize: none; outline: none; padding: 6px 8px; background: #fff; color: #111; font: 14px/1.4 var(--mono); }
+
+/* ---------- Control Panel ---------- */
+.wall-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; }
+.wall-tile { padding: 4px; border: 2px solid transparent; border-radius: 5px; text-align: center; }
+.wall-tile.on { border-color: var(--accent-hi); box-shadow: var(--glow); }
+.wall-prev { height: 64px; border-radius: 3px; background: #0a1a3f center / cover no-repeat; border: 1px solid #3c6bb5; }
+.wall-prev.wall-lake { background-image: url("../assets/art/wallpapers/lake.png"), linear-gradient(#1b2a52, #2d4a7a 45%, #0e1a33 70%, #070d1c); }
+.wall-prev.wall-energy { background-image: url("../assets/art/wallpapers/energy.png"), radial-gradient(ellipse at 30% 40%, #2d7fff 0, transparent 45%), linear-gradient(135deg, #02060f, #0a1a3f); }
+.wall-prev.wall-forge { background-image: url("../assets/art/boot-splash.webp"); }
+.wall-prev.wall-navy { background: radial-gradient(circle at 50% 30%, #1d3f86, #050b1c 75%); }
+.wall-prev.wall-teal { background: #008080; }
+.wall-prev.wall-custom { background: repeating-linear-gradient(45deg, #13244a 0 8px, #0a1a3f 8px 16px); }
+.swatch { width: 20px; height: 20px; border-radius: 4px; border: 1px solid #fff; }
+.cursor-prev { display: grid; place-items: center; gap: 2px; width: 60px; padding: 6px; background: #0a1a3f; border: 1px solid #3c6bb5; border-radius: 4px; }
+.cursor-prev img { height: 28px; }
+
+/* ---------- About ---------- */
+.about { display: flex; gap: 18px; padding: 18px; height: 100%; background: radial-gradient(circle at 20% 30%, #1d3f86, #050b1c 80%); }
+.about > img { width: 110px; height: 110px; filter: drop-shadow(0 0 14px #3f8cff); }
+.about-w { font: 700 34px var(--font); line-height: 1; background: linear-gradient(#fff, #b7c9e6); -webkit-background-clip: text; background-clip: text; color: transparent; }
+.about-e { font: 600 20px var(--font); color: var(--accent-hi); }
+.about-tag { font: 12px var(--mono); letter-spacing: .14em; color: #9fb2d4; margin: 8px 0 12px; }
+
+/* ---------- forms ---------- */
+.form-grid { display: grid; grid-template-columns: 150px 1fr; gap: 8px 10px; align-items: center; }
+
+/* ---------- ForgeAmp ---------- */
+.amp { position: absolute; inset: 0; display: flex; flex-direction: column; gap: 6px; padding: 8px; background: linear-gradient(#1a2d55, #0a1430); }
+.amp-screen { position: relative; border: 2px solid #3c6bb5; border-radius: 6px; overflow: hidden; box-shadow: inset 0 0 12px #000, 0 0 10px rgba(31,111,255,.4); background: #020812; }
+.amp-vis { display: block; width: 100%; height: 110px; }
+.amp-info { padding: 4px 8px 6px; font-family: var(--mono); color: #7fd0ff; text-shadow: 0 0 6px #1f6fff; }
+.amp-title { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; font-size: 14px; }
+.amp-time, .amp-fmt { font-size: 12px; }
+.amp-seek, .vis-seek { width: 100%; }
+.amp-ctrl, .amp-btns { display: flex; align-items: center; gap: 4px; flex-wrap: wrap; }
+.amp-ctrl input[type="range"] { width: 90px; }
+.amp-list { flex: 1; min-height: 80px; }
+
+/* ---------- ForgeVision ---------- */
+.vis { position: absolute; inset: 0; display: flex; background: #05080f; }
+.vis-main { flex: 1; min-width: 0; display: flex; flex-direction: column; }
+.vis-stage { position: relative; flex: 1; min-height: 0; background: #000; display: grid; place-items: center; }
+.vis-video { width: 100%; height: 100%; object-fit: contain; background: #000; }
+.vis-empty { position: absolute; display: grid; place-items: center; gap: 10px; color: var(--ink-dim); pointer-events: none; }
+.vis-empty img { width: 72px; opacity: .8; }
+.vis-ctrl { display: flex; align-items: center; gap: 4px; padding: 4px 6px; background: linear-gradient(#1a2d55, #0a1430); flex-wrap: wrap; }
+.vis-time { font: 12px var(--mono); color: #bfe3ff; margin-left: 6px; }
+.vis-list { width: 200px; flex: none; }
+
+/* ---------- Forgecraft ---------- */
+.fc { position: absolute; inset: 0; display: flex; flex-direction: column; }
+.fc-mid { flex: 1; min-height: 0; display: flex; }
+.fc-left { width: 92px; flex: none; padding: 6px; background: linear-gradient(#1a2d55, #0f1d3a); border-right: 1px solid #06122a; }
+.fc-tools { display: grid; grid-template-columns: 1fr 1fr; gap: 3px; }
+.fc-tools .tool { min-width: 0; padding: 5px 0; }
+.fc-swatch { position: relative; height: 62px; margin-top: 12px; }
+.fc-fg, .fc-bg { position: absolute; width: 36px; height: 36px; border: 2px solid #fff; box-shadow: 0 0 0 1px #000; }
+.fc-fg { left: 4px; top: 0; z-index: 1; }
+.fc-bg { left: 26px; top: 20px; }
+.fc-swap { position: absolute; right: 0; top: 0; font-size: 16px; }
+.fc-scroll { flex: 1; min-width: 0; overflow: auto; display: grid; place-items: center; padding: 14px; background: #3a4150 repeating-conic-gradient(#41495a 0 25%, #3a4150 0 50%) 0 0 / 24px 24px; }
+.fc-canvas { position: relative; box-shadow: 0 4px 20px rgba(0,0,0,.6); background: repeating-conic-gradient(#ddd 0 25%, #fff 0 50%) 0 0 / 16px 16px; }
+.fc-canvas canvas { position: absolute; inset: 0; width: 100%; height: 100%; }
+.fc-canvas.pixelated canvas { image-rendering: pixelated; }
+.fc-over { touch-action: none; }
+body.forge-cursors .fc-over[data-tool="brush"], body.forge-cursors .fc-over[data-tool="pencil"], body.forge-cursors .fc-over[data-tool="eraser"],
+body.forge-cursors .fc-over[data-tool="line"], body.forge-cursors .fc-over[data-tool="rect"], body.forge-cursors .fc-over[data-tool="ellipse"], .fc-over { cursor: crosshair; }
+body.forge-cursors .fc-over[data-tool="move"] { cursor: move; }
+body.forge-cursors .fc-over[data-tool="text"] { cursor: var(--cursor-text); }
+.fc-right { width: 210px; flex: none; display: flex; flex-direction: column; background: linear-gradient(#1a2d55, #0f1d3a); border-left: 1px solid #06122a; }
+.fc-ph { padding: 5px 8px; font-weight: 700; background: linear-gradient(#3f8cff, #1450c8); }
+.fc-layers { flex: 1; min-height: 60px; }
+.fc-thumb { width: 40px; height: 30px; border: 1px solid #3c6bb5; background: repeating-conic-gradient(#ddd 0 25%, #fff 0 50%) 0 0 / 8px 8px; }
+.fc-eye { width: 18px; text-align: center; }
+.fc-palette { display: grid; grid-template-columns: repeat(14, 22px); grid-auto-rows: 14px; gap: 2px; padding: 5px 8px; background: #0c1830; border-top: 1px solid #1f3a70; }
+.fc-palette span { border: 1px solid #000; box-shadow: inset 1px 1px 0 rgba(255,255,255,.4); }
+
+/* ---------- ForgeChat ---------- */
+.chat-signon { position: absolute; inset: 0; display: grid; place-items: center; background: radial-gradient(circle at 50% 25%, #1d3f86, #050b1c 75%); }
+.chat-signon-card { width: min(300px, 90%); display: flex; flex-direction: column; gap: 6px; text-align: center; }
+.chat-signon-card h2 { margin: 0 0 4px; font-size: 24px; color: #fff; text-shadow: 0 0 10px #1f6fff; }
+.chat-signon-card label { text-align: left; font-size: 11px; color: var(--ink-dim); margin-top: 4px; }
+.chat-signon-av { width: 64px; height: 64px; margin: 4px auto; border-radius: 10px; border: 2px solid #7fb8ff; object-fit: cover; background: #0a1a3f; }
+.chat { position: absolute; inset: 0; display: flex; }
+.chat-rail { width: 220px; flex: none; overflow: auto; background: #0b1630; border-right: 1px solid #06122a; }
+.chat-me { display: flex; gap: 8px; align-items: center; padding: 8px; background: linear-gradient(#1f4c9c, #0b2f86); cursor: default; }
+.chat-sec { padding: 10px 10px 3px; font-size: 11px; font-weight: 700; letter-spacing: .06em; text-transform: uppercase; color: var(--ink-dim); }
+.chat-room { display: flex; align-items: center; gap: 8px; margin: 1px 6px; padding: 4px 8px; border-radius: 4px; color: #c9d8f2; }
+.chat-room:hover { background: rgba(95,180,255,.12); }
+.chat-room.on { background: var(--accent); color: #fff; }
+.chat-badge { min-width: 18px; padding: 0 5px; border-radius: 9px; background: #e0493a; color: #fff; font-size: 11px; text-align: center; }
+.chat-av { width: 34px; height: 34px; border-radius: 8px; object-fit: cover; background: #0a1a3f; flex: none; }
+.chat-av.sm { width: 22px; height: 22px; border-radius: 5px; }
+.chat-avwrap { position: relative; display: inline-flex; }
+.chat-avwrap .chat-dot { position: absolute; right: -3px; bottom: -3px; border: 2px solid #0b1630; }
+.chat-dot { display: inline-block; width: 10px; height: 10px; border-radius: 50%; background: #3ddc6b; }
+.chat-dot.away { background: #ffc233; }
+.chat-dot.busy { background: #e0493a; }
+.chat-center { flex: 1; min-width: 0; display: flex; flex-direction: column; background: #0f1d3a; }
+.chat-head { display: flex; align-items: center; gap: 8px; padding: 8px 12px; border-bottom: 1px solid #06122a; background: #13244a; }
+.chat-log { flex: 1; min-height: 0; overflow: auto; padding: 8px 12px; user-select: text; }
+.chat-empty { padding: 30px; text-align: center; }
+.chat-msg { display: flex; gap: 10px; padding: 5px 0; }
+.chat-msg.auto .chat-bubble { opacity: .75; font-style: italic; }
+.chat-bubble { min-width: 0; flex: 1; }
+.chat-meta { display: flex; gap: 8px; align-items: baseline; font-size: 12px; }
+.chat-msg.mine .chat-meta b { color: #ff9a6b; }
+.chat-meta b { color: #7fd0ff; }
+.chat-text { white-space: pre-wrap; word-wrap: break-word; }
+.chat-text code { background: #06122a; padding: 0 4px; border-radius: 3px; font-family: var(--mono); }
+.chat-link { color: #7fd0ff; text-decoration: underline; }
+.chat-media { display: block; max-width: min(320px, 100%); max-height: 260px; margin-top: 4px; border-radius: 6px; border: 1px solid #3c6bb5; }
+.chat-voice { display: block; margin-top: 4px; height: 34px; }
+.chat-file { display: flex; align-items: center; gap: 8px; max-width: 340px; margin-top: 4px; padding: 6px 8px; border: 1px solid #3c6bb5; border-radius: 6px; background: #0a1430; }
+.chat-file img { width: 28px; }
+.chat-typing { height: 18px; padding: 0 14px; font-size: 11px; font-style: italic; color: var(--ink-dim); }
+.chat-compose { padding: 6px 10px 10px; border-top: 1px solid #06122a; background: #13244a; }
+.chat-tools { display: flex; align-items: center; gap: 2px; margin-bottom: 4px; }
+.chat-input { flex: 1; resize: none; background: #06122a; border: 1px solid #3c6bb5; border-radius: 6px; padding: 7px 9px; color: #fff; outline: none; }
+.chat-input:focus { border-color: #9fd4ff; }
+.ctx.chat-emoji { display: grid; grid-template-columns: repeat(8, 30px); padding: 6px; font-size: 20px; text-align: center; }
+.ctx.chat-emoji span:hover { background: #cfe3ff; border-radius: 4px; }
+.lobby-intro { display: flex; gap: 12px; align-items: center; padding: 10px; margin-bottom: 8px; border: 1px solid #3c6bb5; border-radius: 8px; background: linear-gradient(90deg, rgba(31,111,255,.25), transparent); }
+.lobby-intro img { width: 44px; }
+.lobby-card { display: flex; gap: 12px; align-items: center; padding: 10px; margin-bottom: 8px; border: 1px solid #2c4d8a; border-radius: 8px; background: #0a1430; }
+.lobby-card.mine { border-color: #9fd4ff; box-shadow: 0 0 12px rgba(31,111,255,.4); }
+.lobby-art { width: 84px; height: 60px; object-fit: cover; border-radius: 5px; border: 1px solid #3c6bb5; background: #000; }
+.lobby-players { display: flex; flex-wrap: wrap; gap: 4px; margin-top: 5px; }
+.lobby-p { padding: 1px 8px; border-radius: 10px; background: #1a2d55; font-size: 12px; }
+.lobby-p.ready { background: #1d6b3a; }
+.lobby-live { color: #ff6b5b; font-weight: 700; }
+.lobby-actions { display: flex; flex-direction: column; gap: 4px; }
+.call { position: absolute; inset: 0; background: #000; }
+.call-remote { width: 100%; height: 100%; object-fit: contain; }
+.call-local { position: absolute; right: 12px; top: 12px; width: 28%; max-width: 200px; border: 2px solid #7fb8ff; border-radius: 6px; background: #111; }
+.call-state { position: absolute; inset: 0; display: grid; place-items: center; font-size: 18px; color: #bfe3ff; pointer-events: none; }
+.call-bar { position: absolute; left: 0; right: 0; bottom: 12px; display: flex; justify-content: center; gap: 8px; }
+
+/* ---------- Forge Browser ---------- */
+.br { position: absolute; inset: 0; display: flex; flex-direction: column; }
+.br-tabs { display: flex; gap: 2px; padding: 4px 6px 0; background: #0a1430; overflow: hidden; }
+.br-tab { display: flex; align-items: center; gap: 6px; max-width: 200px; padding: 4px 8px; border: 1px solid #2c4d8a; border-bottom: none; border-radius: 6px 6px 0 0; background: #13244a; color: var(--ink-dim); white-space: nowrap; }
+.br-tab span:not(.br-x) { overflow: hidden; text-overflow: ellipsis; }
+.br-tab img { width: 14px; }
+.br-tab.on { background: linear-gradient(#2a4a8c, #1a2d55); color: #fff; border-color: #7fb8ff; }
+.br-x { opacity: .6; font-size: 11px; }
+.br-x:hover { opacity: 1; color: #ff6b5b; }
+.br-new { padding: 4px 10px; }
+.br-addr { flex: 1; min-width: 120px; }
+.br-favs { display: flex; gap: 4px; padding: 3px 6px; background: #10204a; border-bottom: 1px solid #06122a; font-size: 12px; overflow: hidden; }
+.br-fav { padding: 1px 8px; border-radius: 3px; color: #bfe3ff; white-space: nowrap; }
+.br-fav:hover { background: rgba(95,180,255,.18); }
+.br-hint { display: none; padding: 4px 10px; font-size: 12px; background: #3a2e05; color: #ffd98a; border-bottom: 1px solid #6b5410; }
+.br-hint a { color: #fff; text-decoration: underline; }
+.br-pages { position: relative; flex: 1; min-height: 0; background: #fff; }
+.br-view { position: absolute; inset: 0; width: 100%; height: 100%; border: none; background: #fff; }
+
+/* ---------- Forge Arcade ---------- */
+.arc { position: absolute; inset: 0; overflow: auto; padding: 12px; background: radial-gradient(circle at 50% 0, #2a0e0a, #050b1c 60%); }
+.arc-head { display: flex; gap: 12px; align-items: center; margin-bottom: 12px; }
+.arc-head img { width: 44px; }
+.arc-head b { font-size: 18px; }
+.arc-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(250px, 1fr)); gap: 12px; }
+.arc-card { display: flex; flex-direction: column; border: 1px solid #3c6bb5; border-radius: 8px; overflow: hidden; background: #0a1430; transition: transform .15s, box-shadow .15s; }
+.arc-card:hover { transform: translateY(-2px); box-shadow: 0 0 16px rgba(255,91,31,.4); }
+.arc-card.featured { grid-column: span 2; border-color: #ff8a3d; }
+.arc-art { height: 140px; background: #1a0604 center / cover no-repeat; }
+.arc-card.featured .arc-art { height: 220px; }
+.arc-body { padding: 8px 10px 10px; }
+.arc-body p { margin: 6px 0; font-size: 12px; color: #c9d8f2; }
+@media (max-width: 640px) { .arc-card.featured { grid-column: auto; } }

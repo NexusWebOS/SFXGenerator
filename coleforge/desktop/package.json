@@ -1,0 +1,54 @@
+{
+  "name": "coleforge-desktop",
+  "productName": "ColeForge",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Windows \u2013 ColeForge Edition desktop host and shell replacement",
+  "main": "main.js",
+  "scripts": {
+    "start": "electron .",
+    "shell": "electron . --shell",
+    "copy-app": "node scripts/copy-app.js",
+    "dist:win": "npm run copy-app && electron-builder --win portable nsis",
+    "dist:linux": "npm run copy-app && electron-builder --linux AppImage"
+  },
+  "devDependencies": {
+    "electron": "^38.0.0",
+    "electron-builder": "^26.0.0"
+  },
+  "build": {
+    "appId": "dev.coleforge.shell",
+    "productName": "ColeForge",
+    "files": [
+      "main.js",
+      "preload.js",
+      "app/**/*"
+    ],
+    "win": {
+      "target": [
+        "portable",
+        "nsis"
+      ],
+      "artifactName": "ColeForge-${version}-${arch}.${ext}"
+    },
+    "portable": {
+      "artifactName": "ColeForge.exe"
+    },
+    "nsis": {
+      "oneClick": false,
+      "allowToChangeInstallationDirectory": true
+    },
+    "linux": {
+      "target": [
+        "AppImage"
+      ],
+      "category": "System"
+    },
+    "extraResources": [
+      {
+        "from": "app/shell/assets",
+        "to": "coleforge-assets"
+      }
+    ]
+  }
+}

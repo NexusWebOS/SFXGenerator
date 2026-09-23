@@ -1,0 +1,591 @@
+"use strict";
+
+// Windows – ColeForge Edition shell core: boot, window manager, taskbar, Start menu,
+// context menus, dialogs, toasts, settings, sounds and a small document store.
+(function () {
+  const $ = (sel, root = document) => root.querySelector(sel);
+  const h = (tag, attrs = {}, ...kids) => {
+    const el = document.createElement(tag);
+    for (const [k, v] of Object.entries(attrs)) {
+      if (v == null || v === false) continue;
+      if (k === "class") el.className = v;
+      else if (k === "style") el.style.cssText = v;
+      else if (k.startsWith("on")) el.addEventListener(k.slice(2), v);
+      else if (k === "html") el.innerHTML = v;
+      else el.setAttribute(k, v === true ? "" : v);
+    }
+    for (const kid of kids.flat()) if (kid != null && kid !== false) el.append(kid.nodeType ? kid : document.createTextNode(kid));
+    return el;
+  };
+  const esc = (s) => String(s).replace(/[&<>"']/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
+  const store = {
+    get(key, fallback) { try { const v = localStorage.getItem(key); return v == null ? fallback : JSON.parse(v); } catch { return fallback; } },
+    set(key, value) { try { localStorage.setItem(key, JSON.stringify(value)); return true; } catch { return false; } },
+  };
+  const host = window.forgeHost || null; // Electron bridge when running as the real shell
+
+  const DEFAULTS = {
+    user: "Cole", avatar: null, wallpaper: "lake", customWall: null, accent: "#1f6fff",
+    cursors: true, sounds: true, volume: 0.8, uiScale: 1, showBrand: true, fastBoot: false, clock24: false,
+  };
+  const settings = Object.assign({}, DEFAULTS, store.get("cf.settings", {}));
+
+  const CF = window.CF = {
+    h, $, esc, store, host, settings, apps: {}, windows: [],
+    version: "1.0.0", build: "2406",
+    edition: "Windows – ColeForge Edition",
+  };
+
+  /* ---------------- settings ---------------- */
+  function shade(hex, amt) {
+    const n = parseInt(hex.slice(1), 16);
+    const c = [n >> 16, (n >> 8) & 255, n & 255].map(v => Math.max(0, Math.min(255, Math.round(amt < 0 ? v * (1 + amt) : v + (255 - v) * amt))));
+    return "#" + c.map(v => v.toString(16).padStart(2, "0")).join("");
+  }
+  CF.saveSettings = () => { store.set("cf.settings", settings); CF.applySettings(); };
+  CF.applySettings = () => {
+    const root = document.documentElement.style;
+    root.setProperty("--accent", settings.accent);
+    root.setProperty("--accent-hi", shade(settings.accent, 0.35));
+    root.setProperty("--accent-lo", shade(settings.accent, -0.55));
+    root.setProperty("--ui-scale", settings.uiScale);
+    document.body.classList.toggle("forge-cursors", !!settings.cursors);
+    const desk = $("#desktop");
+    if (desk) {
+      desk.className = "wall-" + settings.wallpaper;
+      desk.style.backgroundImage = settings.wallpaper === "custom" && settings.customWall ? `url("${settings.customWall}")` : "";
+    }
+    const brand = $("#desk-brand");
+    if (brand) brand.style.display = settings.showBrand ? "" : "none";
+    const av = CF.avatar();
+    document.querySelectorAll("img.my-avatar").forEach(img => { img.src = av; });
+    document.querySelectorAll(".my-name").forEach(el => { el.textContent = settings.user; });
+  };
+  CF.avatar = () => settings.avatar || CF.icon("logo");
+
+  /* ---------------- sounds ---------------- */
+  const soundCache = {};
+  CF.sound = (name) => {
+    if (!settings.sounds) return;
+    try {
+      const base = soundCache[name] || (soundCache[name] = new Audio(`assets/sounds/${name}.wav`));
+      const a = base.cloneNode();
+      a.volume = settings.volume;
+      a.play().catch(() => {});
+    } catch { /* audio unavailable */ }
+  };
+
+  CF.icon = (id) => window.CFIcons.get(id);
+
+  /* ---------------- document store (My Documents + Recycle Bin) ---------------- */
+  const vfsKey = "cf.vfs";
+  const vfsLoad = () => store.get(vfsKey, { docs: {}, bin: {} });
+  CF.vfs = {
+    list: () => Object.values(vfsLoad().docs).sort((a, b) => a.name.localeCompare(b.name)),
+    bin: () => Object.values(vfsLoad().bin),
+    read: (name) => vfsLoad().docs[name] || null,
+    write(name, data, type = "text") {
+      const fs = vfsLoad();
+      fs.docs[name] = { name, type, data, modified: Date.now() };
+      if (!store.set(vfsKey, fs)) { CF.dialog({ title: "Disk Full", icon: "error", message: "My Documents is full. Export large files instead." }); return false; }
+      CF.emit("vfs");
+      return true;
+    },
+    remove(name) {
+      const fs = vfsLoad();
+      if (!fs.docs[name]) return;
+      fs.bin[name] = fs.docs[name]; delete fs.docs[name];
+      store.set(vfsKey, fs); CF.emit("vfs");
+    },
+    restore(name) {
+      const fs = vfsLoad();
+      if (!fs.bin[name]) return;
+      fs.docs[name] = fs.bin[name]; delete fs.bin[name];
+      store.set(vfsKey, fs); CF.emit("vfs");
+    },
+    emptyBin() { const fs = vfsLoad(); fs.bin = {}; store.set(vfsKey, fs); CF.emit("vfs"); CF.sound("recycle"); },
+  };
+
+  /* ---------------- tiny event bus ---------------- */
+  const listeners = {};
+  CF.on = (ev, fn) => { (listeners[ev] = listeners[ev] || []).push(fn); return () => { listeners[ev] = listeners[ev].filter(f => f !== fn); }; };
+  CF.emit = (ev, data) => (listeners[ev] || []).slice().forEach(fn => { try { fn(data); } catch (e) { console.error(e); } });
+
+  /* ---------------- context menus ---------------- */
+  let openCtx = null;
+  function buildMenu(items) {
+    const menu = h("div", { class: "ctx", role: "menu" });
+    for (const it of items) {
+      if (!it) continue;
+      if (it === "-") { menu.append(h("div", { class: "cs" })); continue; }
+      const row = h("div", { class: "ci" + (it.items ? " sub" : "") + (it.disabled ? " disabled" : "") + (it.checked ? " checked" : ""), role: "menuitem" },
+        it.icon ? h("img", { src: CF.icon(it.icon), alt: "" }) : null, h("span", {}, it.label), it.key ? h("span", { class: "k" }, it.key) : null);
+      if (it.items) row.append(buildMenu(it.items));
+      else row.addEventListener("click", (e) => { e.stopPropagation(); CF.closeMenus(); CF.sound("menu_click"); it.action && it.action(); });
+      menu.append(row);
+    }
+    return menu;
+  }
+  CF.closeMenus = () => {
+    if (openCtx) { openCtx.remove(); openCtx = null; }
+    document.querySelectorAll(".menubar > .open").forEach(m => m.classList.remove("open"));
+  };
+  CF.contextMenu = (pos, items) => {
+    CF.closeMenus();
+    const menu = buildMenu(items);
+    document.body.append(menu);
+    const r = menu.getBoundingClientRect();
+    menu.style.left = Math.max(2, Math.min(pos.x, innerWidth - r.width - 4)) + "px";
+    menu.style.top = Math.max(2, Math.min(pos.y, innerHeight - r.height - 4)) + "px";
+    openCtx = menu;
+    CF.sound("menu_popup");
+    return menu;
+  };
+  addEventListener("pointerdown", (e) => {
+    if (openCtx && !openCtx.contains(e.target) && !e.target.closest(".menubar")) CF.closeMenus();
+    const sm = $("#start-menu");
+    if (sm && sm.classList.contains("open") && !sm.contains(e.target) && !e.target.closest("#start-btn")) CF.toggleStart(false);
+  }, true);
+
+  /* ---------------- dialogs & toasts ---------------- */
+  CF.dialog = ({ title = "ColeForge", icon = "info", message = "", buttons = ["OK"], input = null, sound } = {}) => new Promise(resolve => {
+    const field = input != null ? h("input", { class: "field", value: input }) : null;
+    const veil = h("div", { class: "dlg-veil" });
+    const finish = (button) => { veil.remove(); resolve({ button, value: field ? field.value : undefined }); };
+    const win = h("div", { class: "win active" },
+      h("div", { class: "titlebar" }, h("img", { src: CF.icon("logo"), alt: "" }), h("span", { class: "title" }, title),
+        h("button", { class: "tb-btn close", title: "Close", onclick: () => finish(null) }, "✕")),
+      h("div", { class: "dlg-body" }, h("img", { src: CF.icon(icon), alt: "" }), h("div", { style: "flex:1" }, h("div", { class: "msg" }, message), field)),
+      h("div", { class: "dlg-btns" }, buttons.map((b, i) => h("button", { class: "btn" + (i ? " flat" : ""), onclick: () => finish(b) }, b))));
+    veil.append(h("div", { class: "dlg" }, win));
+    veil.addEventListener("keydown", (e) => { if (e.key === "Enter") finish(buttons[0]); if (e.key === "Escape") finish(null); });
+    document.body.append(veil);
+    (field || win.querySelector(".dlg-btns .btn")).focus();
+    CF.sound(sound || { info: "ding", warning: "exclamation", error: "critical_stop", question: "question" }[icon] || "ding");
+  });
+  CF.toast = ({ title, body = "", icon = "info", timeout = 5000, onclick } = {}) => {
+    const stack = $("#toasts");
+    const el = h("div", { class: "toast clickable" }, h("img", { src: CF.icon(icon), alt: "" }), h("div", {}, h("b", {}, title), h("small", {}, body)), h("span", { class: "x" }, "✕"));
+    const close = () => { el.classList.add("out"); setTimeout(() => el.remove(), 300); };
+    el.addEventListener("click", (e) => { if (!e.target.classList.contains("x") && onclick) onclick(); close(); });
+    stack.append(el);
+    while (stack.children.length > 4) stack.firstChild.remove();
+    CF.sound("notify");
+    setTimeout(close, timeout);
+  };
+
+  /* ---------------- window manager ---------------- */
+  let zTop = 100, winSeq = 0, cascade = 0;
+  CF.register = (app) => { CF.apps[app.id] = app; };
+
+  CF.open = (appId, args = {}) => {
+    const app = CF.apps[appId];
+    if (!app) return CF.dialog({ title: "Run", icon: "error", message: `Cannot find '${appId}'. Make sure you typed the name correctly, and then try again.` });
+    if (app.single) {
+      const existing = CF.windows.find(w => w.appId === appId);
+      if (existing) { existing.restore(); existing.focus(); existing.emit("args", args); return existing; }
+    }
+    CF.toggleStart(false);
+    document.body.classList.add("busy");
+    setTimeout(() => document.body.classList.remove("busy"), 350);
+    const w = CF.createWindow({ appId, title: app.name, icon: app.icon, ...(app.window || {}) });
+    try { app.open(w, args); } catch (e) { console.error(e); w.close(); CF.dialog({ title: app.name, icon: "error", message: "This program has performed an illegal operation and will be shut down.\n\n" + e.message }); }
+    return w;
+  };
+
+  CF.createWindow = ({ appId = null, title = "Window", icon = "logo", w = 640, h: hh = 440, x, y, resizable = true, maximized = false } = {}) => {
+    const desk = $("#desktop");
+    const dw = desk.clientWidth, dh = desk.clientHeight;
+    w = Math.min(w, dw - 8); hh = Math.min(hh, dh - 8);
+    if (x == null) { x = Math.max(4, (dw - w) / 2 - 90 + cascade * 26); y = Math.max(4, (dh - hh) / 2 - 60 + cascade * 26); cascade = (cascade + 1) % 7; }
+    const id = "w" + (++winSeq);
+    const bodyEl = h("div", { class: "win-body" });
+    const titleEl = h("span", { class: "title" }, title);
+    const iconEl = h("img", { src: CF.icon(icon), alt: "" });
+    const el = h("div", { class: "win opening", id, style: `left:${x}px;top:${y}px;width:${w}px;height:${hh}px` },
+      h("div", { class: "titlebar" }, iconEl, titleEl,
+        h("button", { class: "tb-btn", title: "Minimize", "data-act": "min" }, "▁"),
+        resizable ? h("button", { class: "tb-btn", title: "Maximize", "data-act": "max" }, "□") : null,
+        h("button", { class: "tb-btn close", title: "Close", "data-act": "close" }, "✕")),
+      bodyEl, h("div", { class: "win-shield" }), resizable ? h("div", { class: "resize-grip" }) : null);
+    const taskBtn = h("div", { class: "task clickable", title }, h("img", { src: CF.icon(icon), alt: "" }), h("span", {}, title));
+    const handlers = {};
+    const win = {
+      id, appId, el, body: bodyEl, taskBtn, data: {},
+      on(ev, fn) { (handlers[ev] = handlers[ev] || []).push(fn); return win; },
+      emit(ev, arg) { let veto = false; (handlers[ev] || []).forEach(fn => { if (fn(arg) === false) veto = true; }); return !veto; },
+      setTitle(t) { titleEl.textContent = t; taskBtn.title = t; taskBtn.querySelector("span").textContent = t; },
+      setIcon(i) { iconEl.src = CF.icon(i); taskBtn.querySelector("img").src = CF.icon(i); },
+      focus() {
+        CF.windows.forEach(o => { o.el.classList.remove("active"); o.taskBtn.classList.remove("active"); });
+        el.style.zIndex = ++zTop; el.classList.add("active"); taskBtn.classList.add("active");
+        win.emit("focus");
+      },
+      minimize() { el.classList.add("min"); el.classList.remove("active"); taskBtn.classList.remove("active"); CF.sound("minimize"); },
+      restore() { if (el.classList.contains("min")) { el.classList.remove("min"); CF.sound("maximize"); } },
+      toggleMax() {
+        if (!resizable) return;
+        if (el.classList.contains("max")) {
+          el.classList.remove("max"); Object.assign(el.style, win.data.prevRect);
+        } else {
+          win.data.prevRect = { left: el.style.left, top: el.style.top, width: el.style.width, height: el.style.height };
+          el.classList.add("max"); Object.assign(el.style, { left: "0px", top: "0px", width: "100%", height: "100%" });
+        }
+        CF.sound("maximize"); win.emit("resize");
+      },
+      async close(force) {
+        if (!force && !win.emit("beforeclose")) return;
+        win.emit("close");
+        el.remove(); taskBtn.remove();
+        CF.windows = CF.windows.filter(o => o !== win);
+        const next = CF.windows.filter(o => !o.el.classList.contains("min")).sort((a, b) => b.el.style.zIndex - a.el.style.zIndex)[0];
+        if (next) next.focus();
+      },
+      menubar(defs) {
+        const bar = h("div", { class: "menubar" });
+        for (const d of defs) {
+          const m = h("div", { class: "clickable" }, d.label);
+          m.addEventListener("click", (e) => {
+            e.stopPropagation();
+            const wasOpen = m.classList.contains("open");
+            CF.closeMenus();
+            if (wasOpen) return;
+            const r = m.getBoundingClientRect();
+            CF.contextMenu({ x: r.left, y: r.bottom }, typeof d.items === "function" ? d.items() : d.items);
+            m.classList.add("open");
+          });
+          bar.append(m);
+        }
+        el.insertBefore(bar, bodyEl);
+        return bar;
+      },
+      statusbar(parts) {
+        let bar = el.querySelector(":scope > .statusbar");
+        if (!bar) { bar = h("div", { class: "statusbar" }); el.insertBefore(bar, bodyEl.nextSibling); }
+        bar.replaceChildren(...parts.map(p => h("span", {}, p)));
+        return bar;
+      },
+    };
+    el.addEventListener("animationend", () => el.classList.remove("opening"), { once: true });
+    el.addEventListener("pointerdown", () => { if (!el.classList.contains("active")) win.focus(); }, true);
+    el.querySelector(".titlebar").addEventListener("click", (e) => {
+      const act = e.target.closest("[data-act]")?.dataset.act;
+      if (act === "min") win.minimize(); else if (act === "max") win.toggleMax(); else if (act === "close") win.close();
+    });
+    el.querySelector(".titlebar").addEventListener("dblclick", (e) => { if (!e.target.closest(".tb-btn")) win.toggleMax(); });
+    el.querySelector(".titlebar").addEventListener("contextmenu", (e) => {
+      e.preventDefault();
+      CF.contextMenu({ x: e.clientX, y: e.clientY }, [
+        { label: "Restore", action: () => el.classList.contains("max") && win.toggleMax(), disabled: !el.classList.contains("max") },
+        { label: "Minimize", action: () => win.minimize() },
+        { label: "Maximize", action: () => !el.classList.contains("max") && win.toggleMax(), disabled: !resizable || el.classList.contains("max") },
+        "-", { label: "Close", key: "Alt+F4", action: () => win.close() },
+      ]);
+    });
+    dragBehaviour(win, resizable);
+    taskBtn.addEventListener("click", () => {
+      if (el.classList.contains("min")) { win.restore(); win.focus(); }
+      else if (el.classList.contains("active")) win.minimize();
+      else win.focus();
+    });
+    taskBtn.addEventListener("contextmenu", (e) => { e.preventDefault(); el.querySelector(".titlebar").dispatchEvent(new MouseEvent("contextmenu", e)); });
+    desk.append(el);
+    $("#tasks").append(taskBtn);
+    CF.windows.push(win);
+    win.focus();
+    if (maximized) win.toggleMax();
+    return win;
+  };
+
+  function dragBehaviour(win, resizable) {
+    const el = win.el, bar = el.querySelector(".titlebar"), grip = el.querySelector(".resize-grip");
+    const track = (startEv, onMove) => {
+      startEv.preventDefault();
+      const target = startEv.currentTarget;
+      target.setPointerCapture(startEv.pointerId);
+      document.body.classList.add("dragging-any");
+      const move = (e) => onMove(e);
+      const up = () => { target.removeEventListener("pointermove", move); target.removeEventListener("pointerup", up); document.body.classList.remove("dragging-any"); win.emit("resize"); };
+      target.addEventListener("pointermove", move);
+      target.addEventListener("pointerup", up);
+    };
+    bar.addEventListener("pointerdown", (e) => {
+      if (e.button !== 0 || e.target.closest(".tb-btn") || el.classList.contains("max")) return;
+      const ox = e.clientX - el.offsetLeft, oy = e.clientY - el.offsetTop;
+      const desk = el.parentElement;
+      track(e, (m) => {
+        el.style.left = Math.max(-el.offsetWidth + 80, Math.min(desk.clientWidth - 80, m.clientX - ox)) + "px";
+        el.style.top = Math.max(0, Math.min(desk.clientHeight - 30, m.clientY - oy)) + "px";
+      });
+    });
+    if (resizable && grip) grip.addEventListener("pointerdown", (e) => {
+      const sx = e.clientX, sy = e.clientY, sw = el.offsetWidth, sh = el.offsetHeight;
+      track(e, (m) => { el.style.width = Math.max(240, sw + m.clientX - sx) + "px"; el.style.height = Math.max(140, sh + m.clientY - sy) + "px"; });
+    });
+  }
+
+  CF.activeWindow = () => CF.windows.find(w => w.el.classList.contains("active"));
+
+  /* ---------------- desktop ---------------- */
+  const DESK_ITEMS = [
+    ["mycomputer", "My Computer", "computer"], ["files", "My Documents", "documents"], ["recycle", "Recycle Bin", "recycle"],
+    ["browser", "Forge Browser", "browser"], ["forgechat", "ForgeChat", "forgechat"], ["forgeamp", "ForgeAmp", "forgeamp"],
+    ["forgevision", "ForgeVision", "forgevision"], ["forgecraft", "Forgecraft", "forgecraft"], ["arcade", "Forge Arcade", "arcade"],
+    ["notepad", "Notepad", "notepad"], ["control", "Control Panel", "control"],
+  ];
+  function buildDesktop() {
+    const icons = $("#icons");
+    icons.replaceChildren();
+    for (const [app, label, icon] of DESK_ITEMS) {
+      const el = h("div", { class: "desk-icon clickable", tabindex: 0, "data-app": app }, h("img", { src: CF.icon(icon), alt: "" }), h("span", {}, label));
+      el.addEventListener("click", (e) => { if (!e.ctrlKey) icons.querySelectorAll(".selected").forEach(s => s.classList.remove("selected")); el.classList.add("selected"); });
+      el.addEventListener("dblclick", () => CF.open(app));
+      el.addEventListener("keydown", (e) => { if (e.key === "Enter") CF.open(app); });
+      el.addEventListener("contextmenu", (e) => {
+        e.preventDefault(); e.stopPropagation(); el.click();
+        const extra = app === "recycle" ? [{ label: "Empty Recycle Bin", action: () => CF.vfs.emptyBin(), disabled: !CF.vfs.bin().length }, "-"] : [];
+        CF.contextMenu({ x: e.clientX, y: e.clientY }, [{ label: "Open", action: () => CF.open(app) }, "-", ...extra,
+          { label: "Properties", action: () => CF.dialog({ title: label + " Properties", icon, message: `${label}\n\n${CF.apps[app]?.desc || ""}` }) }]);
+      });
+      icons.append(el);
+    }
+    const desk = $("#desktop");
+    const rubber = $("#rubber");
+    desk.addEventListener("pointerdown", (e) => {
+      if (e.target !== desk && e.target !== icons) return;
+      icons.querySelectorAll(".selected").forEach(s => s.classList.remove("selected"));
+      if (e.button !== 0) return;
+      const sx = e.clientX, sy = e.clientY;
+      const move = (m) => {
+        const x = Math.min(sx, m.clientX), y = Math.min(sy, m.clientY), w = Math.abs(m.clientX - sx), hh = Math.abs(m.clientY - sy);
+        Object.assign(rubber.style, { display: "block", left: x + "px", top: y + "px", width: w + "px", height: hh + "px" });
+        icons.querySelectorAll(".desk-icon").forEach(ic => {
+          const r = ic.getBoundingClientRect();
+          ic.classList.toggle("selected", r.right > x && r.left < x + w && r.bottom > y && r.top < y + hh);
+        });
+      };
+      const up = () => { rubber.style.display = "none"; removeEventListener("pointermove", move); removeEventListener("pointerup", up); };
+      addEventListener("pointermove", move); addEventListener("pointerup", up);
+    });
+    desk.addEventListener("contextmenu", (e) => {
+      if (e.target !== desk && e.target !== icons) return;
+      e.preventDefault();
+      CF.contextMenu({ x: e.clientX, y: e.clientY }, [
+        { label: "Arrange Icons", items: [{ label: "by Name", action: () => sortIcons() }, { label: "Reset", action: buildDesktop }] },
+        { label: "Refresh", key: "F5", action: () => { buildDesktop(); CF.applySettings(); } },
+        "-",
+        { label: "New", items: [
+          { label: "Text Document", icon: "notepad", action: () => CF.open("notepad", { newName: true }) },
+          { label: "Image", icon: "forgecraft", action: () => CF.open("forgecraft") },
+        ] },
+        "-",
+        { label: "Wallpaper", items: WALLPAPERS.map(([id, name]) => ({ label: name, checked: settings.wallpaper === id, action: () => { settings.wallpaper = id; CF.saveSettings(); } })) },
+        { label: "Show ColeForge Branding", checked: settings.showBrand, action: () => { settings.showBrand = !settings.showBrand; CF.saveSettings(); } },
+        "-",
+        { label: "Properties", icon: "control", action: () => CF.open("control", { tab: "display" }) },
+      ]);
+    });
+    function sortIcons() {
+      [...icons.children].sort((a, b) => a.textContent.localeCompare(b.textContent)).forEach(n => icons.append(n));
+    }
+  }
+  const WALLPAPERS = [["lake", "Twilight Lake"], ["energy", "Blue Energy"], ["forge", "Forge Splash"], ["navy", "Midnight"], ["teal", "Classic Teal"], ["custom", "Custom Picture…"]];
+  CF.WALLPAPERS = WALLPAPERS;
+
+  /* ---------------- Start menu ---------------- */
+  function buildStart() {
+    const item = (app, label, sub, icon) => {
+      const el = h("div", { class: "sm-item clickable" }, h("img", { src: CF.icon(icon), alt: "" }), h("div", {}, label, sub ? h("small", {}, sub) : null));
+      el.addEventListener("click", () => { CF.sound("menu_click"); CF.open(app); });
+      return el;
+    };
+    const allPrograms = h("div", { class: "sm-item sm-all clickable" }, h("img", { src: CF.icon("folder"), alt: "" }), h("div", {}, "All Programs ▸"),
+      h("div", { class: "sm-sub" }, Object.values(CF.apps).filter(a => !a.hidden).sort((a, b) => a.name.localeCompare(b.name)).map(a => item(a.id, a.name, null, a.icon))));
+    const menu = $("#start-menu");
+    menu.replaceChildren(
+      h("div", { class: "sm-head" }, h("img", { class: "my-avatar", src: CF.avatar(), alt: "" }), h("span", { class: "my-name" }, settings.user)),
+      h("div", { class: "sm-cols" },
+        h("div", { class: "sm-left" },
+          item("browser", "Internet", "Forge Browser", "browser"), item("forgechat", "ForgeChat", "Messenger & lobbies", "forgechat"),
+          h("div", { class: "sm-sep" }),
+          item("forgeamp", "ForgeAmp", "Music player", "forgeamp"), item("forgevision", "ForgeVision", "Video player", "forgevision"),
+          item("forgecraft", "Forgecraft", "Paint & photo editor", "forgecraft"), item("arcade", "Forge Arcade", "Doom · Quake · Duke3D", "arcade"),
+          item("notepad", "Notepad", null, "notepad"),
+          h("div", { class: "sm-sep" }), allPrograms),
+        h("div", { class: "sm-right" },
+          item("files", "My Documents", null, "documents"), item("mycomputer", "My Computer", null, "computer"), item("recycle", "Recycle Bin", null, "recycle"),
+          h("div", { class: "sm-sep" }),
+          item("control", "Control Panel", null, "control"), item("about", "About ColeForge", null, "info"),
+          h("div", { class: "sm-sep" }),
+          (() => { const r = h("div", { class: "sm-item clickable" }, h("img", { src: CF.icon("run"), alt: "" }), h("div", {}, "Run…")); r.addEventListener("click", runDialog); return r; })())),
+      h("div", { class: "sm-foot" },
+        h("button", { class: "btn flat", onclick: () => { CF.toggleStart(false); logOff(); } }, "Log Off"),
+        h("button", { class: "btn", onclick: () => { CF.toggleStart(false); CF.shutdownDialog(); } }, "Shut Down…")));
+  }
+  CF.toggleStart = (force) => {
+    const menu = $("#start-menu"), btn = $("#start-btn");
+    if (!menu) return;
+    const open = force ?? !menu.classList.contains("open");
+    if (open && !menu.classList.contains("open")) { buildStart(); CF.sound("menu_popup"); }
+    menu.classList.toggle("open", open); btn.classList.toggle("open", open);
+  };
+  async function runDialog() {
+    CF.toggleStart(false);
+    const r = await CF.dialog({ title: "Run", icon: "run", message: "Type the name of a program, folder, document or Internet resource, and ColeForge will open it for you.", input: "", buttons: ["OK", "Cancel"] });
+    if (r.button !== "OK" || !r.value.trim()) return;
+    const v = r.value.trim(), lower = v.toLowerCase();
+    const alias = { cmd: "about", winver: "about", mspaint: "forgecraft", paint: "forgecraft", explorer: "files", iexplore: "browser", control: "control", notepad: "notepad", doom: "arcade", quake: "arcade", aim: "forgechat", chat: "forgechat" };
+    if (/^https?:\/\/|^www\./.test(lower)) CF.open("browser", { url: v });
+    else if (CF.apps[lower]) CF.open(lower);
+    else if (alias[lower]) CF.open(alias[lower]);
+    else CF.dialog({ title: v, icon: "error", message: `Cannot find the file '${v}' (or one of its components). Make sure the path and filename are correct.` });
+  }
+
+  /* ---------------- tray ---------------- */
+  function buildTray() {
+    const tray = $("#tray");
+    const net = h("span", { class: "ti clickable", title: "Network" }, h("i", { class: "dot" }));
+    const vol = h("img", { class: "clickable", src: CF.icon("volume"), alt: "Volume", title: "Volume" });
+    const chat = h("img", { class: "clickable", src: CF.icon("forgechat"), alt: "ForgeChat", title: "ForgeChat" });
+    const clock = h("span", { id: "clock", class: "clickable" });
+    tray.replaceChildren(chat, net, vol, clock);
+    chat.addEventListener("click", () => CF.open("forgechat"));
+    const updateNet = () => { net.firstChild.classList.toggle("off", !navigator.onLine); net.title = navigator.onLine ? "Connected" : "Not connected"; };
+    addEventListener("online", () => { updateNet(); CF.toast({ title: "Network", body: "You're connected.", icon: "network" }); });
+    addEventListener("offline", () => { updateNet(); CF.toast({ title: "Network", body: "Network cable unplugged / Wi‑Fi lost.", icon: "warning" }); });
+    updateNet();
+    net.addEventListener("click", () => CF.open("mycomputer"));
+    vol.addEventListener("click", (e) => {
+      const slider = h("input", { type: "range", min: 0, max: 1, step: 0.05, value: settings.volume, style: "width:150px" });
+      slider.addEventListener("input", () => { settings.volume = +slider.value; CF.saveSettings(); CF.emit("volume", settings.volume); });
+      slider.addEventListener("change", () => CF.sound("ding"));
+      const menu = CF.contextMenu({ x: e.clientX - 90, y: e.clientY - 110 }, [{ label: settings.sounds ? "Mute system sounds" : "Unmute system sounds", action: () => { settings.sounds = !settings.sounds; CF.saveSettings(); } }]);
+      menu.prepend(h("div", { class: "pad" }, h("div", { class: "muted", style: "color:#333" }, "Volume"), slider));
+      menu.addEventListener("click", (ev) => ev.stopPropagation());
+    });
+    const tick = () => {
+      const d = new Date();
+      clock.textContent = d.toLocaleTimeString([], { hour: "numeric", minute: "2-digit", hour12: !settings.clock24 });
+      clock.title = d.toLocaleDateString([], { weekday: "long", year: "numeric", month: "long", day: "numeric" });
+    };
+    tick(); setInterval(tick, 5000);
+    clock.addEventListener("click", () => { settings.clock24 = !settings.clock24; CF.saveSettings(); tick(); });
+  }
+
+  /* ---------------- power ---------------- */
+  CF.shutdownDialog = async () => {
+    const choice = h("select", { class: "field", style: "width:100%" },
+      h("option", { value: "shutdown" }, "Shut down"), h("option", { value: "restart" }, "Restart"), h("option", { value: "logoff" }, `Log off ${settings.user}`));
+    const veil = h("div", { id: "shutdown" });
+    const done = (go) => { veil.remove(); if (go) power(choice.value); };
+    veil.append(h("div", { class: "dlg" }, h("div", { class: "win active" },
+      h("div", { class: "titlebar" }, h("img", { src: CF.icon("shutdown"), alt: "" }), h("span", { class: "title" }, "Shut Down ColeForge")),
+      h("div", { class: "dlg-body" }, h("img", { src: CF.icon("logo"), alt: "" }), h("div", { style: "flex:1" }, h("div", { class: "msg" }, "What do you want the computer to do?"), choice)),
+      h("div", { class: "dlg-btns" }, h("button", { class: "btn", onclick: () => done(true) }, "OK"), h("button", { class: "btn flat", onclick: () => done(false) }, "Cancel")))));
+    document.body.append(veil);
+    CF.sound("question");
+  };
+  async function power(action) {
+    if (action === "logoff") return logOff();
+    for (const w of CF.windows.slice()) await w.close(true);
+    CF.sound("shutdown");
+    document.body.classList.add("busy");
+    await new Promise(r => setTimeout(r, 2600));
+    if (host && host.power) return host.power(action);
+    if (action === "restart") return location.reload();
+    document.body.replaceChildren(h("div", { id: "shutdown", class: "final" }, h("div", {}, "It's now safe to turn off", h("br"), "your computer.")));
+  }
+  function logOff() {
+    CF.windows.slice().forEach(w => w.close(true));
+    CF.emit("logoff");
+    showWelcome();
+  }
+
+  /* ---------------- boot sequence ---------------- */
+  const sleep = (ms) => new Promise(r => setTimeout(r, ms));
+  async function bios() {
+    const el = h("div", { id: "bios" });
+    document.body.append(el);
+    const gpu = (() => { try { const gl = document.createElement("canvas").getContext("webgl"); const ext = gl.getExtension("WEBGL_debug_renderer_info"); return ext ? gl.getParameter(ext.UNMASKED_RENDERER_WEBGL) : "Accelerated display adapter"; } catch { return "Display adapter"; } })();
+    const lines = [
+      `<span class="hi">ColeForge BIOS v4.10</span>   (C) 1998-2026 ColeForge Studios`, "",
+      `CPU : ${navigator.hardwareConcurrency || "?"} logical processors detected`,
+      `Memory Test : ${(navigator.deviceMemory || 8) * 1024 * 1024}K <span class="ok">OK</span>`,
+      `Display : ${esc(gpu)}`,
+      `Network : ${navigator.onLine ? "Link up" : "No link"}`,
+      "", "Detecting USB / NVMe / SATA devices ... <span class=\"ok\">done</span>",
+      "Starting Windows – ColeForge Edition ...",
+    ];
+    for (const line of lines) { el.innerHTML += line + "\n"; await sleep(settings.fastBoot ? 20 : 170); }
+    await sleep(settings.fastBoot ? 50 : 500);
+    el.remove();
+  }
+  async function splash() {
+    const boot = h("div", { id: "boot" });
+    const bar = h("div", { class: "seg-bar" }, Array.from({ length: 10 }, () => h("i")));
+    const status = h("div", { class: "boot-status" }, "");
+    boot.append(h("div", { class: "boot-frame" }, h("div", { class: "boot-inner" }, bar)), status);
+    document.body.append(boot);
+    const steps = ["Loading kernel bridge", "Detecting hardware", "Loading display drivers", "Starting network", "Loading ForgeChat services", "Preparing desktop",
+      "Loading icons", "Applying theme", "Loading sounds", "Welcome"];
+    await CFIcons.resolve();
+    for (let i = 0; i < 10; i++) {
+      bar.children[i].classList.add("on");
+      status.textContent = steps[i] + "…";
+      await sleep(settings.fastBoot ? 40 : 260 + Math.random() * 200);
+    }
+    return boot;
+  }
+  function showWelcome() {
+    return new Promise(resolve => {
+      const name = h("input", { value: settings.user, maxlength: 24, "aria-label": "User name" });
+      const wel = h("div", { id: "welcome" }, h("div", { class: "welcome-card" },
+        h("img", { class: "logo", src: CF.icon("logo"), alt: "" }), h("h1", {}, "Windows"), h("h2", {}, "ColeForge Edition"),
+        h("div", { class: "user" }, h("img", { class: "my-avatar", src: CF.avatar(), alt: "" }), name),
+        h("button", { class: "btn", style: "width:100%;padding:8px", onclick: go }, "Log On  ▶"),
+        h("div", { class: "tag" }, "CLASSIC ROOTS. MODERN HORIZONS.")));
+      name.addEventListener("keydown", (e) => { if (e.key === "Enter") go(); });
+      document.body.append(wel);
+      name.focus();
+      function go() {
+        settings.user = name.value.trim() || "Cole";
+        CF.saveSettings();
+        CF.sound("startup"); // first user gesture: audio is allowed from here on
+        wel.classList.add("fade");
+        setTimeout(() => wel.remove(), 700);
+        CF.emit("logon");
+        resolve();
+      }
+    });
+  }
+
+  async function bootSequence() {
+    CF.applySettings();
+    await bios();
+    const boot = await splash();
+    $("#start-btn img").src = CF.icon("logo");
+    document.querySelectorAll("#quick [data-app]").forEach(img => { img.src = CF.icon(img.dataset.icon); });
+    buildDesktop(); buildTray(); CF.applySettings();
+    boot.classList.add("fade");
+    setTimeout(() => boot.remove(), 900);
+    await showWelcome();
+    setTimeout(() => CF.toast({ title: "Welcome to ColeForge", body: "Right-click the desktop to customize. Press Ctrl+Esc for Start.", icon: "logo" }), 2200);
+  }
+
+  /* ---------------- keyboard ---------------- */
+  addEventListener("keydown", (e) => {
+    if ((e.ctrlKey && e.key === "Escape") || e.key === "Meta" || e.key === "OS") { e.preventDefault(); CF.toggleStart(); }
+    else if (e.altKey && e.key === "F4") { e.preventDefault(); const w = CF.activeWindow(); w ? w.close() : CF.shutdownDialog(); }
+    else if (e.key === "Escape") { CF.closeMenus(); CF.toggleStart(false); }
+    else if (e.key === "F5" && !e.target.closest(".win")) { e.preventDefault(); buildDesktop(); }
+    else if (e.ctrlKey && e.key.toLowerCase() === "r" && e.shiftKey) { e.preventDefault(); runDialog(); }
+  });
+  // The shell owns right-click everywhere; apps attach their own menus.
+  addEventListener("contextmenu", (e) => { if (!e.target.closest("input, textarea, [contenteditable]")) e.preventDefault(); });
+
+  document.addEventListener("DOMContentLoaded", () => {
+    $("#start-btn").addEventListener("click", () => CF.toggleStart());
+    document.querySelectorAll("#quick [data-app]").forEach(img => img.addEventListener("click", () => CF.open(img.dataset.app)));
+    bootSequence();
+  });
+})();

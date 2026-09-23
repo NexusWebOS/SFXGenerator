@@ -1,6 +1,7 @@
 # SFXGenerator
 
-Procedural and reference-matched sound-effect generators for **Bullets of Fury**.
+Procedural and reference-matched sound-effect generators for **Bullets of Fury**, plus the
+**Windows – ColeForge Edition** project (see [`coleforge/`](coleforge/README.md)).
 
 The generated banks are audition assets only. They do not replace files in the Bullets of Fury repository.
 
@@ -44,3 +45,12 @@ node .\generate_bullets_of_fury_arcade_v2.js
 ## Approved sound profile
 
 V3 and V4 follow the measured shipping-bank profile: 44.1 kHz centered mono, dry and compact arcade envelopes, approximately -3 dBFS peaks, sub-heavy missiles and explosions, presence-focused flame/projectile cues, and dense low-mid sustained beams and thrusters.
+
+## ColeForge system sounds
+
+`generate_coleforge_system_sounds.js` (Node.js only) renders the 19-sound "ColeForge Classic"
+desktop scheme into `coleforge/shell/assets/sounds/` as 44.1 kHz stereo WAVs with a manifest:
+
+```powershell
+node .\generate_coleforge_system_sounds.js
+```

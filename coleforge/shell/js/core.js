@@ -25,18 +25,24 @@
   const host = window.forgeHost || null; // Electron bridge when running as the real shell
 
   const DEFAULTS = {
-    user: "Cole", avatar: null, wallpaper: "nightcode", customWall: null, accent: "#1f6fff", theme: "98",
-    cursors: false, sounds: true, soundScheme: "studio", volume: 0.8, uiScale: 1, showBrand: true, fastBoot: false, clock24: false,
-    scheme: "nightcode", highContrast: false, hcScheme: "hc-black", hcShortcut: true, followSystemHC: true,
+    user: "Cole", avatar: null, wallpaper: "nightcode", customWall: null, accent: "#1f6fff", theme: "nightcode",
+    cursors: true, sounds: true, soundScheme: "nightcode", volume: 0.8, uiScale: 1, showBrand: true, fastBoot: false, clock24: false,
+    scheme: "nightcode", screensaver: "nightcode", saverMinutes: 10, highContrast: false, hcScheme: "hc-black", hcShortcut: true, followSystemHC: true,
   };
   const settings = Object.assign({}, DEFAULTS, store.get("cf.settings", {}));
-  // NightCode edition: switch existing installs to the NightCode wallpaper, avatar and scheme once.
-  // Afterwards they're ordinary settings you can change in Control Panel.
-  if (!settings.nightcode) {
-    settings.nightcode = 1;
-    settings.wallpaper = "nightcode";
-    settings.scheme = "nightcode";
-    if (!settings.avatar || settings.avatar === "assets/art/avatars/cole-blue.png") settings.avatar = "assets/art/avatars/nightcode.png";
+  // NightCode edition: move existing installs over once (1: wallpaper, avatar, colours; 2: the full
+  // NightCode desktop theme with its cursors and sounds). Afterwards they're ordinary settings you can
+  // change in Control Panel.
+  if ((settings.nightcode || 0) < 2) {
+    if (!settings.nightcode) {
+      settings.wallpaper = "nightcode";
+      settings.scheme = "nightcode";
+      if (!settings.avatar || settings.avatar === "assets/art/avatars/cole-blue.png") settings.avatar = "assets/art/avatars/nightcode.png";
+    }
+    settings.theme = "nightcode";
+    settings.cursors = true;
+    settings.soundScheme = "nightcode";
+    settings.nightcode = 2;
     store.set("cf.settings", settings);
   }
 
@@ -60,10 +66,15 @@
     root.setProperty("--accent-lo", shade(settings.accent, -0.55));
     root.setProperty("--ui-scale", settings.uiScale);
     document.body.classList.toggle("forge-cursors", !!settings.cursors);
+    document.body.classList.toggle("nc-scanlines", !!settings.ncScanlines);
     // Appearance scheme: High Contrast (the Accessibility switch, or Windows' own when running as the
     // shell) wins, then the chosen scheme. High Contrast always uses the Windows 98 look, like 1998.
     const scheme = CF.effectiveScheme(), hc = scheme.startsWith("hc");
-    document.body.classList.toggle("theme-98", settings.theme === "98" || hc);
+    // NightCode is built on the Windows 98 shell (same menus, dialogs, log-on) with its own skin on top.
+    document.body.classList.toggle("theme-98", settings.theme !== "glass" || hc);
+    const nc = settings.theme === "nightcode" && !hc, ncChanged = nc !== document.body.classList.contains("theme-nc");
+    document.body.classList.toggle("theme-nc", nc);
+    if (ncChanged) refreshIcons();
     for (const [id] of CF.SCHEMES) document.body.classList.toggle("scheme-" + id, id === scheme && id !== "standard" && id !== "auto");
     document.body.classList.toggle("hc", hc);
     const desk = $("#desktop");
@@ -78,7 +89,8 @@
     document.querySelectorAll(".my-name").forEach(el => { el.textContent = settings.user; });
   };
   CF.avatar = () => settings.avatar || "assets/art/avatars/nightcode.png";
-  CF.THEMES = [["98", "Windows 98 Classic"], ["glass", "ColeForge Glass"]];
+  CF.THEMES = [["nightcode", "NightCode"], ["98", "Windows 98 Classic"], ["glass", "ColeForge Glass"]];
+  CF.is98 = () => document.body.classList.contains("theme-98");
   CF.SCHEMES = [["nightcode", "NightCode"], ["standard", "Windows Standard"], ["dark", "ColeForge Dark"], ["auto", "Automatic (match Windows light/dark)"],
     ["hc-black", "High Contrast Black"], ["hc-white", "High Contrast White"], ["hc1", "High Contrast #1"], ["hc2", "High Contrast #2"]];
   CF.HC_SCHEMES = CF.SCHEMES.filter(([id]) => id.startsWith("hc"));
@@ -87,6 +99,7 @@
   CF.effectiveScheme = () => {
     if (settings.highContrast) return settings.hcScheme || "hc-black";
     if (settings.followSystemHC && systemHC.matches) return systemDark.matches ? "hc-black" : "hc-white";
+    if (settings.theme === "nightcode") return "nightcode";
     if (settings.scheme === "auto") return systemDark.matches ? "dark" : "standard";
     return CF.SCHEMES.some(([id]) => id === settings.scheme) ? settings.scheme : "standard";
   };
@@ -143,8 +156,9 @@
 
   /* ---------------- sounds ---------------- */
   // "studio" = ElevenLabs-generated scheme in assets/sounds/studio/, "classic" = procedural synth scheme.
-  CF.SOUND_SCHEMES = [["studio", "ColeForge Studio (ElevenLabs)"], ["classic", "ColeForge Classic (synth)"]];
-  CF.soundUrl = (name) => `assets/sounds/${settings.soundScheme === "classic" ? "" : "studio/"}${name}.wav`;
+  CF.SOUND_SCHEMES = [["nightcode", "NightCode (chiptune synth)"], ["studio", "ColeForge Studio (ElevenLabs)"], ["classic", "ColeForge Classic (synth)"]];
+  const SOUND_DIRS = { classic: "", nightcode: "nightcode/", studio: "studio/" };
+  CF.soundUrl = (name) => `assets/sounds/${SOUND_DIRS[settings.soundScheme] ?? "studio/"}${name}.wav`;
   const soundCache = {};
   CF.sound = (name) => {
     if (!settings.sounds) return;
@@ -162,7 +176,28 @@
     gamebrowser: "assets/art/gamebrowser/logo.png", legacy: "assets/art/legacy/logo.png",
     netcon: "assets/art/programs/netcon-64.png", diskdude: "assets/art/programs/diskdude-64.png", nightcode: "assets/art/nightcode/logo-128.png",
   };
-  CF.icon = (id) => PIXEL_ICONS[id] || (id === "forgechat" && document.body?.classList.contains("theme-98") ? "assets/art/forgechat/logo.png" : window.CFIcons.get(id));
+  // The NightCode theme has its own neon pixel set (art/nightcode/build_nightcode_theme.py).
+  const NC_ICONS = new Set(["computer", "documents", "folder", "recycle", "forgeamp", "forgevision", "forgecraft", "browser", "notepad", "control",
+    "arcade", "network", "info", "warning", "question", "error", "volume", "file", "image", "run", "shutdown"]);
+  CF.icon = (id) => {
+    if (PIXEL_ICONS[id]) return PIXEL_ICONS[id];
+    const cls = document.body?.classList;
+    if (cls?.contains("theme-nc")) {
+      if (NC_ICONS.has(id)) return `assets/art/nightcode/icons/${id}.png`;
+      if (id === "logo") return "assets/art/nightcode/logo-64.png";
+    }
+    return id === "forgechat" && cls?.contains("theme-98") ? "assets/art/forgechat/logo.png" : window.CFIcons.get(id);
+  };
+  // After a theme switch, swap every icon already on screen for the new theme's version.
+  function refreshIcons() {
+    if (!window.CFIcons) return;
+    const ids = new Map();
+    for (const id of window.CFIcons.ids) ids.set(window.CFIcons.get(id), id);
+    for (const id of NC_ICONS) ids.set(`assets/art/nightcode/icons/${id}.png`, id);
+    ids.set("assets/art/nightcode/logo-64.png", "logo");
+    ids.set("assets/art/forgechat/logo.png", "forgechat");
+    document.querySelectorAll("img").forEach(img => { const id = ids.get(img.getAttribute("src")); if (id) img.src = CF.icon(id); });
+  }
 
   /* ---------------- document store (My Documents + Recycle Bin) ---------------- */
   const vfsKey = "cf.vfs";
@@ -493,7 +528,7 @@
     const programs = Object.values(CF.apps).filter(a => !a.hidden).sort((a, b) => a.name.localeCompare(b.name)).map(a => app(a.id));
     const docs = CF.vfs.list().slice(0, 12).map(d => row(d.name, d.type === "image" ? "image" : "file", () => CF.open(d.type === "image" ? "forgecraft" : "notepad", { file: d.name }), { small: true }));
     menu.replaceChildren(
-      h("div", { class: "sm98-banner" }, h("span", {}, h("b", {}, "Windows "), "ColeForge Edition")),
+      h("div", { class: "sm98-banner" }, h("span", {}, ...(document.body.classList.contains("theme-nc") ? [h("b", {}, "Night"), "Code"] : [h("b", {}, "Windows "), "ColeForge Edition"]))),
       h("div", { class: "sm98-items" },
         row("ForgeChat", "forgechat", () => CF.open("forgechat")),
         row("Forge Arcade", "arcade", () => CF.open("arcade")),
@@ -509,7 +544,7 @@
         row("Shut Down...", "shutdown", () => CF.shutdownDialog())));
   }
   function buildStart() {
-    if (settings.theme === "98") return build98Start();
+    if (CF.is98()) return build98Start();
     const item = (app, label, sub, icon) => {
       const el = h("div", { class: "sm-item clickable" }, h("img", { src: CF.icon(icon), alt: "" }), h("div", {}, label, sub ? h("small", {}, sub) : null));
       el.addEventListener("click", () => { CF.sound("menu_click"); CF.open(app); });
@@ -623,7 +658,17 @@
     const el = h("div", { id: "bios" });
     document.body.append(el);
     const gpu = (() => { try { const gl = document.createElement("canvas").getContext("webgl"); const ext = gl.getExtension("WEBGL_debug_renderer_info"); return ext ? gl.getParameter(ext.UNMASKED_RENDERER_WEBGL) : "Accelerated display adapter"; } catch { return "Display adapter"; } })();
-    const lines = [
+    const ok = `<span class="ok">[  OK  ]</span>`;
+    const lines = document.body.classList.contains("theme-nc") ? [
+      `<span class="hi">NightCode BIOS v6.10</span>   ColeForge firmware (C) 1998-2026 ColeForge Studios`, "",
+      `${ok} CPU     : ${navigator.hardwareConcurrency || "?"} logical processors`,
+      `${ok} Memory  : ${(navigator.deviceMemory || 8) * 1024 * 1024}K`,
+      `${ok} Display : ${esc(gpu)}`,
+      `${ok} Link    : ${navigator.onLine ? "up" : "down"}`,
+      `${ok} Mounting USB / NVMe / SATA volumes`,
+      `${ok} Loading the NightCode kernel bridge`,
+      "", `<span class="hi">&gt;</span> Entering the NightCode_`,
+    ] : [
       `<span class="hi">ColeForge BIOS v4.10</span>   (C) 1998-2026 ColeForge Studios`, "",
       `CPU : ${navigator.hardwareConcurrency || "?"} logical processors detected`,
       `Memory Test : ${(navigator.deviceMemory || 8) * 1024 * 1024}K <span class="ok">OK</span>`,
@@ -640,9 +685,12 @@
     const boot = h("div", { id: "boot" });
     const bar = h("div", { class: "seg-bar" }, Array.from({ length: 10 }, () => h("i")));
     const status = h("div", { class: "boot-status" }, "");
-    boot.append(h("div", { class: "boot-frame" }, h("div", { class: "boot-inner" }, bar)), status);
+    const nc = document.body.classList.contains("theme-nc");
+    boot.append(h("div", { class: "boot-frame" }, nc ? h("div", { class: "boot-tag" }, "ENTER THE NIGHTCODE") : null, h("div", { class: "boot-inner" }, bar)), status);
     document.body.append(boot);
-    const steps = ["Loading kernel bridge", "Detecting hardware", "Loading display drivers", "Starting network", "Loading ForgeChat services", "Preparing desktop",
+    const steps = nc ? ["Decrypting kernel bridge", "Probing hardware", "Loading display drivers", "Bringing up the link", "Loading ForgeChat services", "Mounting the desktop",
+      "Loading neon icons", "Applying NightCode", "Loading sounds", "Welcome, hacker"]
+      : ["Loading kernel bridge", "Detecting hardware", "Loading display drivers", "Starting network", "Loading ForgeChat services", "Preparing desktop",
       "Loading icons", "Applying theme", "Loading sounds", "Welcome"];
     await CFIcons.resolve();
     for (let i = 0; i < 10; i++) {
@@ -657,7 +705,7 @@
       const name = h("input", { value: settings.user, maxlength: 24, "aria-label": "User name" });
       const av = h("img", { class: "my-avatar clickable", src: CF.avatar(), alt: "", title: "Click to change your picture" });
       av.addEventListener("click", () => CF.pickAvatar().then(() => { av.src = CF.avatar(); }));
-      const wel = settings.theme === "98" ? h("div", { id: "welcome" }, h("div", { class: "welcome-card" },
+      const wel = CF.is98() ? h("div", { id: "welcome" }, h("div", { class: "welcome-card" },
         h("div", { class: "w98-title" }, h("img", { src: CF.icon("logo"), alt: "" }), "Welcome to Windows – ColeForge Edition"),
         h("div", { class: "w98-banner" }),
         h("div", { class: "w98-body" }, av, h("div", { class: "user" },

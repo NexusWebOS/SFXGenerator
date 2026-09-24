@@ -274,21 +274,36 @@
           const scale = h("input", { type: "range", min: 0.85, max: 1.4, step: 0.05, value: s.uiScale });
           scale.addEventListener("change", () => { s.uiScale = +scale.value; save(); });
           const theme = h("select", { class: "field" }, CF.THEMES.map(([id, label]) => h("option", { value: id, selected: s.theme === id }, label)));
-          theme.addEventListener("change", () => { s.theme = theme.value; save(); show("display"); });
-          const scheme = h("select", { class: "field" }, CF.SCHEMES.map(([id, label]) => h("option", { value: id, selected: (s.scheme || "standard") === id }, label)));
+          theme.addEventListener("change", () => {
+            s.theme = theme.value;
+            // Like a Windows 98 Desktop Theme, NightCode brings its wallpaper, pointers and sounds along.
+            if (s.theme === "nightcode") Object.assign(s, { wallpaper: s.wallpaper === "custom" ? s.wallpaper : "nightcode", cursors: true, soundScheme: "nightcode" });
+            save(); show("display");
+            if (s.theme === "nightcode") CF.sound("logon");
+          });
+          const ncTheme = s.theme === "nightcode";
+          const scheme = h("select", { class: "field", disabled: ncTheme }, CF.SCHEMES.map(([id, label]) => h("option", { value: id, selected: (ncTheme ? "nightcode" : s.scheme || "standard") === id }, label)));
           scheme.addEventListener("change", () => { s.scheme = scheme.value; save(); show("display"); });
-          const hcNote = s.highContrast ? "High Contrast is on (Accessibility tab), so it overrides the scheme." : s.theme !== "98" ? "Colour schemes apply to the Windows 98 look; High Contrast switches to it automatically." : "";
+          const hcNote = s.highContrast ? "High Contrast is on (Accessibility tab), so it overrides the scheme." : ncTheme ? "The NightCode theme always uses the NightCode colours. Pick Windows 98 Classic to choose another scheme; High Contrast still overrides it." : s.theme !== "98" ? "Colour schemes apply to the Windows 98 look; High Contrast switches to it automatically." : "";
           return [h("div", { class: "group" }, h("div", { class: "legend" }, "Theme"), h("div", { class: "row" }, "Look:", theme)),
-            h("div", { class: "group" }, h("div", { class: "legend" }, "Appearance"), preview(s.highContrast ? s.hcScheme : s.scheme || "standard"),
+            h("div", { class: "group" }, h("div", { class: "legend" }, "Appearance"), preview(s.highContrast ? s.hcScheme : ncTheme ? "nightcode" : s.scheme || "standard"),
               h("div", { class: "row" }, "Scheme:", scheme), hcNote ? h("p", { class: "muted" }, hcNote) : null),
             h("div", { class: "group" }, h("div", { class: "legend" }, "Wallpaper"), walls),
+            (() => {
+              const saver = h("select", { class: "field" }, CF.SAVERS.map(([id, label]) => h("option", { value: id, selected: s.screensaver === id }, label)));
+              saver.addEventListener("change", () => { s.screensaver = saver.value; save(); CF.screensaver.arm(); });
+              const wait = h("input", { class: "field", type: "number", min: 1, max: 120, value: s.saverMinutes, style: "width:56px" });
+              wait.addEventListener("change", () => { s.saverMinutes = Math.min(120, Math.max(1, +wait.value || 10)); wait.value = s.saverMinutes; save(); CF.screensaver.arm(); });
+              return h("div", { class: "group" }, h("div", { class: "legend" }, "Screen saver"),
+                h("div", { class: "row" }, saver, "Wait:", wait, "minutes", h("button", { class: "btn", onclick: () => CF.screensaver.start() }, "Preview")));
+            })(),
             h("div", { class: "group" }, h("div", { class: "legend" }, "Colour scheme"), h("div", { class: "row" }, "Accent:", accent, ...swatches)),
-            h("div", { class: "group" }, h("div", { class: "legend" }, "Appearance"), h("div", { class: "row" }, "Text & UI size", scale), check("Show ColeForge branding on the desktop", "showBrand"), check("24-hour clock", "clock24"), check("Fast boot (skip long BIOS/splash)", "fastBoot"))];
+            h("div", { class: "group" }, h("div", { class: "legend" }, "Appearance"), h("div", { class: "row" }, "Text & UI size", scale), check("Show ColeForge branding on the desktop", "showBrand"), check("24-hour clock", "clock24"), check("Fast boot (skip long BIOS/splash)", "fastBoot"), ncTheme ? check("CRT scanlines (NightCode)", "ncScanlines") : null)];
         },
-        cursors: () => [h("div", { class: "group" }, h("div", { class: "legend" }, "Pointer scheme"),
-          check("Use ColeForge glow cursors", "cursors"),
-          h("div", { class: "row" }, ...["arrow", "hand", "text", "busy"].map(n => h("div", { class: "cursor-prev" }, h("img", { src: `assets/cursors/${n}.svg`, alt: n }), h("small", {}, n))))),
-          h("p", { class: "muted" }, "Cursor files live in assets/cursors/. Replace them with your own .svg or .png art to make a new scheme.")],
+        cursors: () => { const nc = s.theme === "nightcode"; return [h("div", { class: "group" }, h("div", { class: "legend" }, "Pointer scheme"),
+          check(nc ? "Use NightCode neon cursors" : "Use ColeForge glow cursors", "cursors"),
+          h("div", { class: "row" }, ...["arrow", "hand", "text", "busy"].map(n => h("div", { class: "cursor-prev" }, h("img", { src: `assets/cursors/${nc ? "nightcode/" : ""}${n}.svg`, alt: n }), h("small", {}, n))))),
+          h("p", { class: "muted" }, "Cursor files live in assets/cursors/ (NightCode's in assets/cursors/nightcode/). Replace them with your own .svg or .png art to make a new scheme.")]; },
         sounds: () => {
           const vol = h("input", { type: "range", min: 0, max: 1, step: 0.05, value: s.volume });
           vol.addEventListener("change", () => { s.volume = +vol.value; save(); CF.sound("ding"); });
@@ -296,7 +311,7 @@
           const scheme = h("select", { class: "field" }, CF.SOUND_SCHEMES.map(([id, label]) => h("option", { value: id, selected: s.soundScheme === id }, label)));
           scheme.addEventListener("change", () => { s.soundScheme = scheme.value; save(); CF.sound("logon"); });
           return [h("div", { class: "group" }, h("div", { class: "legend" }, "Sound scheme"), h("div", { class: "row" }, "Scheme:", scheme), check("Play system sounds", "sounds"), h("div", { class: "row" }, "Volume", vol)),
-            h("div", { class: "list", style: "height:230px" }, events.map(([id, label]) => { const r = h("div", { class: "item clickable" }, h("img", { src: CF.icon("volume"), alt: "", style: "filter:invert(.3)" }), h("span", { style: "flex:1" }, label), h("small", { class: "muted" }, id + ".wav")); r.addEventListener("click", () => CF.sound(id)); return r; }))];
+            h("div", { class: "list", style: "height:230px" }, events.map(([id, label]) => { const r = h("div", { class: "item clickable" }, h("img", { src: CF.icon("volume"), alt: "", style: s.theme === "nightcode" ? "" : "filter:invert(.3)" }), h("span", { style: "flex:1" }, label), h("small", { class: "muted" }, id + ".wav")); r.addEventListener("click", () => CF.sound(id)); return r; }))];
         },
         access: () => {
           const hcSel = h("select", { class: "field" }, CF.HC_SCHEMES.map(([id, label]) => h("option", { value: id, selected: s.hcScheme === id }, label)));

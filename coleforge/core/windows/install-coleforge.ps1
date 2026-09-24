@@ -10,7 +10,7 @@
     .\install-coleforge.ps1                                  # default install location
     .\install-coleforge.ps1 -ExePath "D:\ColeForge\ColeForge.exe"
     .\install-coleforge.ps1 -ThemeOnly                       # sounds + wallpaper, keep Explorer
-    .\install-coleforge.ps1 -Scheme Classic                  # synth sounds instead of the ElevenLabs set
+    .\install-coleforge.ps1 -Scheme Studio                   # the ElevenLabs set instead of NightCode (or -Scheme Classic)
 
   Escape hatch if anything goes wrong: Ctrl+Shift+Esc -> File -> Run new task -> explorer.exe,
   then run uninstall-coleforge.ps1.
@@ -19,7 +19,7 @@
 param(
   [string]$ExePath = "$env:LOCALAPPDATA\Programs\ColeForge\ColeForge.exe",
   [string]$AssetsPath = "",
-  [ValidateSet("Studio", "Classic")][string]$Scheme = "Studio",
+  [ValidateSet("NightCode", "Studio", "Classic")][string]$Scheme = "NightCode",
   [switch]$ThemeOnly
 )
 $ErrorActionPreference = "Stop"
@@ -40,7 +40,7 @@ function Ensure-Key([string]$Path) { if (-not (Test-Path $Path)) { New-Item -Pat
 $cfHome = Join-Path $env:APPDATA "ColeForge"
 $media = Join-Path $cfHome "Media"
 New-Item -ItemType Directory -Force -Path $media | Out-Null
-$soundSrc = if ($Scheme -eq "Studio") { "sounds\studio\*.wav" } else { "sounds\*.wav" }
+$soundSrc = switch ($Scheme) { "NightCode" { "sounds\nightcode\*.wav" } "Studio" { "sounds\studio\*.wav" } default { "sounds\*.wav" } }
 Copy-Item -Force (Join-Path $AssetsPath $soundSrc) $media
 Write-Host "Copied ColeForge $Scheme sounds to $media"
 
@@ -81,7 +81,7 @@ Set-ItemProperty -Path "HKCU:\AppEvents\Schemes" -Name "(default)" -Value $schem
 Write-Host "Installed the 'ColeForge $Scheme' sound scheme."
 
 # ---------- wallpaper ----------
-$wallSrc = @("art\wallpapers\lake.png", "art\wallpapers\energy.png", "art\boot-splash.webp") | ForEach-Object { Join-Path $AssetsPath $_ } | Where-Object { Test-Path $_ } | Select-Object -First 1
+$wallSrc = @("art\wallpapers\nightcode.png", "art\wallpapers\lake.png", "art\wallpapers\energy.png", "art\boot-splash.webp") | ForEach-Object { Join-Path $AssetsPath $_ } | Where-Object { Test-Path $_ } | Select-Object -First 1
 if ($wallSrc) {
   $wall = Join-Path $cfHome ("wallpaper" + [IO.Path]::GetExtension($wallSrc))
   Copy-Item -Force $wallSrc $wall

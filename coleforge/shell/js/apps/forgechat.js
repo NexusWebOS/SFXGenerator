@@ -7,7 +7,7 @@
   const { h, esc } = CF;
   const P = window.ForgeChatProtocol;
   // 16-bit pixel art (assets/art/forgechat/) in the Windows 98 theme, emoji glyphs otherwise.
-  const is98 = () => CF.settings.theme === "98";
+  const is98 = () => CF.is98();
   const pix = (name, glyph) => is98() ? h("img", { class: "px-ico", src: `assets/art/forgechat/${name}.png`, alt: glyph }) : glyph;
 
   /* ---------------- transports ---------------- */

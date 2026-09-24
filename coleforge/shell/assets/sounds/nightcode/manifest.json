@@ -1,0 +1,102 @@
+{
+  "scheme": "NightCode",
+  "source": "coleforge/audio/build_nightcode_scheme.py (synthesized)",
+  "sampleRate": 44100,
+  "sounds": [
+    {
+      "name": "startup",
+      "file": "startup.wav",
+      "seconds": 4.18
+    },
+    {
+      "name": "shutdown",
+      "file": "shutdown.wav",
+      "seconds": 2.89
+    },
+    {
+      "name": "logon",
+      "file": "logon.wav",
+      "seconds": 1.2
+    },
+    {
+      "name": "ding",
+      "file": "ding.wav",
+      "seconds": 0.68
+    },
+    {
+      "name": "notify",
+      "file": "notify.wav",
+      "seconds": 0.72
+    },
+    {
+      "name": "exclamation",
+      "file": "exclamation.wav",
+      "seconds": 0.81
+    },
+    {
+      "name": "critical_stop",
+      "file": "critical_stop.wav",
+      "seconds": 0.81
+    },
+    {
+      "name": "question",
+      "file": "question.wav",
+      "seconds": 0.55
+    },
+    {
+      "name": "menu_click",
+      "file": "menu_click.wav",
+      "seconds": 0.05
+    },
+    {
+      "name": "menu_popup",
+      "file": "menu_popup.wav",
+      "seconds": 0.19
+    },
+    {
+      "name": "minimize",
+      "file": "minimize.wav",
+      "seconds": 0.33
+    },
+    {
+      "name": "maximize",
+      "file": "maximize.wav",
+      "seconds": 0.33
+    },
+    {
+      "name": "recycle",
+      "file": "recycle.wav",
+      "seconds": 0.71
+    },
+    {
+      "name": "chat_in",
+      "file": "chat_in.wav",
+      "seconds": 0.55
+    },
+    {
+      "name": "chat_out",
+      "file": "chat_out.wav",
+      "seconds": 0.28
+    },
+    {
+      "name": "buddy_in",
+      "file": "buddy_in.wav",
+      "seconds": 0.75
+    },
+    {
+      "name": "buddy_out",
+      "file": "buddy_out.wav",
+      "seconds": 0.75
+    },
+    {
+      "name": "lobby_ready",
+      "file": "lobby_ready.wav",
+      "seconds": 1.61
+    },
+    {
+      "name": "call_ring",
+      "file": "call_ring.wav",
+      "seconds": 2.11
+    }
+  ]
+}

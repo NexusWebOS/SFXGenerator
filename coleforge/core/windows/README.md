@@ -54,7 +54,7 @@ What the installer sets up:
 | Piece | Where |
 | --- | --- |
 | Shell | `HKCU\Software\Microsoft\Windows NT\CurrentVersion\Winlogon\Shell` → `ColeForge.exe --shell` |
-| Sound scheme "ColeForge Classic" | `HKCU\AppEvents\Schemes`, WAVs copied to `%APPDATA%\ColeForge\Media` |
+| Sound scheme "ColeForge NightCode" (`-Scheme Studio` or `Classic` for the others) | `HKCU\AppEvents\Schemes`, WAVs copied to `%APPDATA%\ColeForge\Media` |
 | Wallpaper | `%APPDATA%\ColeForge\wallpaper.*` |
 
 In shell mode, ColeForge's Shut Down / Restart / Log Off really power the machine off, restart it, or sign you out.

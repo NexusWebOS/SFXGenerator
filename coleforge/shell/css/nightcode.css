@@ -1,0 +1,180 @@
+/* NightCode theme for Windows – ColeForge Edition: the hacker edition's own desktop theme.
+   It runs on the Windows 98 shell (<body class="theme-98 theme-nc scheme-nightcode">): same Start
+   menu, dialogs and log-on, reskinned as neon circuitry on night blue. theme-nc is dropped when High
+   Contrast is on, so accessibility schemes always win. Fonts: Share Tech Mono (UI) and Orbitron
+   (titles), both SIL OFL 1.1, bundled in assets/fonts/. */
+
+@font-face { font-family: "Share Tech Mono"; src: url("../assets/fonts/ShareTechMono-Regular.ttf") format("truetype"); font-display: swap; }
+@font-face { font-family: "Orbitron"; font-weight: 700; src: url("../assets/fonts/Orbitron-Bold.ttf") format("truetype"); font-display: swap; }
+@font-face { font-family: "Orbitron"; font-weight: 900; src: url("../assets/fonts/Orbitron-Black.ttf") format("truetype"); font-display: swap; }
+
+body.theme-nc {
+  --nc-cyan: #31d7e8;
+  --nc-blue: #1e78ff;
+  --nc-ice: #bff4ff;
+  --nc-ink: #050a16;
+  --nc-panel: #0a1224;
+  --nc-line: #1f3a6e;
+  --nc-line-hi: #2d5aa8;
+  --nc-glow: 0 0 10px rgba(30, 120, 255, .45);
+  --nc-mono: "Share Tech Mono", Consolas, "Lucida Console", monospace;
+  --nc-display: "Orbitron", "Share Tech Mono", Consolas, sans-serif;
+  --w98-font: calc(12px * var(--ui-scale, 1))/1.35 var(--nc-mono);
+  --w98-title: linear-gradient(90deg, #01030a 0%, #0b2a6e 55%, #1e78ff 100%);
+  --w98-title-off: linear-gradient(90deg, #03060e, #0d1a33);
+  --w98-dither: #0f2456;
+  /* Bevels become neon edges: every 98 control that used them picks this up. */
+  --raised: inset 0 0 0 1px var(--nc-line-hi), inset 0 0 8px rgba(30, 120, 255, .18);
+  --raised-soft: inset 0 0 0 1px var(--nc-line), inset 0 0 12px rgba(30, 120, 255, .12);
+  --sunken: inset 0 0 0 1px var(--nc-line), inset 0 2px 8px rgba(0, 0, 0, .7);
+  --pressed: inset 0 0 0 1px var(--nc-cyan), inset 0 0 10px rgba(49, 215, 232, .35);
+  --cursor-arrow: url("../assets/cursors/nightcode/arrow.svg") 2 2, default;
+  --cursor-hand: url("../assets/cursors/nightcode/hand.svg") 9 2, pointer;
+  --cursor-text: url("../assets/cursors/nightcode/text.svg") 8 12, text;
+  --cursor-busy: url("../assets/cursors/nightcode/busy.svg") 12 12, progress;
+  -webkit-font-smoothing: antialiased;
+}
+body.theme-nc ::selection { background: var(--nc-blue); color: #fff; }
+body.theme-nc a, body.theme-nc .exp-link { color: var(--nc-cyan); }
+
+/* ---------- scrollbars ---------- */
+body.theme-nc ::-webkit-scrollbar { width: 12px; height: 12px; }
+body.theme-nc ::-webkit-scrollbar-track { background: var(--nc-ink); box-shadow: inset 1px 0 var(--nc-line); }
+body.theme-nc ::-webkit-scrollbar-thumb { background: #10224a; box-shadow: inset 0 0 0 1px var(--nc-line-hi); }
+body.theme-nc ::-webkit-scrollbar-thumb:hover { background: #163069; box-shadow: inset 0 0 0 1px var(--nc-cyan); }
+body.theme-nc ::-webkit-scrollbar-button:single-button { display: none; }
+body.theme-nc ::-webkit-scrollbar-corner { background: var(--nc-ink); }
+
+/* ---------- desktop ---------- */
+body.theme-nc img[src*="nightcode/icons/"] { image-rendering: pixelated; }
+body.theme-nc .desk-icon img { filter: drop-shadow(0 0 4px rgba(30, 120, 255, .55)); }
+body.theme-nc .desk-icon span { font: calc(12px * var(--ui-scale, 1))/1.2 var(--nc-mono); color: #d8ecff; text-shadow: 0 0 2px #000, 0 0 6px rgba(30, 120, 255, .9); padding: 0 3px; }
+body.theme-nc .desk-icon:hover span { color: #fff; text-shadow: 0 0 2px #000, 0 0 8px var(--nc-cyan); }
+body.theme-nc .desk-icon.selected span { background: rgba(30, 120, 255, .85); border: 1px dotted var(--nc-cyan); text-shadow: none; color: #fff; }
+body.theme-nc .desk-icon.selected img { filter: drop-shadow(0 0 6px var(--nc-cyan)) brightness(1.15); }
+body.theme-nc #rubber { border: 1px dashed var(--nc-cyan); background: rgba(30, 120, 255, .12); }
+body.theme-nc #desk-brand .w { font: 900 34px/1 var(--nc-display); letter-spacing: .02em; color: #eaf6ff; }
+body.theme-nc #desk-brand .e { font: 700 17px var(--nc-display); letter-spacing: .08em; text-transform: uppercase; margin-top: 4px; }
+body.theme-nc #desk-brand .t { font: 12px var(--nc-mono); letter-spacing: .3em; margin-top: 8px; }
+
+/* ---------- windows ---------- */
+body.theme-nc .win { padding: 2px; border: 1px solid var(--nc-line); box-shadow: 0 0 0 1px #000, 0 12px 32px rgba(0, 0, 0, .65); }
+body.theme-nc .win.active { border-color: var(--nc-blue); box-shadow: 0 0 0 1px #000, 0 0 18px rgba(30, 120, 255, .45), 0 14px 36px rgba(0, 0, 0, .7); }
+body.theme-nc .win.max { border: none; box-shadow: none; }
+/* Chip-frame corner brackets, like the logo's circuit border. */
+body.theme-nc .win::before, body.theme-nc .win::after { content: ""; position: absolute; width: 12px; height: 12px; pointer-events: none; z-index: 2; border: 0 solid var(--nc-line-hi); }
+body.theme-nc .win::before { left: -2px; top: -2px; border-width: 2px 0 0 2px; }
+body.theme-nc .win::after { right: -2px; bottom: -2px; border-width: 0 2px 2px 0; }
+body.theme-nc .win.active::before, body.theme-nc .win.active::after { border-color: var(--nc-cyan); filter: drop-shadow(0 0 3px var(--nc-cyan)); }
+body.theme-nc .win.max::before, body.theme-nc .win.max::after { display: none; }
+body.theme-nc .titlebar { height: calc(22px * var(--ui-scale, 1)); padding: 0 3px 0 5px; gap: 5px; font: 700 calc(10.5px * var(--ui-scale, 1))/1 var(--nc-display); letter-spacing: .08em; text-transform: uppercase; color: #5f80ab; }
+body.theme-nc .win.active .titlebar { color: #eaf6ff; text-shadow: 0 0 6px rgba(49, 215, 232, .8); }
+body.theme-nc .titlebar::after { content: ""; flex: none; width: 34px; height: 6px; margin-right: 4px; opacity: .5;
+  background: repeating-linear-gradient(90deg, var(--nc-cyan) 0 2px, transparent 2px 5px); }
+body.theme-nc .win:not(.active) .titlebar::after { opacity: .15; }
+body.theme-nc .titlebar::after { order: 1; }
+body.theme-nc .titlebar .tb-btn { order: 2; }
+body.theme-nc .tb-btn { width: 18px; height: 16px; background: var(--nc-ink); color: var(--nc-cyan); box-shadow: inset 0 0 0 1px var(--nc-line-hi); font: bold 10px/1 var(--nc-mono); }
+body.theme-nc .tb-btn:hover { background: #0f2456; color: #fff; box-shadow: inset 0 0 0 1px var(--nc-cyan), 0 0 6px rgba(49, 215, 232, .6); }
+body.theme-nc .tb-btn:active { box-shadow: var(--pressed); }
+body.theme-nc .tb-btn.close { background: var(--nc-ink); color: #ff8fb0; }
+body.theme-nc .tb-btn.close:hover { background: #ff5c8a; color: #fff; box-shadow: inset 0 0 0 1px #ffc2d3, 0 0 8px rgba(255, 92, 138, .8); }
+body.theme-nc .menubar { box-shadow: inset 0 -1px var(--nc-line); }
+body.theme-nc .menubar > div:hover, body.theme-nc .menubar > div.open { box-shadow: inset 0 -2px var(--nc-cyan); }
+body.theme-nc .statusbar > span { box-shadow: inset 0 0 0 1px var(--nc-line); color: #7fa6d6; }
+body.theme-nc .resize-grip { background: linear-gradient(135deg, transparent 55%, var(--nc-line-hi) 55%, var(--nc-line-hi) 62%, transparent 62%, transparent 72%, var(--nc-cyan) 72%, var(--nc-cyan) 79%, transparent 79%); }
+
+/* ---------- controls ---------- */
+body.theme-nc .btn, body.theme-nc .btn.flat { background: linear-gradient(#10204a, #0a1328); color: #d8ecff; }
+body.theme-nc .btn:hover, body.theme-nc .btn.flat:hover { background: linear-gradient(#15306a, #0c1a3a); color: #fff; box-shadow: inset 0 0 0 1px var(--nc-cyan), 0 0 8px rgba(49, 215, 232, .45); }
+body.theme-nc .btn:active { background: #0f2456; box-shadow: var(--pressed); }
+body.theme-nc .btn:focus-visible { outline: 1px dashed var(--nc-cyan); outline-offset: -4px; }
+body.theme-nc .btn:disabled { opacity: .45; }
+body.theme-nc .field:focus, body.theme-nc .chat-input:focus, body.theme-nc textarea.notepad:focus { box-shadow: inset 0 0 0 1px var(--nc-cyan), 0 0 6px rgba(49, 215, 232, .35); outline: none; }
+body.theme-nc .tool:hover { box-shadow: inset 0 0 0 1px var(--nc-line-hi); }
+body.theme-nc .tool.on { background: #0f2456; box-shadow: var(--pressed); }
+body.theme-nc .toolbar { box-shadow: inset 0 -1px var(--nc-line); }
+body.theme-nc .toolbar .sep { border-left: 1px solid var(--nc-line); border-right: none; }
+body.theme-nc .group { box-shadow: inset 0 0 0 1px var(--nc-line); }
+body.theme-nc .group > .legend { color: var(--nc-cyan); font: 700 calc(10px * var(--ui-scale, 1)) var(--nc-display); letter-spacing: .1em; text-transform: uppercase; }
+body.theme-nc .list > .item.sel { box-shadow: inset 2px 0 var(--nc-cyan); }
+body.theme-nc .tabs { box-shadow: inset 0 -1px var(--nc-line); }
+body.theme-nc .tabs > div { border-radius: 0; background: var(--nc-ink); color: #7fa6d6; box-shadow: inset 0 0 0 1px var(--nc-line); }
+body.theme-nc .tabs > div:hover { color: #fff; }
+body.theme-nc .tabs > div.on { background: var(--w98-face); color: #fff; box-shadow: inset 0 2px var(--nc-cyan), inset 1px 0 var(--nc-line-hi), inset -1px 0 var(--nc-line-hi); }
+body.theme-nc input[type="checkbox"], body.theme-nc input[type="radio"] { accent-color: var(--nc-blue); }
+body.theme-nc input[type="range"] { -webkit-appearance: none; appearance: none; height: 16px; background: transparent; }
+body.theme-nc input[type="range"]::-webkit-slider-runnable-track { height: 4px; background: linear-gradient(90deg, #0b2a6e, #10224a); box-shadow: inset 0 0 0 1px var(--nc-line-hi); }
+body.theme-nc input[type="range"]::-webkit-slider-thumb { -webkit-appearance: none; width: 10px; height: 16px; margin-top: -6px; background: var(--nc-cyan); box-shadow: inset 0 0 0 1px var(--nc-ice), 0 0 8px rgba(49, 215, 232, .8); }
+body.theme-nc input[type="range"]:hover::-webkit-slider-thumb { background: var(--nc-ice); }
+
+/* ---------- taskbar ---------- */
+body.theme-nc { --taskbar-h: 30px; }
+body.theme-nc #taskbar { height: 30px; padding: 3px; gap: 4px; background: linear-gradient(#0b1530, #03060e); box-shadow: inset 0 1px var(--nc-blue), 0 -2px 14px rgba(30, 120, 255, .35); }
+body.theme-nc #start-btn { height: 24px; padding: 0 9px 0 4px; gap: 5px; background: linear-gradient(#0f2456, #050a16); color: var(--nc-cyan); font: 900 11px var(--nc-display); letter-spacing: .12em; text-transform: uppercase; text-shadow: 0 0 6px rgba(49, 215, 232, .9); box-shadow: inset 0 0 0 1px var(--nc-cyan), 0 0 8px rgba(49, 215, 232, .35); }
+body.theme-nc #start-btn:hover { box-shadow: inset 0 0 0 1px var(--nc-ice), 0 0 12px rgba(49, 215, 232, .7); color: #fff; }
+body.theme-nc #start-btn.open { background: #0f2456; box-shadow: var(--pressed), 0 0 12px rgba(49, 215, 232, .6); }
+body.theme-nc #start-btn img { width: 20px; height: 20px; filter: drop-shadow(0 0 3px rgba(30, 120, 255, .9)); }
+body.theme-nc #quick { border: none; box-shadow: inset 1px 0 var(--nc-line), inset -1px 0 var(--nc-line); }
+body.theme-nc #quick img:hover { box-shadow: inset 0 0 0 1px var(--nc-cyan); background: rgba(30, 120, 255, .15); }
+body.theme-nc .task { height: 24px; background: rgba(10, 18, 36, .9); color: #9fc3ec; box-shadow: inset 0 0 0 1px var(--nc-line); }
+body.theme-nc .task:hover { color: #fff; box-shadow: inset 0 0 0 1px var(--nc-line-hi); }
+body.theme-nc .task.active { background: linear-gradient(#123070, #0a1a40); color: #fff; font-weight: normal; box-shadow: inset 0 0 0 1px var(--nc-cyan), inset 0 -2px var(--nc-cyan), 0 0 8px rgba(49, 215, 232, .35); }
+body.theme-nc #tray { height: 24px; background: var(--nc-ink); box-shadow: inset 0 0 0 1px var(--nc-line); }
+body.theme-nc #clock { color: var(--nc-cyan); font: 13px var(--nc-mono); letter-spacing: .06em; text-shadow: 0 0 6px rgba(49, 215, 232, .6); }
+
+/* ---------- Start menu ---------- */
+body.theme-nc #start-menu, body.theme-nc .sm98-flyout, body.theme-nc .ctx { background: rgba(8, 14, 30, .97); box-shadow: inset 0 0 0 1px var(--nc-line-hi), 0 0 18px rgba(30, 120, 255, .35), 4px 6px 18px rgba(0, 0, 0, .6); }
+body.theme-nc #start-menu { width: 214px; }
+body.theme-nc .sm98-banner { position: relative; width: 30px; background: linear-gradient(0deg, #01030a, #0b2a6e 60%, #1e78ff); box-shadow: inset -1px 0 var(--nc-cyan); }
+body.theme-nc .sm98-banner::before { content: ""; position: absolute; top: 6px; left: 3px; width: 24px; height: 24px; background: url("../assets/art/nightcode/logo-32.png") center / contain no-repeat; filter: drop-shadow(0 0 3px var(--nc-cyan)); }
+body.theme-nc .sm98-banner span { font: 900 17px var(--nc-display); letter-spacing: .14em; text-transform: uppercase; color: #eaf6ff; text-shadow: 0 0 8px rgba(49, 215, 232, .9); padding: 8px 0; }
+body.theme-nc .sm98-banner span b { color: var(--nc-cyan); font-weight: 900; }
+body.theme-nc .sm98-item { color: #cfe6ff; }
+body.theme-nc .sm98-item:hover, body.theme-nc .ctx .ci:hover { background: linear-gradient(90deg, #1e78ff, #0f2456); color: #fff; box-shadow: inset 2px 0 var(--nc-cyan); }
+body.theme-nc .sm98-item.sub::after { color: var(--nc-cyan); }
+body.theme-nc .sm98-sep, body.theme-nc .ctx .cs { border-top: 1px solid var(--nc-line); border-bottom: none; }
+body.theme-nc .ctx .ci.disabled { color: #3d5680; text-shadow: none; }
+
+/* ---------- dialogs, toasts, shutdown ---------- */
+body.theme-nc .toast { background: rgba(8, 14, 30, .97); color: #cfe6ff; box-shadow: inset 0 0 0 1px var(--nc-cyan), 0 0 14px rgba(30, 120, 255, .5); }
+body.theme-nc .toast b { color: var(--nc-cyan); font-family: var(--nc-display); font-size: 11px; letter-spacing: .08em; text-transform: uppercase; }
+body.theme-nc #shutdown { background: repeating-linear-gradient(0deg, rgba(0, 4, 16, .78) 0 2px, rgba(0, 4, 16, .6) 2px 4px); }
+body.theme-nc #shutdown.final { background: #02050e; color: var(--nc-cyan); font: 20px var(--nc-mono); text-shadow: 0 0 8px rgba(49, 215, 232, .8); }
+
+/* ---------- boot ---------- */
+body.theme-nc #bios { background: #02050e; color: #7fc4ff; font-family: var(--nc-mono); }
+body.theme-nc #bios .hi { color: var(--nc-cyan); text-shadow: 0 0 6px rgba(49, 215, 232, .8); }
+body.theme-nc #bios .ok { color: #3cff9e; }
+body.theme-nc #boot { background: #02050e; }
+body.theme-nc #boot .boot-frame { width: min(100vw, 100vh * 16 / 9); aspect-ratio: 16 / 9; background: url("../assets/art/nightcode/boot.jpg") center / cover no-repeat; }
+body.theme-nc #boot .boot-tag { position: absolute; left: 0; right: 0; top: 66%; text-align: center; font: 900 clamp(14px, 2.4vw, 34px) var(--nc-display); letter-spacing: .35em; color: #eaf6ff; text-shadow: 0 0 12px rgba(49, 215, 232, .9), 0 0 30px rgba(30, 120, 255, .8); }
+body.theme-nc #boot .boot-inner { top: 78%; width: 38%; }
+body.theme-nc #boot .boot-status { bottom: 8%; font: 13px var(--nc-mono); color: #7fc4ff; letter-spacing: .2em; }
+body.theme-nc .seg-bar { border-radius: 0; border-color: var(--nc-line-hi); background: rgba(2, 5, 14, .8); box-shadow: 0 0 14px rgba(30, 120, 255, .35); }
+body.theme-nc .seg-bar i { border-radius: 0; border-color: var(--nc-line); background: #050a16; }
+body.theme-nc .seg-bar i.on { background: linear-gradient(var(--nc-ice), var(--nc-cyan) 45%, var(--nc-blue)); border-color: var(--nc-ice); box-shadow: 0 0 10px var(--nc-cyan); }
+
+/* ---------- log-on ---------- */
+body.theme-98.theme-nc #welcome { background: #02050e url("../assets/art/wallpapers/nightcode-grid.jpg") center / cover no-repeat; }
+body.theme-nc #welcome::before { content: ""; position: absolute; inset: 0; background: radial-gradient(circle at 50% 50%, rgba(2, 5, 14, .35), rgba(2, 5, 14, .9) 70%); }
+body.theme-nc .welcome-card { position: relative; width: min(460px, 94vw); padding: 2px; box-shadow: inset 0 0 0 1px var(--nc-cyan), 0 0 28px rgba(30, 120, 255, .55), 0 18px 40px rgba(0, 0, 0, .7); }
+body.theme-nc .welcome-card .w98-title { height: 22px; font: 700 10.5px var(--nc-display); letter-spacing: .08em; text-transform: uppercase; text-shadow: 0 0 6px rgba(49, 215, 232, .8); }
+body.theme-nc .welcome-card .w98-banner { background-image: url("../assets/art/nightcode/logon-banner.png"); }
+body.theme-nc .welcome-card .user img { box-shadow: inset 0 0 0 1px var(--nc-cyan), 0 0 10px rgba(30, 120, 255, .6); background: var(--nc-ink); }
+
+/* ---------- apps ---------- */
+body.theme-nc .about-w { font-family: var(--nc-display); font-weight: 900; }
+body.theme-nc .about-e { font-family: var(--nc-display); font-weight: 700; color: var(--nc-cyan); }
+body.theme-nc .exp-ph, body.theme-nc .chat-sec { font-family: var(--nc-display); font-size: 11px; letter-spacing: .1em; text-transform: uppercase; }
+body.theme-nc .chat-signon-card, body.theme-nc .lobby-card, body.theme-nc .arc-card { box-shadow: inset 0 0 0 1px var(--nc-line-hi), 0 0 12px rgba(30, 120, 255, .2); }
+body.theme-nc .chat-signon-card { box-shadow: inset 0 0 0 1px var(--nc-cyan), 0 0 22px rgba(30, 120, 255, .4); }
+body.theme-nc .wall-tile.on { box-shadow: 0 0 8px rgba(49, 215, 232, .6); }
+
+/* ---------- optional CRT scanlines (Control Panel → Display) ---------- */
+body.theme-nc.nc-scanlines::after { content: ""; position: fixed; inset: 0; z-index: 99999; pointer-events: none;
+  background: repeating-linear-gradient(0deg, rgba(0, 0, 0, .16) 0 1px, transparent 1px 3px); }
+
+/* ---------- screen saver (js/screensaver.js); shown in every theme ---------- */
+#screensaver-wrap { position: fixed; inset: 0; z-index: 99990; background: #02050e; cursor: none !important; }
+#screensaver-wrap canvas { position: absolute; inset: 0; width: 100%; height: 100%; cursor: none !important; }

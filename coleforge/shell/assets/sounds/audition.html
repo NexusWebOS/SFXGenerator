@@ -22,7 +22,7 @@
   <h1>ColeForge Sound Schemes</h1>
   <p><b>Studio</b> is generated with ElevenLabs (default). <b>Classic</b> is synthesized by <code>generate_coleforge_system_sounds.js</code>.</p>
   <table>
-    <thead><tr><th>Event</th><th>Studio (ElevenLabs)</th><th>Classic (synth)</th></tr></thead>
+    <thead><tr><th>Event</th><th>NightCode (chiptune)</th><th>Studio (ElevenLabs)</th><th>Classic (synth)</th></tr></thead>
     <tbody id="rows"></tbody>
   </table>
 </main>
@@ -34,7 +34,7 @@
   const rows = document.getElementById("rows");
   for (const [id, label] of EVENTS) {
     const tr = document.createElement("tr");
-    tr.innerHTML = `<td>${label}<br><small>${id}.wav</small></td><td><audio controls preload="none" src="studio/${id}.wav"></audio></td><td><audio controls preload="none" src="${id}.wav"></audio></td>`;
+    tr.innerHTML = `<td>${label}<br><small>${id}.wav</small></td><td><audio controls preload="none" src="nightcode/${id}.wav"></audio></td><td><audio controls preload="none" src="studio/${id}.wav"></audio></td><td><audio controls preload="none" src="${id}.wav"></audio></td>`;
     rows.append(tr);
   }
 </script>

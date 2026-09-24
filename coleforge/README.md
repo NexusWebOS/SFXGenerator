@@ -3,8 +3,12 @@
 *Classic Roots. Modern Horizons.*
 
 **NightCode edition:** the ultimate hacker build. The NightCode skull-chip logo is the official
-logo, the NightCode wallpaper, avatar and colour scheme are the defaults, and NightCode's **Netcon**
-and **Disk Dude** ship as official ColeForge programs.
+logo, and the whole desktop wears the **NightCode theme**:
+- Neon circuit window chrome with Orbitron/Share Tech Mono type and a neon pixel icon set.
+- A terminal-style BIOS, the "Enter the NightCode" boot screen and a Shadow Grid log-on.
+- NightCode cursors, the NightCode chiptune sound scheme and a code-rain screen saver.
+
+NightCode's **Netcon** and **Disk Dude** ship as official ColeForge programs.
 
 A private, experimental "what if Windows 98 SE never stopped evolving" build: a 98 SE-style
 desktop with a modern glass finish, running on a modern kernel so today's hardware (Radeon,
@@ -26,7 +30,7 @@ cross-PC ForgeChat, which needs the server.
 | App | What it does |
 | --- | --- |
 | **Shell** | BIOS POST → your boot splash with the segmented loading bar → welcome/log-on → desktop. Draggable/resizable windows, taskbar, Start menu with All Programs, quick launch, tray (network, volume, clock), Run dialog, right-click menus everywhere (desktop, icons, title bars, taskbar with Cascade/Tile/Minimize All, Start button, tray, text boxes with Cut/Copy/Paste, and inside every app), toasts, 98-style dialogs, Shut Down / Restart / Log Off. Keys: Ctrl+Esc (Start), Alt+F4, F5, Ctrl+Shift+R (Run). |
-| **Control Panel** | Theme (**Windows 98 Classic**, the default, or ColeForge Glass); Appearance colour schemes with a Win98-style preview: **NightCode** (the default), Windows Standard, **ColeForge Dark**, Automatic (follows Windows light/dark), and the classic **High Contrast Black / White / #1 / #2**; an **Accessibility** tab with Use High Contrast, the Left Alt+Left Shift+Print Screen shortcut, following Windows' own High Contrast when ColeForge is your shell, and Normal/Large/Extra large sizes; wallpapers (incl. your own picture), accent colour, UI size, cursor scheme, the ColeForge sound scheme with previews, account name + picture (15 Cole avatars or your own). |
+| **Control Panel** | Theme: **NightCode** (the default; like a Windows 98 Desktop Theme it brings its wallpaper, cursors and sounds), **Windows 98 Classic** or ColeForge Glass. A **screen saver** (NightCode Code Rain, with wait time and Preview) and optional CRT scanlines. Appearance colour schemes for Windows 98 Classic, with a Win98-style preview: **NightCode**, Windows Standard, **ColeForge Dark**, Automatic (follows Windows light/dark), and the classic **High Contrast Black / White / #1 / #2**; an **Accessibility** tab with Use High Contrast, the Left Alt+Left Shift+Print Screen shortcut, following Windows' own High Contrast when ColeForge is your shell, and Normal/Large/Extra large sizes; wallpapers (incl. your own picture), accent colour, UI size, cursor scheme, the ColeForge sound scheme with previews, account name + picture (15 Cole avatars or your own). |
 | **My Computer** | Live hardware report: CPU cores, GPU name, RAM, network, display, battery, storage (real drives when running as the desktop host). |
 | **My Documents / Recycle Bin / Notepad** | Save, import, delete to the bin, restore, empty (with the crumple sound). Notepad has find, time/date, word wrap and export. |
 | **Forge Browser** | Tabs, favorites, history, search, home page. As the desktop host it uses real Chromium tabs with a full right-click menu (open link in new tab, copy, save/edit image in Forgecraft, view source, inspect). |
@@ -39,7 +43,7 @@ cross-PC ForgeChat, which needs the server.
 | **Forge Game Browser** | A 16-bit, GameSpy-style Zandronum server browser: internet servers from the Zandronum master, LAN servers found automatically from their broadcasts, favourites and ForgeChat lobbies. Sort by ping/players, filter, see every player's score/ping/team, WADs, limits and skill; double-click to join (password prompt included), host your own server, or **Share** a server into ForgeChat as a one-click Join card. |
 | **Netcon** *(NightCode)* | Official ColeForge program: SAMPLE ID badge maker with PNG export, RFID/NFC asset inventory (IDs you type in, no radio reading), lock service/damage log, game ownership and compatibility catalog. |
 | **Disk Dude** *(NightCode)* | Official ColeForge program: detects PS1/PS2/Dreamcast/Xbox/DVD/VCD/music/data discs, verified copy with SHA-256 manifest + ZIP, data-disc burning, Audio CD playback, one-click emulator launch. See [programs/README.md](programs/README.md). |
-| **Sounds** | Two 19-sound schemes, switchable in Control Panel → Sounds: **ColeForge Studio** (default, generated with ElevenLabs) and **ColeForge Classic** (synthesized by `generate_coleforge_system_sounds.js`). Compare them at `shell/assets/sounds/audition.html`. |
+| **Sounds** | Three 19-sound schemes, switchable in Control Panel → Sounds: **NightCode** (default, chiptune synth by `audio/build_nightcode_scheme.py`), **ColeForge Studio** (generated with ElevenLabs) and **ColeForge Classic** (synthesized by `generate_coleforge_system_sounds.js`). Compare them at `shell/assets/sounds/audition.html`. |
 
 ## Layout
 
@@ -97,7 +101,11 @@ Browsers visiting `http://<lan-ip>` may block the camera; use ColeForge.exe on e
 
 ## Art
 
-- **NightCode** (`art/nightcode/`): Cole's four NightCode pictures are in `source/`; the skull-chip logo
+- **NightCode theme** (`css/nightcode.css`, built on the 98 theme): `art/nightcode/build_nightcode_theme.py`
+  draws the 21 neon pixel icons (`shell/assets/art/nightcode/icons/`, preview `art/nightcode/theme-preview.png`),
+  the boot screen and the log-on banner. Cursors are in `shell/assets/cursors/nightcode/`. The fonts are
+  Share Tech Mono and Orbitron (SIL Open Font License 1.1, licences next to them in `shell/assets/fonts/`).
+- **NightCode art** (`art/nightcode/`): Cole's four NightCode pictures are in `source/`; the skull-chip logo
   is the official logo (About box, avatar, desktop wallpaper). `art/nightcode/build_nightcode_art.py`
   builds the logo sizes, the NightCode avatar, 4 wallpapers (NightCode, Enter the NightCode, Shadow
   Grid, Beyond the Light) and the 16-colour pixel icons, mascots and logos for Netcon and Disk Dude.
@@ -130,13 +138,16 @@ Browsers visiting `http://<lan-ip>` may block the camera; use ColeForge.exe on e
 
 ## Sounds
 
+- **NightCode** (`shell/assets/sounds/nightcode/`, the default): chiptune/cyber system sounds
+  (square arpeggios in A minor, bit-crushed glitches, modem chirps), synthesized entirely in code by
+  `audio/build_nightcode_scheme.py`. Run `python coleforge/audio/build_nightcode_scheme.py` to rebuild.
 - **ColeForge Studio** (`shell/assets/sounds/studio/`): generated with ElevenLabs Sound Effects v2
   in the "ColeForge Sound Scheme" flow. Two takes of each sound are in `audio/elevenlabs-takes/`
   (with `takes.json`). `audio/build_studio_scheme.py` picks one per event, trims, fades and
   normalizes it to 44.1 kHz 16-bit WAV. To swap a take, change `PICKS` in that script and run
   `python coleforge/audio/build_studio_scheme.py`.
 - **ColeForge Classic** (`shell/assets/sounds/`): procedural, from `generate_coleforge_system_sounds.js`.
-- The Windows installer uses Studio by default: `install-coleforge.ps1 -Scheme Classic` for the other.
+- The Windows installer uses NightCode by default: `install-coleforge.ps1 -Scheme Studio` or `-Scheme Classic` for the others.
 
 ## Private build
 

@@ -101,7 +101,11 @@ body.hc .ctx .ci.disabled { text-shadow: none; color: var(--w98-gray); }
 body.hc .btn:disabled, body.hc .gb .btn:disabled { text-shadow: none; }
 /* App surfaces that normally keep their own glass colours follow the scheme too. */
 body.hc .amp-screen, body.hc .vis-stage, body.hc .br-view, body.hc .exp-main, body.hc .arc, body.hc .arc-card { background: var(--w98-window); color: var(--w98-wtext); }
-body.theme-98.scheme-dark .arc-card, body.theme-98.scheme-dark .exp-main { background: var(--w98-window); color: var(--w98-wtext); }
+body.theme-98:is(.scheme-dark, .scheme-nightcode) :is(.arc-card, .exp-main) { background: var(--w98-window); color: var(--w98-wtext); }
+body.theme-98:is(.scheme-dark, .scheme-nightcode) .exp-h { color: var(--w98-accent); border-bottom-color: var(--w98-hilite); }
+body.theme-98:is(.scheme-dark, .scheme-nightcode) .drive:hover { background: var(--w98-face); border-color: var(--w98-hilite); }
+body.theme-98:is(.scheme-dark, .scheme-nightcode) :is(.drive small, .exp-main .muted) { color: var(--w98-gray); }
+body.theme-98:is(.scheme-dark, .scheme-nightcode) .hw { background: var(--w98-face); border-color: var(--w98-light); color: var(--w98-text); }
 
 /* When Windows itself is in High Contrast (ColeForge.exe as your shell), ColeForge draws its own
    faithful scheme instead of letting the browser engine repaint everything. */

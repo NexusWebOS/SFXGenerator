@@ -240,3 +240,7 @@ input[type="checkbox"], input[type="radio"] { accent-color: var(--accent); }
 /* ---------- shutdown ---------- */
 #shutdown { position: fixed; inset: 0; z-index: 9500; display: grid; place-items: center; background: rgba(2,6,15,.6); }
 #shutdown.final { background: #000; color: #ff9a1f; font: 700 22px var(--font); text-align: center; }
+#desktop.wall-nightcode { background: url("../assets/art/wallpapers/nightcode.png") center / cover no-repeat, #04081a; }
+#desktop.wall-nightcode-enter { background: url("../assets/art/wallpapers/nightcode-enter.jpg") center / cover no-repeat, #04081a; }
+#desktop.wall-nightcode-grid { background: url("../assets/art/wallpapers/nightcode-grid.jpg") center / cover no-repeat, #04081a; }
+#desktop.wall-nightcode-beyond { background: url("../assets/art/wallpapers/nightcode-beyond.jpg") center / cover no-repeat, #04081a; }

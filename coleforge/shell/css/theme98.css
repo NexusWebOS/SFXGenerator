@@ -167,6 +167,7 @@ body.theme-98 #shutdown { background: repeating-conic-gradient(rgba(0,0,0,.5) 0 
 
 /* ---------- Welcome / log-on dialog ---------- */
 body.theme-98 #welcome { background: var(--w98-accent); }
+body.theme-98.scheme-nightcode #welcome { background: radial-gradient(circle at 50% 40%, #0f2a66, #04081a 70%); }
 body.theme-98 .welcome-card { width: min(440px, 94vw); padding: 3px; text-align: left; background: var(--w98-face); box-shadow: var(--raised-soft); }
 body.theme-98 .welcome-card .w98-title { height: 18px; display: flex; align-items: center; gap: 4px; padding: 0 3px; background: var(--w98-title); color: var(--w98-title-text); font-weight: bold; }
 body.theme-98 .welcome-card .w98-title img { width: 16px; height: 16px; }

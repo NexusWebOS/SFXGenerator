@@ -13,5 +13,7 @@ contextBridge.exposeInMainWorld("forgeHost", {
   legacyEngines: () => ipcRenderer.invoke("forge:legacyEngines"),
   legacyPrepare: (spec) => ipcRenderer.invoke("forge:legacyPrepare", spec),
   legacyOpen: (dir) => ipcRenderer.invoke("forge:legacyOpen", dir),
+  programStatus: (id) => ipcRenderer.invoke("forge:programStatus", id),
+  runProgram: (id) => ipcRenderer.invoke("forge:runProgram", id),
   onNewTab: (fn) => ipcRenderer.on("forge:new-tab", (_e, url) => fn(url)),
 });

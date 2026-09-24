@@ -145,6 +145,42 @@ ipcMain.handle("forge:legacyOpen", (_e, dir) => {
   return shell.openPath(target);
 });
 
+/* ---------------- NightCode programs: Netcon + Disk Dude ---------------- */
+// Official ColeForge programs from NexusWebOS/NightCode (programs/retro-tools). Runs a built .exe when
+// there is one (core/windows/build-nightcode-programs.ps1), otherwise the Python source via "py -3".
+const PROGRAMS = {
+  netcon: { exe: "Netcon.exe", script: "netcon.py" },
+  diskdude: { exe: "DiskDude.exe", script: "disk_dude.py" },
+};
+// Python can't read inside app.asar, so packaged builds unpack programs/ next to it (asarUnpack).
+const PROGRAMS_SRC = path.join(APP_ROOT, "programs", "retro-tools").replace(`app.asar${path.sep}`, `app.asar.unpacked${path.sep}`);
+const PROGRAMS_BIN = path.join(process.env.LOCALAPPDATA || app.getPath("userData"), "ColeForge", "programs");
+function programStatus(id) {
+  const p = PROGRAMS[id];
+  const exe = [path.join(PROGRAMS_BIN, p.exe), path.join(PROGRAMS_SRC, "dist", p.exe)].find(f => fs.existsSync(f)) || null;
+  return { id, exe, source: fs.existsSync(path.join(PROGRAMS_SRC, p.script)) ? path.join(PROGRAMS_SRC, p.script) : null, bin: PROGRAMS_BIN };
+}
+ipcMain.handle("forge:programStatus", (_e, id) => {
+  if (!PROGRAMS[id]) throw new Error("Unknown program");
+  return programStatus(id);
+});
+ipcMain.handle("forge:runProgram", (_e, id) => new Promise((resolve, reject) => {
+  if (!PROGRAMS[id]) return reject(new Error("Unknown program"));
+  const st = programStatus(id);
+  let cmd, argv, cwd;
+  if (st.exe) { cmd = st.exe; argv = []; cwd = path.dirname(st.exe); }
+  else if (st.source) {
+    cmd = process.platform === "win32" ? "py" : "python3";
+    argv = process.platform === "win32" ? ["-3", st.source] : [st.source];
+    cwd = PROGRAMS_SRC;
+  } else return reject(new Error("Program files are missing from this ColeForge build."));
+  const child = spawn(cmd, argv, { cwd, detached: true, stdio: "ignore", windowsHide: false });
+  const fail = (e) => reject(new Error(st.exe ? e.message : `Couldn't start Python (${e.message}). Install Python 3.10+ with Pillow, or build the .exe with core\\windows\\build-nightcode-programs.ps1.`));
+  child.once("error", fail);
+  // If it's still alive shortly after starting, call it launched.
+  setTimeout(() => { child.removeListener("error", fail); child.unref(); resolve({ ok: true, via: st.exe ? "exe" : "python" }); }, 800);
+}));
+
 app.whenReady().then(async () => {
   // Allow webcam/mic/screen capture for ForgeChat calls from the local shell only.
   session.defaultSession.setPermissionRequestHandler((wc, permission, cb) => cb(wc.getURL().startsWith(`http://localhost:${PORT}`) && ["media", "display-capture", "clipboard-read", "clipboard-sanitized-write", "notifications", "fullscreen"].includes(permission)));

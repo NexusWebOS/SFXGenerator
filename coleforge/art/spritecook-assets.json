@@ -169,11 +169,19 @@
     },
     {
       "target": "assets/art/games/doom-legacy.webp",
-      "what": "Cole's DOOM Legacy \u2013 ColeForge Edition cover (in repo; source copy in art/cole/)"
+      "what": "Cole's DOOM Legacy – ColeForge Edition cover (in repo; source copy in art/cole/)"
     },
     {
       "target": "assets/art/avatars/*.png",
       "what": "15 Cole avatars cut from Cole's portraits by art/cole/build_avatars.py"
+    },
+    {
+      "target": "../art/nightcode/source/*.webp",
+      "what": "Cole's NightCode artwork: nightcode-logo.webp is the official logo; the other three are wallpaper posters"
+    },
+    {
+      "target": "assets/art/nightcode/logo*.png, avatars/nightcode.png, wallpapers/nightcode*",
+      "what": "Built from the NightCode artwork by art/nightcode/build_nightcode_art.py"
     }
   ],
   "windows98_batch": {
@@ -262,6 +270,46 @@
         "target": "(unused)",
         "asset_id": "31501c8f-94d8-4c29-a0ba-06e222476f94",
         "what": "ForgeChat button sheet: came back as a 37x197 strip, not usable. Buttons are drawn in CSS (css/theme98.css)."
+      }
+    ]
+  },
+  "nightcode_batch": {
+    "note": "NightCode edition. The shell ships wallpapers, avatar and pixel icons built locally by art/nightcode/build_nightcode_art.py; these SpriteCook generations (reference: the NightCode logo) are optional alternatives.",
+    "assets": [
+      {
+        "target": "(reference)",
+        "asset_id": "3328f15d-c5c3-467e-8423-e487403c5e98",
+        "what": "NightCode logo imported as the style reference"
+      },
+      {
+        "target": "assets/art/wallpapers/nightcode-spritecook-a.png",
+        "asset_id": "46d7bdbf-e92d-4a77-b626-3f6a2059f5ee",
+        "what": "NightCode wallpaper, variant A"
+      },
+      {
+        "target": "assets/art/wallpapers/nightcode-spritecook-b.png",
+        "asset_id": "7ed14ce2-def7-459e-a8c0-8d6e8d82e717",
+        "what": "NightCode wallpaper, variant B"
+      },
+      {
+        "target": "assets/art/programs/netcon-spritecook-a.png",
+        "asset_id": "122964d4-1c2d-479d-a6f9-8738ccc0502a",
+        "what": "Netcon desktop icon, variant A"
+      },
+      {
+        "target": "assets/art/programs/netcon-spritecook-b.png",
+        "asset_id": "0fa63ec4-231c-49a1-b9bf-381261f5b260",
+        "what": "Netcon desktop icon, variant B"
+      },
+      {
+        "target": "assets/art/programs/diskdude-spritecook-a.png",
+        "asset_id": "7e3c9cac-b0cd-4a1a-a8c4-064cbc2b2862",
+        "what": "Disk Dude desktop icon, variant A"
+      },
+      {
+        "target": "assets/art/programs/diskdude-spritecook-b.png",
+        "asset_id": "c6e5c225-567a-495c-a884-2569f1c0cbf4",
+        "what": "Disk Dude desktop icon, variant B"
       }
     ]
   }

@@ -2,6 +2,10 @@
 
 *Classic Roots. Modern Horizons.*
 
+**NightCode edition:** the ultimate hacker build. The NightCode skull-chip logo is the official
+logo, the NightCode wallpaper, avatar and colour scheme are the defaults, and NightCode's **Netcon**
+and **Disk Dude** ship as official ColeForge programs.
+
 A private, experimental "what if Windows 98 SE never stopped evolving" build: a 98 SE-style
 desktop with a modern glass finish, running on a modern kernel so today's hardware (Radeon,
 Wi‑Fi, webcams, NVMe) just works. Includes its own browser, messenger, media players, paint
@@ -22,7 +26,7 @@ cross-PC ForgeChat, which needs the server.
 | App | What it does |
 | --- | --- |
 | **Shell** | BIOS POST → your boot splash with the segmented loading bar → welcome/log-on → desktop. Draggable/resizable windows, taskbar, Start menu with All Programs, quick launch, tray (network, volume, clock), Run dialog, right-click menus everywhere (desktop, icons, title bars, taskbar with Cascade/Tile/Minimize All, Start button, tray, text boxes with Cut/Copy/Paste, and inside every app), toasts, 98-style dialogs, Shut Down / Restart / Log Off. Keys: Ctrl+Esc (Start), Alt+F4, F5, Ctrl+Shift+R (Run). |
-| **Control Panel** | Theme (**Windows 98 Classic**, the default, or ColeForge Glass); Appearance colour schemes with a Win98-style preview: Windows Standard, **ColeForge Dark**, Automatic (follows Windows light/dark), and the classic **High Contrast Black / White / #1 / #2**; an **Accessibility** tab with Use High Contrast, the Left Alt+Left Shift+Print Screen shortcut, following Windows' own High Contrast when ColeForge is your shell, and Normal/Large/Extra large sizes; wallpapers (incl. your own picture), accent colour, UI size, cursor scheme, the ColeForge sound scheme with previews, account name + picture (15 Cole avatars or your own). |
+| **Control Panel** | Theme (**Windows 98 Classic**, the default, or ColeForge Glass); Appearance colour schemes with a Win98-style preview: **NightCode** (the default), Windows Standard, **ColeForge Dark**, Automatic (follows Windows light/dark), and the classic **High Contrast Black / White / #1 / #2**; an **Accessibility** tab with Use High Contrast, the Left Alt+Left Shift+Print Screen shortcut, following Windows' own High Contrast when ColeForge is your shell, and Normal/Large/Extra large sizes; wallpapers (incl. your own picture), accent colour, UI size, cursor scheme, the ColeForge sound scheme with previews, account name + picture (15 Cole avatars or your own). |
 | **My Computer** | Live hardware report: CPU cores, GPU name, RAM, network, display, battery, storage (real drives when running as the desktop host). |
 | **My Documents / Recycle Bin / Notepad** | Save, import, delete to the bin, restore, empty (with the crumple sound). Notepad has find, time/date, word wrap and export. |
 | **Forge Browser** | Tabs, favorites, history, search, home page. As the desktop host it uses real Chromium tabs with a full right-click menu (open link in new tab, copy, save/edit image in Forgecraft, view source, inspect). |
@@ -33,6 +37,8 @@ cross-PC ForgeChat, which needs the server.
 | **Forge Arcade + LAN lobbies** | DOOM Legacy – ColeForge Edition (your own source port), **Zandronum**, Doom/Doom II, Freedoom, Quake, Duke Nukem 3D. Host a lobby in ForgeChat, friends join and ready up, the host hits Start and everyone's game launches pointed at the host. Zandronum lobbies start a real server on the host and show its live map/players. |
 | **Legacy Mode** | 90's games on modern hardware: **DOSBox – ColeForge Edition** (DOSBox Staging with era presets from an IBM XT to a Pentium MMX + Voodoo, IPX LAN play) for DOS games, and complete Windows 98 SE PCs in **86Box**, including **Voodoo3 Mode** (Pentium II 450, 440BX, 3dfx Voodoo3 3000 AGP) and a Voodoo2 SLI rig. Generates the configs, creates the disk, launches the emulator. See [legacy/README.md](legacy/README.md). |
 | **Forge Game Browser** | A 16-bit, GameSpy-style Zandronum server browser: internet servers from the Zandronum master, LAN servers found automatically from their broadcasts, favourites and ForgeChat lobbies. Sort by ping/players, filter, see every player's score/ping/team, WADs, limits and skill; double-click to join (password prompt included), host your own server, or **Share** a server into ForgeChat as a one-click Join card. |
+| **Netcon** *(NightCode)* | Official ColeForge program: SAMPLE ID badge maker with PNG export, RFID/NFC asset inventory (IDs you type in, no radio reading), lock service/damage log, game ownership and compatibility catalog. |
+| **Disk Dude** *(NightCode)* | Official ColeForge program: detects PS1/PS2/Dreamcast/Xbox/DVD/VCD/music/data discs, verified copy with SHA-256 manifest + ZIP, data-disc burning, Audio CD playback, one-click emulator launch. See [programs/README.md](programs/README.md). |
 | **Sounds** | Two 19-sound schemes, switchable in Control Panel → Sounds: **ColeForge Studio** (default, generated with ElevenLabs) and **ColeForge Classic** (synthesized by `generate_coleforge_system_sounds.js`). Compare them at `shell/assets/sounds/audition.html`. |
 
 ## Layout
@@ -42,11 +48,12 @@ coleforge/
   shell/        the desktop: index.html, css/, js/ (core, apps, MIDI synth), assets/
   server/       LAN server: serves the shell + ForgeChat hub + Game Browser API (no dependencies)
   server/zandronum/  Zandronum master/launcher protocol + Huffman codec (ported from Zandronum's source)
+  programs/     official NightCode programs (Netcon, Disk Dude), vendored from NexusWebOS/NightCode
   legacy/       Legacy Mode docs (then vs now, CPU/GPU emulation, Voodoo3 Mode), sample configs, tests
   desktop/      Electron host → ColeForge.exe, shell replacement, real browser tabs, game launching
   core/windows/ run ColeForge as your Windows shell + Windows To Go USB guide
   core/reactos/ experimental open-source NT core track
-  art/          SpriteCook asset manifest
+  art/          SpriteCook asset manifest + the local art builders
 ```
 
 ## Running it for real (laptop / USB)
@@ -90,6 +97,11 @@ Browsers visiting `http://<lan-ip>` may block the camera; use ColeForge.exe on e
 
 ## Art
 
+- **NightCode** (`art/nightcode/`): Cole's four NightCode pictures are in `source/`; the skull-chip logo
+  is the official logo (About box, avatar, desktop wallpaper). `art/nightcode/build_nightcode_art.py`
+  builds the logo sizes, the NightCode avatar, 4 wallpapers (NightCode, Enter the NightCode, Shadow
+  Grid, Beyond the Light) and the 16-colour pixel icons, mascots and logos for Netcon and Disk Dude.
+  SpriteCook alternatives are listed under `nightcode_batch` in `spritecook-assets.json`.
 - `shell/assets/art/boot-splash.webp`: your boot splash concept (used as-is).
 - **SpriteCook** (project "ColeForge OS"): logo (2 variants), boot background, 2 wallpapers,
   22 icons (desktop, apps, dialogs, tray, Start menu) and a 4-piece cursor set: 31 assets in all.

@@ -1,5 +1,10 @@
 [
   {
+    "id": "nightcode",
+    "label": "NightCode",
+    "file": "assets/art/avatars/nightcode.png"
+  },
+  {
     "id": "cole-blue",
     "label": "Command Deck",
     "file": "assets/art/avatars/cole-blue.png"

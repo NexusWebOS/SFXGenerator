@@ -68,6 +68,15 @@ In shell mode, ColeForge's Shut Down / Restart / Log Off really power the machin
 
 See [../../legacy/README.md](../../legacy/README.md) for what each engine does and how to set up the Voodoo3 rig.
 
+### NightCode programs (Netcon, Disk Dude)
+
+```powershell
+.\build-nightcode-programs.ps1   # Pillow + PyInstaller for your user → Netcon.exe, DiskDude.exe in %LOCALAPPDATA%\ColeForge\programs
+```
+
+Optional: without it ColeForge runs them from their Python source with `py -3` (Python 3.10+ and
+Pillow needed). See [../../programs/README.md](../../programs/README.md).
+
 ### Zandronum (online Doom)
 
 ```powershell

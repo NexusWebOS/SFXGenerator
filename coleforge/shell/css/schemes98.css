@@ -3,6 +3,23 @@
    Display Properties → Appearance. Each scheme only overrides theme98.css's system colours.
    `.w98-scope` lets a small preview (Control Panel) show a scheme without applying it. */
 
+/* ---------- NightCode (the hacker edition default) ---------- */
+body.theme-98.scheme-nightcode, .w98-scope.scheme-nightcode {
+  color-scheme: dark;
+  --w98-face: #0d1526; --w98-light: #1a2742; --w98-hilite: #3a5d93; --w98-shadow: #060b16; --w98-dark: #000;
+  --w98-text: #cfe6ff; --w98-window: #050a16; --w98-wtext: #9fd3ff; --w98-gray: #5f80ab;
+  --w98-sel: #1e78ff; --w98-sel-text: #fff;
+  --w98-title-a: #01030a; --w98-title-b: #1e78ff; --w98-title-text: #eaf6ff;
+  --w98-title-off-a: #0a1120; --w98-title-off-b: #1b2740; --w98-title-off-text: #5f80ab;
+  --w98-accent: #31d7e8; --w98-link: #31d7e8; --w98-link2: #ff5c8a;
+  --w98-info: #0b1426; --w98-info-text: #cfe6ff; --w98-appspace: #03060e;
+  --w98-desktop: #04081a; --w98-desk-text: #cfe6ff; --w98-ready: #0f4a2a; --w98-stripe: #09101e;
+}
+body.theme-98.scheme-nightcode .field, body.theme-98.scheme-nightcode .chat-input, body.theme-98.scheme-nightcode textarea.notepad { caret-color: #31d7e8; }
+body.theme-98.scheme-nightcode #desk-brand .e { color: #31d7e8; text-shadow: 0 0 8px rgba(30, 120, 255, .9), 2px 2px 0 #000; }
+body.theme-98.scheme-nightcode #desk-brand .t { color: #7fc4ff; }
+body.theme-98.scheme-nightcode #desk-brand .w { filter: drop-shadow(0 0 6px rgba(30, 120, 255, .8)) drop-shadow(2px 2px 0 #000); }
+
 /* ---------- ColeForge Dark ---------- */
 body.theme-98.scheme-dark, .w98-scope.scheme-dark {
   color-scheme: dark;

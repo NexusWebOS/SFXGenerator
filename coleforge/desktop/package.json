@@ -24,6 +24,9 @@
       "preload.js",
       "app/**/*"
     ],
+    "asarUnpack": [
+      "app/programs/**"
+    ],
     "win": {
       "target": [
         "portable",

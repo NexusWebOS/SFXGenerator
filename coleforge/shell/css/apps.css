@@ -335,3 +335,25 @@ body.theme-98 .lg-sheet { border: none; border-radius: 0; background: var(--w98-
 body.theme-98 .lg-mcard.featured .lg-sheet { box-shadow: var(--raised), 0 0 0 2px #ff8c00; }
 body.theme-98 .lg-then-row { border-bottom: 1px solid var(--w98-shadow); }
 body.theme-98 .lg-then-head { background: var(--w98-title); color: var(--w98-title-text); }
+.wall-prev.wall-nightcode { background: url("../assets/art/wallpapers/nightcode.png") center / cover, #04081a; }
+.wall-prev.wall-nightcode-enter { background: url("../assets/art/wallpapers/nightcode-enter.jpg") center / cover, #04081a; }
+.wall-prev.wall-nightcode-grid { background: url("../assets/art/wallpapers/nightcode-grid.jpg") center / cover, #04081a; }
+.wall-prev.wall-nightcode-beyond { background: url("../assets/art/wallpapers/nightcode-beyond.jpg") center / cover, #04081a; }
+.about img.about-nc { width: 140px; height: auto; image-rendering: auto; }
+
+/* ---------- NightCode programs (Netcon, Disk Dude) ---------- */
+.ncp { height: 100%; display: flex; flex-direction: column; background: #0a1020; color: #e9f6ff; font-family: Consolas, "Courier New", monospace; }
+.ncp-hero { display: flex; align-items: center; gap: 16px; padding: 14px 18px 0; background: linear-gradient(180deg, #0a1020, #111a30); border-bottom: 2px solid #31d7e8; }
+.ncp-hero-text { flex: 1; min-width: 0; padding-bottom: 14px; }
+.ncp-logo { width: 100%; max-width: 420px; display: block; image-rendering: pixelated; }
+.ncp-mascot { height: 180px; image-rendering: pixelated; align-self: flex-end; }
+.ncp-body { flex: 1; overflow: auto; padding: 12px 18px; font-size: 13px; }
+.ncp-list { margin: 6px 0 10px; padding-left: 18px; }
+.ncp-list li { margin: 3px 0; }
+.ncp-list li::marker { color: #31d7e8; }
+.ncp .muted { color: #9bb4c5; }
+.ncp-actions { gap: 8px; margin: 10px 0; flex-wrap: wrap; }
+.ncp-launch img { width: 16px; height: 16px; image-rendering: pixelated; vertical-align: middle; }
+.ncp-status { font-size: 12px; word-break: break-all; }
+.ncp-foot { display: flex; align-items: center; gap: 8px; padding: 6px 18px; font-size: 11px; color: #9bb4c5; border-top: 1px solid #16223b; }
+.ncp-foot img { width: 24px; height: 24px; }

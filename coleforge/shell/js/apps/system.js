@@ -342,11 +342,11 @@
     window: { w: 460, h: 360, resizable: false },
     open(win) {
       win.body.append(h("div", { class: "about" },
-        h("img", { src: CF.icon("logo"), alt: "" }),
-        h("div", {}, h("div", { class: "about-w" }, "Windows"), h("div", { class: "about-e" }, "ColeForge Edition"),
+        h("img", { class: "about-nc", src: "assets/art/nightcode/logo.png", alt: "NightCode" }),
+        h("div", {}, h("div", { class: "about-w" }, "Windows"), h("div", { class: "about-e" }, "ColeForge Edition · NightCode"),
           h("p", {}, `Version ${CF.version} (Build ${CF.build})`, h("br"), "A modern take on a classic.", h("br"), "© 2026 ColeForge Studios. Private build."),
           h("p", { class: "muted" }, `Licensed to: `, h("span", { class: "my-name" }, CF.settings.user)),
-          h("div", { class: "about-tag" }, "Classic Roots. Modern Horizons."),
+          h("div", { class: "about-tag" }, "Enter the NightCode."),
           h("button", { class: "btn", onclick: () => win.close() }, "OK"))));
     },
   });

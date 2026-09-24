@@ -21,7 +21,7 @@ cross-PC ForgeChat, which needs the server.
 
 | App | What it does |
 | --- | --- |
-| **Shell** | BIOS POST → your boot splash with the segmented loading bar → welcome/log-on → desktop. Draggable/resizable windows, taskbar, Start menu with All Programs, quick launch, tray (network, volume, clock), Run dialog, right-click menus everywhere, toasts, 98-style dialogs, Shut Down / Restart / Log Off. Keys: Ctrl+Esc (Start), Alt+F4, F5, Ctrl+Shift+R (Run). |
+| **Shell** | BIOS POST → your boot splash with the segmented loading bar → welcome/log-on → desktop. Draggable/resizable windows, taskbar, Start menu with All Programs, quick launch, tray (network, volume, clock), Run dialog, right-click menus everywhere (desktop, icons, title bars, taskbar with Cascade/Tile/Minimize All, Start button, tray, text boxes with Cut/Copy/Paste, and inside every app), toasts, 98-style dialogs, Shut Down / Restart / Log Off. Keys: Ctrl+Esc (Start), Alt+F4, F5, Ctrl+Shift+R (Run). |
 | **Control Panel** | Theme (**Windows 98 Classic**, the default, or ColeForge Glass), wallpapers (incl. your own picture), accent colour, UI size, cursor scheme, the ColeForge sound scheme with previews, account name + picture (15 Cole avatars or your own). |
 | **My Computer** | Live hardware report: CPU cores, GPU name, RAM, network, display, battery, storage (real drives when running as the desktop host). |
 | **My Documents / Recycle Bin / Notepad** | Save, import, delete to the bin, restore, empty (with the crumple sound). Notepad has find, time/date, word wrap and export. |

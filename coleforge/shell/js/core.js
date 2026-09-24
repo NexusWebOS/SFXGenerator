@@ -659,8 +659,92 @@
     else if (e.key === "F5" && !e.target.closest(".win")) { e.preventDefault(); buildDesktop(); }
     else if (e.ctrlKey && e.key.toLowerCase() === "r" && e.shiftKey) { e.preventDefault(); runDialog(); }
   });
-  // The shell owns right-click everywhere; apps attach their own menus.
-  addEventListener("contextmenu", (e) => { if (!e.target.closest("input, textarea, [contenteditable]")) e.preventDefault(); });
+  /* ---------------- right-click: text boxes, taskbar, Start, tray ---------------- */
+  // Text boxes get a themed Cut/Copy/Paste menu (ColeForge.exe has no native one to fall back on).
+  const TEXT_FIELD = "input:not([type=checkbox]):not([type=radio]):not([type=range]):not([type=color]):not([type=file]):not([type=button]):not([type=submit]), textarea, [contenteditable]:not([contenteditable=false])";
+  function textMenu(e, field) {
+    e.preventDefault();
+    field.focus();
+    const editable = !field.readOnly && !field.disabled;
+    const hasSel = field.isContentEditable ? !getSelection().isCollapsed : field.selectionStart !== field.selectionEnd;
+    const run = (cmd) => () => { field.focus(); document.execCommand(cmd); };
+    const menu = CF.contextMenu({ x: e.clientX, y: e.clientY }, [
+      { label: "Undo", key: "Ctrl+Z", action: run("undo"), disabled: !editable },
+      "-",
+      { label: "Cut", key: "Ctrl+X", action: run("cut"), disabled: !editable || !hasSel },
+      { label: "Copy", key: "Ctrl+C", action: run("copy"), disabled: !hasSel },
+      { label: "Paste", key: "Ctrl+V", disabled: !editable, action: async () => {
+        field.focus();
+        try { document.execCommand("insertText", false, await navigator.clipboard.readText()); }
+        catch { if (!document.execCommand("paste")) CF.toast({ title: "Paste", body: "Press Ctrl+V to paste here.", icon: "info" }); }
+      } },
+      { label: "Delete", key: "Del", action: run("delete"), disabled: !editable || !hasSel },
+      "-",
+      { label: "Select All", key: "Ctrl+A", action: () => { field.focus(); if (field.select) field.select(); else document.execCommand("selectAll"); } },
+    ]);
+    // Keep the text box focused (and its selection intact) while the menu is clicked.
+    menu.addEventListener("mousedown", (ev) => ev.preventDefault());
+  }
+
+  // Taskbar: arrange windows, like Windows 98's taskbar menu.
+  let lastMinimized = [];
+  function arrangeWindows(kind) {
+    const wins = CF.windows.filter(w => !w.el.classList.contains("min"));
+    const desk = $("#desktop"), W = desk.clientWidth, H = desk.clientHeight, n = wins.length;
+    wins.forEach((w, i) => {
+      if (w.el.classList.contains("max")) w.toggleMax();
+      const st = w.el.style;
+      if (kind === "cascade") Object.assign(st, { left: 20 + i * 26 + "px", top: 12 + i * 26 + "px" });
+      else if (kind === "tileH") Object.assign(st, { left: "0px", top: Math.floor(i * H / n) + "px", width: W + "px", height: Math.floor(H / n) + "px" });
+      else Object.assign(st, { left: Math.floor(i * W / n) + "px", top: "0px", width: Math.floor(W / n) + "px", height: H + "px" });
+      w.emit("resize"); w.focus();
+    });
+  }
+  function taskbarMenu(e) {
+    const open = CF.windows.filter(w => !w.el.classList.contains("min"));
+    CF.contextMenu({ x: e.clientX, y: e.clientY }, [
+      { label: "Cascade Windows", action: () => arrangeWindows("cascade"), disabled: !open.length },
+      { label: "Tile Windows Horizontally", action: () => arrangeWindows("tileH"), disabled: !open.length },
+      { label: "Tile Windows Vertically", action: () => arrangeWindows("tileV"), disabled: !open.length },
+      "-",
+      { label: "Minimize All Windows", action: () => { lastMinimized = open; open.forEach(w => w.minimize()); }, disabled: !open.length },
+      { label: "Undo Minimize All", action: () => { lastMinimized.forEach(w => CF.windows.includes(w) && w.restore()); lastMinimized = []; }, disabled: !lastMinimized.length },
+      "-",
+      { label: "Properties", action: () => CF.open("control", { tab: "display" }) },
+    ]);
+  }
+  function startButtonMenu(e) {
+    CF.contextMenu({ x: e.clientX, y: e.clientY }, [
+      { label: "Open", action: () => CF.toggleStart(true) },
+      { label: "Explore", action: () => CF.open("files") },
+      { label: "Find…", action: () => CF.open("mycomputer") },
+      { label: "Run…", key: "Ctrl+Shift+R", action: () => runDialog() },
+      "-",
+      { label: "Control Panel", action: () => CF.open("control") },
+    ]);
+  }
+  function trayMenu(e) {
+    const now = new Date();
+    CF.contextMenu({ x: e.clientX, y: e.clientY }, [
+      { label: "Adjust Volume…", action: () => CF.open("control", { tab: "sounds" }) },
+      { label: "Adjust Date/Time…", action: () => CF.dialog({ title: "Date/Time Properties", icon: "info", message: now.toLocaleDateString([], { weekday: "long", year: "numeric", month: "long", day: "numeric" }) + "\n" + now.toLocaleTimeString() + "\n\nColeForge uses your PC's clock. Switch to 24-hour time in Control Panel → Display." }) },
+      "-",
+      { label: "Open ForgeChat", action: () => CF.open("forgechat") },
+      { label: "Display Properties", action: () => CF.open("control", { tab: "display" }) },
+    ]);
+  }
+
+  // The shell owns right-click everywhere; apps attach their own menus (and call preventDefault).
+  addEventListener("contextmenu", (e) => {
+    if (e.defaultPrevented) return;
+    const field = e.target.closest(TEXT_FIELD);
+    if (field) return textMenu(e, field);
+    e.preventDefault();
+    if (e.target.closest("#start-btn")) startButtonMenu(e);
+    else if (e.target.closest("#tray")) trayMenu(e);
+    else if (e.target.closest("#quick [data-app]")) { const app = e.target.closest("[data-app]").dataset.app; CF.contextMenu({ x: e.clientX, y: e.clientY }, [{ label: "Open", action: () => CF.open(app) }, { label: "Properties", action: () => CF.dialog({ title: (CF.apps[app]?.name || app) + " Properties", icon: CF.apps[app]?.icon || "info", message: CF.apps[app]?.desc || "" }) }]); }
+    else if (e.target.closest("#taskbar")) taskbarMenu(e);
+  });
 
   document.addEventListener("DOMContentLoaded", () => {
     $("#start-btn").addEventListener("click", () => CF.toggleStart());

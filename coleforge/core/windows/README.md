@@ -59,6 +59,15 @@ What the installer sets up:
 
 In shell mode, ColeForge's Shut Down / Restart / Log Off really power the machine off, restart it, or sign you out.
 
+### Legacy Mode engines (DOS games, Windows 98 PCs, Voodoo3 Mode)
+
+```powershell
+.\get-legacy-engines.ps1                    # DOSBox Staging + 86Box + 86Box ROMs → %LOCALAPPDATA%\ColeForge\legacy\engines
+.\get-legacy-engines.ps1 -EnableDirectPlay  # (admin) Windows' DirectPlay for late-90s multiplayer games
+```
+
+See [../../legacy/README.md](../../legacy/README.md) for what each engine does and how to set up the Voodoo3 rig.
+
 ### Zandronum (online Doom)
 
 ```powershell

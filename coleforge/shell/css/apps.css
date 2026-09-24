@@ -287,3 +287,51 @@ body.theme-98 .gb {
 .lobby-server.up { color: #3ddc6b; }
 .gb-ico { width: 16px; height: 16px; image-rendering: pixelated; vertical-align: middle; }
 .lobby-intro .btn img, .chat-server-btns .btn img { width: 16px; height: 16px; flex: none; }
+
+/* ---------- Legacy Mode ---------- */
+.lg { height: 100%; display: flex; flex-direction: column; }
+.lg img { image-rendering: pixelated; }
+.lg-ico { width: 32px; height: 32px; }
+.lg-ico16 { width: 16px; height: 16px; vertical-align: middle; image-rendering: pixelated; }
+.lg-top { display: flex; align-items: center; gap: 12px; padding: 8px 12px; }
+.lg-logo { width: 64px; height: 64px; }
+.lg-title { width: 240px; height: 32px; display: block; margin-bottom: 4px; }
+.lg-v3btn { background: none; border: none; padding: 0; cursor: pointer; }
+.lg-v3btn img { width: 192px; height: 48px; display: block; }
+.lg-v3btn:hover img { filter: brightness(1.2); }
+.lg-page { flex: 1; min-height: 0; display: flex; flex-direction: column; overflow: hidden; }
+.lg-split { flex: 1; min-height: 0; display: flex; gap: 8px; padding: 8px; }
+.lg-list { width: 240px; flex: none; overflow: auto; display: flex; flex-direction: column; }
+.lg-list .item { display: flex; align-items: center; gap: 6px; }
+.lg-add { margin-top: auto; display: flex; gap: 4px; padding: 6px; }
+.lg-add .btn { flex: 1; min-width: 0; padding-left: 4px; padding-right: 4px; }
+.lg-edit { flex: 1; min-width: 0; overflow: auto; display: flex; flex-direction: column; gap: 8px; }
+.lg-edit .form-grid label { align-self: center; }
+.lg-actions { gap: 6px; }
+.lg-sheet { padding: 8px 10px; border: 1px solid rgba(127, 184, 255, .3); border-radius: 6px; background: rgba(0, 0, 0, .2); }
+.lg-sheet-head { display: flex; align-items: center; gap: 8px; margin-bottom: 6px; }
+.lg-sheet-head > div { flex: 1; }
+.lg-badge { width: 144px; height: 36px; }
+.lg-row { display: flex; align-items: center; gap: 6px; padding: 2px 0; }
+.lg-k { width: 70px; flex: none; opacity: .75; }
+.lg-blurb { margin: 6px 0 0; font-size: 11px; }
+.lg-scroll { flex: 1; overflow: auto; padding: 8px 12px; }
+.lg-h { margin: 12px 0 6px; font-size: 13px; }
+.lg-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 10px; }
+.lg-mcard { display: flex; flex-direction: column; gap: 6px; }
+.lg-mcard.featured .lg-sheet { border-color: #ff8c00; box-shadow: 0 0 0 1px #ff8c00; }
+.lg-mcard .btn { align-self: flex-start; }
+.lg-then { display: grid; gap: 1px; }
+.lg-then-row { display: grid; grid-template-columns: 150px 1fr 1fr; gap: 10px; padding: 6px 4px; border-bottom: 1px solid rgba(127, 184, 255, .2); }
+.lg-then-head { font-size: 12px; }
+.lg-confwrap { display: flex; flex-direction: column; gap: 8px; height: 100%; box-sizing: border-box; }
+.lg-conf { flex: 1; min-height: 260px; font: 12px/1.35 "Courier New", monospace; white-space: pre; user-select: text; }
+.lg-splash { position: fixed; inset: 0; z-index: 9000; display: flex; align-items: center; justify-content: center; background: rgba(0, 0, 0, .85); animation: lg-fade 2.6s ease-in-out forwards; }
+.lg-splash-card { display: flex; flex-direction: column; align-items: center; gap: 8px; color: #ffd27a; font: bold 14px "MS Sans Serif", Tahoma, sans-serif; }
+.lg-splash-card img { width: 384px; height: 96px; image-rendering: pixelated; }
+@keyframes lg-fade { 0% { opacity: 0; } 15%, 80% { opacity: 1; } 100% { opacity: 0; } }
+.arc-legacy { margin-left: auto; display: flex; gap: 6px; }
+body.theme-98 .lg-sheet { border: none; border-radius: 0; background: var(--w98-face); box-shadow: var(--raised); }
+body.theme-98 .lg-mcard.featured .lg-sheet { box-shadow: var(--raised), 0 0 0 2px #ff8c00; }
+body.theme-98 .lg-then-row { border-bottom: 1px solid var(--w98-shadow); }
+body.theme-98 .lg-then-head { background: var(--w98-title); color: var(--w98-title-text); }

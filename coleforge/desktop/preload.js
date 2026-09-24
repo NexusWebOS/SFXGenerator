@@ -10,5 +10,8 @@ contextBridge.exposeInMainWorld("forgeHost", {
   openExternal: (url) => ipcRenderer.invoke("forge:openExternal", url),
   sysInfo: () => ipcRenderer.invoke("forge:sysInfo"),
   launchGame: (spec) => ipcRenderer.invoke("forge:launchGame", spec),
+  legacyEngines: () => ipcRenderer.invoke("forge:legacyEngines"),
+  legacyPrepare: (spec) => ipcRenderer.invoke("forge:legacyPrepare", spec),
+  legacyOpen: (dir) => ipcRenderer.invoke("forge:legacyOpen", dir),
   onNewTab: (fn) => ipcRenderer.on("forge:new-tab", (_e, url) => fn(url)),
 });

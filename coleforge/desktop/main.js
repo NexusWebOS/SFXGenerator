@@ -95,6 +95,56 @@ ipcMain.handle("forge:launchGame", (_e, { command }) => {
   return true;
 });
 
+/* ---------------- Legacy Mode: DOSBox – ColeForge Edition + 86Box ---------------- */
+// Engines live in %LOCALAPPDATA%\ColeForge\legacy\engines (core/windows/get-legacy-engines.ps1);
+// game configs and 86Box machines sit next to them. The shell only ever writes inside this folder.
+const LEGACY_HOME = path.join(process.env.LOCALAPPDATA || app.getPath("userData"), "ColeForge", "legacy");
+// Letters, digits, space, dot and dash only, never starting with a dot (so never "." or "..").
+const legacyDirName = (s) => String(s || "").replace(/[^\w .-]/g, "").replace(/^[\s.]+|[\s.]+$/g, "").slice(0, 40) || "Untitled";
+function findExe(dir, names, depth = 3) {
+  try {
+    for (const e of fs.readdirSync(dir, { withFileTypes: true })) {
+      if (e.isFile() && names.some(n => n.toLowerCase() === e.name.toLowerCase())) return path.join(dir, e.name);
+    }
+    if (depth > 0) for (const e of fs.readdirSync(dir, { withFileTypes: true })) {
+      if (e.isDirectory()) { const hit = findExe(path.join(dir, e.name), names, depth - 1); if (hit) return hit; }
+    }
+  } catch { /* not installed */ }
+  return null;
+}
+ipcMain.handle("forge:legacyEngines", () => {
+  const engines = path.join(LEGACY_HOME, "engines");
+  const box86 = findExe(path.join(engines, "86box"), ["86Box.exe", "86Box"]);
+  const roms = findExe(path.join(engines, "86box", "roms"), ["README.md", "readme.txt"], 1) ? path.join(engines, "86box", "roms") : null;
+  return { home: LEGACY_HOME, dosbox: findExe(path.join(engines, "dosbox-staging"), ["dosbox.exe", "dosbox"]), box86, roms };
+});
+ipcMain.handle("forge:legacyPrepare", async (_e, { kind, name, text, diskBytes, overwrite } = {}) => {
+  if (!["dos", "win9x"].includes(kind) || typeof text !== "string" || text.length > 65536) throw new Error("Bad Legacy Mode config");
+  const dir = path.join(LEGACY_HOME, kind === "dos" ? "dos" : "machines", legacyDirName(name));
+  await fs.promises.mkdir(dir, { recursive: true });
+  const file = path.join(dir, kind === "dos" ? "dosbox.conf" : "86box.cfg");
+  // 86Box rewrites its own cfg when you change settings in it, so only create it the first time.
+  const write = kind === "dos" || overwrite || !fs.existsSync(file);
+  if (write) await fs.promises.writeFile(file, text);
+  let disk = null;
+  if (kind === "win9x") {
+    const img = /^hdd_01_fn = ([\w.-]+\.img)\s*$/m.exec(text)?.[1];
+    const bytes = Math.min(Math.max(0, +diskBytes || 0), 8 * 1024 ** 3);
+    if (img && bytes && !fs.existsSync(path.join(dir, img))) {
+      const fh = await fs.promises.open(path.join(dir, img), "wx"); // blank raw disk, sized like the cfg's geometry
+      await fh.truncate(bytes); await fh.close();
+      disk = path.join(dir, img);
+    }
+  }
+  return { dir, file, wrote: write, disk };
+});
+ipcMain.handle("forge:legacyOpen", (_e, dir) => {
+  const target = path.resolve(String(dir || LEGACY_HOME));
+  if (target !== LEGACY_HOME && !target.startsWith(LEGACY_HOME + path.sep)) throw new Error("Outside the Legacy Mode folder");
+  fs.mkdirSync(target, { recursive: true });
+  return shell.openPath(target);
+});
+
 app.whenReady().then(async () => {
   // Allow webcam/mic/screen capture for ForgeChat calls from the local shell only.
   session.defaultSession.setPermissionRequestHandler((wc, permission, cb) => cb(wc.getURL().startsWith(`http://localhost:${PORT}`) && ["media", "display-capture", "clipboard-read", "clipboard-sanitized-write", "notifications", "fullscreen"].includes(permission)));

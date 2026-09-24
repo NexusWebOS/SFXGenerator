@@ -125,7 +125,9 @@
     window: { w: 860, h: 560 },
     open(win) {
       const grid = h("div", { class: "arc-grid" });
-      win.body.append(h("div", { class: "arc" }, h("div", { class: "arc-head" }, h("img", { src: CF.icon("arcade"), alt: "" }), h("div", {}, h("b", {}, "Forge Arcade"), h("div", { class: "muted" }, "Classic shooters, modern LAN. Host a lobby in ForgeChat and everyone launches together."))), grid));
+      win.body.append(h("div", { class: "arc" }, h("div", { class: "arc-head" }, h("img", { src: CF.icon("arcade"), alt: "" }), h("div", {}, h("b", {}, "Forge Arcade"), h("div", { class: "muted" }, "Classic shooters, modern LAN. Host a lobby in ForgeChat and everyone launches together.")),
+        h("div", { class: "arc-legacy" }, h("button", { class: "btn", onclick: () => CF.open("legacy") }, h("img", { src: "assets/art/legacy/logo.png", alt: "", style: "width:16px;height:16px;image-rendering:pixelated;vertical-align:middle" }), " Legacy Mode (90's games)"),
+          h("button", { class: "btn flat", onclick: () => CF.open("legacy", { voodoo3: true }) }, "Voodoo3 Mode"))), grid));
       function render() {
         grid.replaceChildren(...Object.keys(GAMES).map(id => {
           const g = gameConf(id);

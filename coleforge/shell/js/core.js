@@ -149,7 +149,7 @@
   };
 
   // 16-bit pixel logos: the Game Browser always, ForgeChat in the Windows 98 theme.
-  const PIXEL_ICONS = { gamebrowser: "assets/art/gamebrowser/logo.png" };
+  const PIXEL_ICONS = { gamebrowser: "assets/art/gamebrowser/logo.png", legacy: "assets/art/legacy/logo.png" };
   CF.icon = (id) => PIXEL_ICONS[id] || (id === "forgechat" && document.body?.classList.contains("theme-98") ? "assets/art/forgechat/logo.png" : window.CFIcons.get(id));
 
   /* ---------------- document store (My Documents + Recycle Bin) ---------------- */
@@ -406,7 +406,7 @@
     ["mycomputer", "My Computer", "computer"], ["files", "My Documents", "documents"], ["recycle", "Recycle Bin", "recycle"],
     ["browser", "Forge Browser", "browser"], ["forgechat", "ForgeChat", "forgechat"], ["forgeamp", "ForgeAmp", "forgeamp"],
     ["forgevision", "ForgeVision", "forgevision"], ["forgecraft", "Forgecraft", "forgecraft"], ["arcade", "Forge Arcade", "arcade"],
-    ["gamebrowser", "Game Browser", "gamebrowser"], ["notepad", "Notepad", "notepad"], ["control", "Control Panel", "control"],
+    ["gamebrowser", "Game Browser", "gamebrowser"], ["legacy", "Legacy Mode", "legacy"], ["notepad", "Notepad", "notepad"], ["control", "Control Panel", "control"],
   ];
   function buildDesktop() {
     const icons = $("#icons");

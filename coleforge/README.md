@@ -31,6 +31,7 @@ cross-PC ForgeChat, which needs the server.
 | **Forgecraft** | Paint meets Photoshop: layers (opacity, 16 blend modes, reorder, merge, flatten), soft/hard brushes, pencil, eraser, line/rect/ellipse, flood fill, eyedropper, text, move; filters (grayscale, invert, sepia, brightness/contrast, hue/saturation, blur, sharpen, emboss, edge, posterize, Forge Glow); resize/canvas/flip/rotate; 25-step undo; zoom; export PNG/JPEG/WebP; set as wallpaper or avatar. |
 | **ForgeChat** | AIM × Discord × Messenger: buddy list with online/away/busy and **away messages with auto-responses**, channels, DMs, typing indicators, unread badges, emoji & smileys, **GIFs**, pictures, **file sharing** (8 MB), **voice clips**, **webcam snapshots**, **1:1 voice/video calls with screen share** (WebRTC), avatars, `/away` `/back` `/me` `/host`. |
 | **Forge Arcade + LAN lobbies** | DOOM Legacy – ColeForge Edition (your own source port), **Zandronum**, Doom/Doom II, Freedoom, Quake, Duke Nukem 3D. Host a lobby in ForgeChat, friends join and ready up, the host hits Start and everyone's game launches pointed at the host. Zandronum lobbies start a real server on the host and show its live map/players. |
+| **Legacy Mode** | 90's games on modern hardware: **DOSBox – ColeForge Edition** (DOSBox Staging with era presets from an IBM XT to a Pentium MMX + Voodoo, IPX LAN play) for DOS games, and complete Windows 98 SE PCs in **86Box**, including **Voodoo3 Mode** (Pentium II 450, 440BX, 3dfx Voodoo3 3000 AGP) and a Voodoo2 SLI rig. Generates the configs, creates the disk, launches the emulator. See [legacy/README.md](legacy/README.md). |
 | **Forge Game Browser** | A 16-bit, GameSpy-style Zandronum server browser: internet servers from the Zandronum master, LAN servers found automatically from their broadcasts, favourites and ForgeChat lobbies. Sort by ping/players, filter, see every player's score/ping/team, WADs, limits and skill; double-click to join (password prompt included), host your own server, or **Share** a server into ForgeChat as a one-click Join card. |
 | **Sounds** | Two 19-sound schemes, switchable in Control Panel → Sounds: **ColeForge Studio** (default, generated with ElevenLabs) and **ColeForge Classic** (synthesized by `generate_coleforge_system_sounds.js`). Compare them at `shell/assets/sounds/audition.html`. |
 
@@ -41,6 +42,7 @@ coleforge/
   shell/        the desktop: index.html, css/, js/ (core, apps, MIDI synth), assets/
   server/       LAN server: serves the shell + ForgeChat hub + Game Browser API (no dependencies)
   server/zandronum/  Zandronum master/launcher protocol + Huffman codec (ported from Zandronum's source)
+  legacy/       Legacy Mode docs (then vs now, CPU/GPU emulation, Voodoo3 Mode), sample configs, tests
   desktop/      Electron host → ColeForge.exe, shell replacement, real browser tabs, game launching
   core/windows/ run ColeForge as your Windows shell + Windows To Go USB guide
   core/reactos/ experimental open-source NT core track

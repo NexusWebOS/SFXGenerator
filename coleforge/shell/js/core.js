@@ -25,8 +25,8 @@
   const host = window.forgeHost || null; // Electron bridge when running as the real shell
 
   const DEFAULTS = {
-    user: "Cole", avatar: null, wallpaper: "lake", customWall: null, accent: "#1f6fff",
-    cursors: true, sounds: true, soundScheme: "studio", volume: 0.8, uiScale: 1, showBrand: true, fastBoot: false, clock24: false,
+    user: "Cole", avatar: null, wallpaper: "classic98", customWall: null, accent: "#1f6fff", theme: "98",
+    cursors: false, sounds: true, soundScheme: "studio", volume: 0.8, uiScale: 1, showBrand: true, fastBoot: false, clock24: false,
   };
   const settings = Object.assign({}, DEFAULTS, store.get("cf.settings", {}));
 
@@ -50,6 +50,7 @@
     root.setProperty("--accent-lo", shade(settings.accent, -0.55));
     root.setProperty("--ui-scale", settings.uiScale);
     document.body.classList.toggle("forge-cursors", !!settings.cursors);
+    document.body.classList.toggle("theme-98", settings.theme === "98");
     const desk = $("#desktop");
     if (desk) {
       desk.className = "wall-" + settings.wallpaper;
@@ -61,7 +62,41 @@
     document.querySelectorAll("img.my-avatar").forEach(img => { img.src = av; });
     document.querySelectorAll(".my-name").forEach(el => { el.textContent = settings.user; });
   };
-  CF.avatar = () => settings.avatar || CF.icon("logo");
+  CF.avatar = () => settings.avatar || "assets/art/avatars/cole-blue.png";
+  CF.THEMES = [["98", "Windows 98 Classic"], ["glass", "ColeForge Glass"]];
+
+  /* ---------------- avatar picker ---------------- */
+  let avatarList = null;
+  CF.avatars = async () => {
+    if (!avatarList) avatarList = await fetch("assets/art/avatars/avatars.json").then(r => r.json()).catch(() => []);
+    return avatarList;
+  };
+  CF.pickAvatar = async () => {
+    const list = await CF.avatars();
+    return new Promise(resolve => {
+      const w = CF.createWindow({ title: "Change Picture", icon: "control", w: 560, h: 440, resizable: false });
+      const grid = h("div", { class: "avatar-grid" });
+      const finish = (v) => { w.close(true); resolve(v); };
+      for (const a of list) {
+        const b = h("button", { class: "av clickable" + (settings.avatar === a.file ? " on" : ""), title: a.label }, h("img", { src: a.file, alt: a.label }), h("small", {}, a.label));
+        b.addEventListener("click", () => { settings.avatar = a.file; CF.saveSettings(); finish(a.file); });
+        grid.append(b);
+      }
+      const upload = h("button", { class: "btn" }, "Browse…");
+      upload.addEventListener("click", () => {
+        const inp = h("input", { type: "file", accept: "image/*" });
+        inp.addEventListener("change", () => {
+          const f = inp.files[0]; if (!f) return;
+          const img = new Image();
+          img.onload = () => { const c = document.createElement("canvas"); c.width = c.height = 128; const k = Math.min(img.width, img.height); c.getContext("2d").drawImage(img, (img.width - k) / 2, (img.height - k) / 2, k, k, 0, 0, 128, 128); settings.avatar = c.toDataURL("image/png"); CF.saveSettings(); URL.revokeObjectURL(img.src); finish(settings.avatar); };
+          img.src = URL.createObjectURL(f);
+        });
+        inp.click();
+      });
+      w.on("close", () => resolve(null));
+      w.body.append(h("div", { class: "pad" }, h("div", {}, "Pick a picture for your account and ForgeChat:"), grid, h("div", { class: "row", style: "justify-content:flex-end" }, upload, h("button", { class: "btn", onclick: () => finish(null) }, "Cancel"))));
+    });
+  };
 
   /* ---------------- sounds ---------------- */
   // "studio" = ElevenLabs-generated scheme in assets/sounds/studio/, "classic" = procedural synth scheme.
@@ -393,11 +428,40 @@
       [...icons.children].sort((a, b) => a.textContent.localeCompare(b.textContent)).forEach(n => icons.append(n));
     }
   }
-  const WALLPAPERS = [["lake", "Twilight Lake"], ["energy", "Blue Energy"], ["forge", "Forge Splash"], ["navy", "Midnight"], ["teal", "Classic Teal"], ["custom", "Custom Picture…"]];
+  const WALLPAPERS = [["classic98", "ColeForge 98"], ["lake", "Twilight Lake"], ["energy", "Blue Energy"], ["forge", "Forge Splash"], ["navy", "Midnight"], ["teal", "Classic Teal"], ["custom", "Custom Picture…"]];
   CF.WALLPAPERS = WALLPAPERS;
 
   /* ---------------- Start menu ---------------- */
+  function build98Start() {
+    const menu = $("#start-menu");
+    const go = (fn) => () => { CF.sound("menu_click"); CF.toggleStart(false); fn(); };
+    const row = (label, icon, fn, opts = {}) => {
+      const el = h("div", { class: "sm98-item clickable" + (opts.small ? " small" : "") + (opts.sub ? " sub" : "") }, h("img", { src: CF.icon(icon), alt: "" }), h("span", {}, label));
+      if (opts.sub) el.append(h("div", { class: "sm98-flyout" }, opts.sub));
+      else el.addEventListener("click", go(fn));
+      return el;
+    };
+    const app = (id, small = true) => { const a = CF.apps[id]; return row(a.name, a.icon, () => CF.open(id), { small }); };
+    const programs = Object.values(CF.apps).filter(a => !a.hidden).sort((a, b) => a.name.localeCompare(b.name)).map(a => app(a.id));
+    const docs = CF.vfs.list().slice(0, 12).map(d => row(d.name, d.type === "image" ? "image" : "file", () => CF.open(d.type === "image" ? "forgecraft" : "notepad", { file: d.name }), { small: true }));
+    menu.replaceChildren(
+      h("div", { class: "sm98-banner" }, h("span", {}, h("b", {}, "Windows "), "ColeForge Edition")),
+      h("div", { class: "sm98-items" },
+        row("ForgeChat", "forgechat", () => CF.open("forgechat")),
+        row("Forge Arcade", "arcade", () => CF.open("arcade")),
+        h("div", { class: "sm98-sep" }),
+        row("Programs", "folder", null, { sub: programs }),
+        row("Documents", "documents", null, { sub: docs.length ? docs : [row("(Empty)", "file", () => CF.open("files"), { small: true })] }),
+        row("Settings", "control", null, { sub: [row("Control Panel", "control", () => CF.open("control"), { small: true }), row("Display", "computer", () => CF.open("control", { tab: "display" }), { small: true }), row("Sounds", "volume", () => CF.open("control", { tab: "sounds" }), { small: true }), row("Account Picture…", "image", () => CF.pickAvatar(), { small: true })] }),
+        row("Find", "browser", () => CF.open("browser")),
+        row("Help", "question", () => CF.open("about")),
+        row("Run...", "run", runDialog),
+        h("div", { class: "sm98-sep" }),
+        row(`Log Off ${settings.user}...`, "logo", logOff),
+        row("Shut Down...", "shutdown", () => CF.shutdownDialog())));
+  }
   function buildStart() {
+    if (settings.theme === "98") return build98Start();
     const item = (app, label, sub, icon) => {
       const el = h("div", { class: "sm-item clickable" }, h("img", { src: CF.icon(icon), alt: "" }), h("div", {}, label, sub ? h("small", {}, sub) : null));
       el.addEventListener("click", () => { CF.sound("menu_click"); CF.open(app); });
@@ -543,9 +607,18 @@
   function showWelcome() {
     return new Promise(resolve => {
       const name = h("input", { value: settings.user, maxlength: 24, "aria-label": "User name" });
-      const wel = h("div", { id: "welcome" }, h("div", { class: "welcome-card" },
+      const av = h("img", { class: "my-avatar clickable", src: CF.avatar(), alt: "", title: "Click to change your picture" });
+      av.addEventListener("click", () => CF.pickAvatar().then(() => { av.src = CF.avatar(); }));
+      const wel = settings.theme === "98" ? h("div", { id: "welcome" }, h("div", { class: "welcome-card" },
+        h("div", { class: "w98-title" }, h("img", { src: CF.icon("logo"), alt: "" }), "Welcome to Windows – ColeForge Edition"),
+        h("div", { class: "w98-banner" }),
+        h("div", { class: "w98-body" }, av, h("div", { class: "user" },
+          h("div", { style: "margin-bottom:8px" }, "Type a user name to log on to Windows – ColeForge Edition."),
+          h("div", { class: "w98-row" }, h("label", {}, "User name:"), name),
+          h("div", { class: "w98-row", style: "margin-top:6px" }, h("span", {}), h("a", { class: "clickable", style: "color:#0000ee;text-decoration:underline", onclick: () => av.click() }, "Change picture…")))),
+        h("div", { class: "w98-btns" }, h("button", { class: "btn", onclick: go }, "OK"), h("button", { class: "btn", onclick: () => CF.shutdownDialog() }, "Cancel")))) : h("div", { id: "welcome" }, h("div", { class: "welcome-card" },
         h("img", { class: "logo", src: CF.icon("logo"), alt: "" }), h("h1", {}, "Windows"), h("h2", {}, "ColeForge Edition"),
-        h("div", { class: "user" }, h("img", { class: "my-avatar", src: CF.avatar(), alt: "" }), name),
+        h("div", { class: "user" }, av, name),
         h("button", { class: "btn", style: "width:100%;padding:8px", onclick: go }, "Log On  ▶"),
         h("div", { class: "tag" }, "CLASSIC ROOTS. MODERN HORIZONS.")));
       name.addEventListener("keydown", (e) => { if (e.key === "Enter") go(); });

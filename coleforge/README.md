@@ -22,7 +22,7 @@ cross-PC ForgeChat, which needs the server.
 | App | What it does |
 | --- | --- |
 | **Shell** | BIOS POST → your boot splash with the segmented loading bar → welcome/log-on → desktop. Draggable/resizable windows, taskbar, Start menu with All Programs, quick launch, tray (network, volume, clock), Run dialog, right-click menus everywhere, toasts, 98-style dialogs, Shut Down / Restart / Log Off. Keys: Ctrl+Esc (Start), Alt+F4, F5, Ctrl+Shift+R (Run). |
-| **Control Panel** | Wallpapers (incl. your own picture), accent colour, UI size, cursor scheme, the ColeForge sound scheme with previews, account name + avatar. |
+| **Control Panel** | Theme (**Windows 98 Classic**, the default, or ColeForge Glass), wallpapers (incl. your own picture), accent colour, UI size, cursor scheme, the ColeForge sound scheme with previews, account name + picture (15 Cole avatars or your own). |
 | **My Computer** | Live hardware report: CPU cores, GPU name, RAM, network, display, battery, storage (real drives when running as the desktop host). |
 | **My Documents / Recycle Bin / Notepad** | Save, import, delete to the bin, restore, empty (with the crumple sound). Notepad has find, time/date, word wrap and export. |
 | **Forge Browser** | Tabs, favorites, history, search, home page. As the desktop host it uses real Chromium tabs with a full right-click menu (open link in new tab, copy, save/edit image in Forgecraft, view source, inspect). |
@@ -74,9 +74,19 @@ Browsers visiting `http://<lan-ip>` may block the camera; use ColeForge.exe on e
   22 icons (desktop, apps, dialogs, tray, Start menu) and a 4-piece cursor set: 31 assets in all.
   `art/spritecook-assets.json` maps each asset ID to its path under `shell/`. Drop the PNGs there
   and the shell uses them automatically; until then it falls back to its built-in vector icons.
-- **Game covers** (`shell/assets/art/games/`): built from the ports' own freely licensed art by
-  `art/game-ports/build_game_covers.py` (sources and licenses in `art/game-ports/SOURCES.md`).
-  Overwrite `games/doom-legacy.png` with your Doom Legacy – ColeForge Edition cover to use it.
+- **Windows 98 theme** (`shell/css/theme98.css`): teal desktop, grey 3D bevels, navy title bars,
+  classic Start menu with the vertical banner and Programs/Documents/Settings flyouts, and a 98
+  log-on dialog. Switch in Control Panel → Display → Theme. Its art is built locally:
+  `art/build_logon_banner.py` (log-on banner from the boot splash) and
+  `art/build_classic98_wallpaper.py` (the "ColeForge 98" wallpaper).
+- **Cole avatars** (`shell/assets/art/avatars/`): 15 pictures cut from your portraits by
+  `art/cole/build_avatars.py`, listed in `avatars.json` for the picker (log-on, Start → Settings →
+  Account Picture, Control Panel → Account, ForgeChat sign-on). More likeness avatars from SpriteCook
+  are in `spritecook-assets.json` under `windows98_batch`.
+- **Game covers** (`shell/assets/art/games/`): `doom-legacy.webp` is your DOOM Legacy – ColeForge
+  Edition cover. The others are built from the ports' own freely licensed art by
+  `art/game-ports/build_game_covers.py` (sources and licenses in `art/game-ports/SOURCES.md`);
+  `doom-legacy-port.png` is the alternate card from the port's logo.
 
 ## Sounds
 

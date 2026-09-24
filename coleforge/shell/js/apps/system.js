@@ -262,7 +262,10 @@
           });
           const scale = h("input", { type: "range", min: 0.85, max: 1.4, step: 0.05, value: s.uiScale });
           scale.addEventListener("change", () => { s.uiScale = +scale.value; save(); });
-          return [h("div", { class: "group" }, h("div", { class: "legend" }, "Wallpaper"), walls),
+          const theme = h("select", { class: "field" }, CF.THEMES.map(([id, label]) => h("option", { value: id, selected: s.theme === id }, label)));
+          theme.addEventListener("change", () => { s.theme = theme.value; save(); show("display"); });
+          return [h("div", { class: "group" }, h("div", { class: "legend" }, "Theme"), h("div", { class: "row" }, "Look:", theme)),
+            h("div", { class: "group" }, h("div", { class: "legend" }, "Wallpaper"), walls),
             h("div", { class: "group" }, h("div", { class: "legend" }, "Colour scheme"), h("div", { class: "row" }, "Accent:", accent, ...swatches)),
             h("div", { class: "group" }, h("div", { class: "legend" }, "Appearance"), h("div", { class: "row" }, "Text & UI size", scale), check("Show ColeForge branding on the desktop", "showBrand"), check("24-hour clock", "clock24"), check("Fast boot (skip long BIOS/splash)", "fastBoot"))];
         },
@@ -282,18 +285,9 @@
         account: () => {
           const name = h("input", { class: "field", value: s.user, maxlength: 24 });
           name.addEventListener("change", () => { s.user = name.value.trim() || "Cole"; save(); });
-          const av = h("img", { class: "my-avatar", src: CF.avatar(), alt: "", style: "width:72px;height:72px;border-radius:8px;border:2px solid #7fb8ff;object-fit:cover" });
+          const av = h("img", { class: "my-avatar", src: CF.avatar(), alt: "", style: "width:72px;height:72px;object-fit:cover" });
           const pick = h("button", { class: "btn" }, "Change picture…");
-          pick.addEventListener("click", () => {
-            const inp = h("input", { type: "file", accept: "image/*" });
-            inp.addEventListener("change", () => {
-              const f = inp.files[0]; if (!f) return;
-              const img = new Image();
-              img.onload = () => { const c = document.createElement("canvas"); c.width = c.height = 128; const k = Math.min(img.width, img.height); c.getContext("2d").drawImage(img, (img.width - k) / 2, (img.height - k) / 2, k, k, 0, 0, 128, 128); s.avatar = c.toDataURL("image/png"); save(); URL.revokeObjectURL(img.src); };
-              img.src = URL.createObjectURL(f);
-            });
-            inp.click();
-          });
+          pick.addEventListener("click", () => CF.pickAvatar().then(() => { av.src = CF.avatar(); }));
           return [h("div", { class: "group" }, h("div", { class: "legend" }, "Your account"), h("div", { class: "row" }, av, h("div", {}, h("div", { class: "row" }, "Name:", name), pick))),
             h("p", { class: "muted" }, "Your picture is also your ForgeChat avatar.")];
         },

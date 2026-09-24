@@ -78,8 +78,8 @@ def main():
     fd = load("freedoom-titlepic.png").resize((640, 400), Image.NEAREST)
     covers["freedoom"] = fd.crop((0, 20, 640, 380))
 
-    # Doom Legacy: the classic green site logo, pixel-scaled, with a toxic glow.
-    covers["doom-legacy"] = place(radial((18, 60, 24), (2, 8, 4)), key_out_black(load("doom-legacy-logo.png"), floor=6), 240, (40, 160, 50), nearest=True)
+    # Doom Legacy uses Cole's own cover (games/doom-legacy.webp); this port-logo card is kept as an alternate.
+    covers["doom-legacy-port"] = place(radial((18, 60, 24), (2, 8, 4)), key_out_black(load("doom-legacy-logo.png"), floor=6), 240, (40, 160, 50), nearest=True)
 
     # Doom via Chocolate Doom: the chocolate-bar icon on hellish red.
     covers["doom"] = place(radial((150, 30, 12), (22, 2, 2)), load("chocolate-doom-icon.png"), 300, (255, 120, 40))

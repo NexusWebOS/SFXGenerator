@@ -156,22 +156,13 @@
             h("img", { src: CF.icon("forgechat"), alt: "", style: "width:72px" }), h("h2", {}, "ForgeChat"), av,
             h("label", {}, "Screen Name"), name, h("label", {}, "Status"), status, h("label", {}, "Server"), server, go, note)));
         name.focus();
-        function pickAvatar() {
-          const inp = h("input", { type: "file", accept: "image/*" });
-          inp.addEventListener("change", () => {
-            const f = inp.files[0]; if (!f) return;
-            const img = new Image();
-            img.onload = () => { const c = document.createElement("canvas"); c.width = c.height = 96; const k = Math.min(img.width, img.height); c.getContext("2d").drawImage(img, (img.width - k) / 2, (img.height - k) / 2, k, k, 0, 0, 96, 96); CF.settings.avatar = c.toDataURL("image/png"); CF.saveSettings(); av.src = CF.settings.avatar; URL.revokeObjectURL(img.src); };
-            img.src = URL.createObjectURL(f);
-          });
-          inp.click();
-        }
+        function pickAvatar() { CF.pickAvatar().then(() => { av.src = CF.avatar(); }); }
       }
 
       async function signOn(name, server, status) {
         name = name.trim() || CF.settings.user;
         CF.store.set("cf.chat.server", server);
-        me = P.cleanUser({ id: uid() + "-" + tabId, name, avatar: CF.settings.avatar, status });
+        me = P.cleanUser({ id: uid() + "-" + tabId, name, avatar: CF.avatar(), status });
         win.body.replaceChildren(h("div", { class: "chat-signon" }, h("div", { class: "chat-signon-card" }, h("img", { src: CF.icon("forgechat"), alt: "", style: "width:72px" }), h("h2", {}, "Signing on…"), h("div", { class: "seg-bar small", style: "width:220px;margin:auto" }, Array.from({ length: 10 }, (_, i) => h("i", { class: i < 4 ? "on" : "" }))))));
         const candidates = [];
         if (server) candidates.push(server);

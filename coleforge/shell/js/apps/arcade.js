@@ -13,9 +13,9 @@
   // Every template is editable in Forge Arcade → Configure, since ports differ by version.
   const GAMES = {
     "doom-legacy": {
-      name: "Doom Legacy – ColeForge Edition", short: "Doom Legacy", engine: "Doom Legacy", exe: "doomlegacy", data: "doom2.wad", maps: doomMaps,
+      name: "DOOM Legacy – ColeForge Edition", short: "DOOM Legacy", engine: "Doom Legacy (ColeForge port)", exe: "doomlegacy", data: "doom2.wad", maps: doomMaps,
       solo: "{exe} -iwad {data} -warp {warp}", host: "{exe} -iwad {data} -server {dm} -warp {warp}", join: "{exe} -iwad {data} -connect {addr}",
-      dm: "-deathmatch", about: "Our fork of the Doom Legacy source port. Use doom2.wad, doom.wad, or free Freedoom IWADs.",
+      dm: "-deathmatch", about: "Exclusive to Windows – ColeForge Edition: our own port of DOOM, built on the Doom Legacy engine. Plays doom.wad, doom2.wad or the free Freedoom IWADs, with ForgeChat LAN lobbies built in.",
     },
     doom: {
       name: "Doom / Doom II", short: "Doom", engine: "Chocolate Doom", exe: "chocolate-doom", data: "doom2.wad", maps: doomMaps,

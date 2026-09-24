@@ -168,8 +168,71 @@
       "what": "Boot splash concept by Cole (in repo)"
     },
     {
-      "target": "assets/art/games/doom-legacy.png",
-      "what": "Currently built from the Doom Legacy site logo (art/game-ports). Overwrite with Cole's Doom Legacy \u2013 ColeForge Edition cover to use it instead."
+      "target": "assets/art/games/doom-legacy.webp",
+      "what": "Cole's DOOM Legacy \u2013 ColeForge Edition cover (in repo; source copy in art/cole/)"
+    },
+    {
+      "target": "assets/art/avatars/*.png",
+      "what": "15 Cole avatars cut from Cole's portraits by art/cole/build_avatars.py"
     }
-  ]
+  ],
+  "windows98_batch": {
+    "note": "Windows 98 theme batch. Same download rule; 'target' is where each file would go. The shell already ships local versions (log-on banner, classic98 wallpaper, avatars), so these are optional swaps.",
+    "assets": [
+      {
+        "target": "assets/art/avatars/cole-crt.png",
+        "asset_id": "6181f3ad-0379-45d1-8bcc-f402e110783f",
+        "what": "Cole avatar (likeness): at a 1998 CRT"
+      },
+      {
+        "target": "assets/art/avatars/cole-lan.png",
+        "asset_id": "8e746cd6-f838-4efc-8299-ca59f055135b",
+        "what": "Cole avatar (likeness): LAN-party headset"
+      },
+      {
+        "target": "assets/art/avatars/cole-marine.png",
+        "asset_id": "04c9c7de-203f-4232-971a-cf1bc81b783e",
+        "what": "Cole avatar (likeness): space-marine armor"
+      },
+      {
+        "target": "assets/art/avatars/cole-hoodie.png",
+        "asset_id": "50659d79-87cc-4154-b886-ec9382770de3",
+        "what": "Cole avatar (likeness): navy hoodie, thumbs up"
+      },
+      {
+        "target": "(slice) assets/art/icons/*.png",
+        "asset_id": "eb2725df-52b9-45cd-b71e-7923b177f87f",
+        "what": "98-style desktop/app icon sheet, 4x4 (computer, documents, bin, folder, browser, chat, music, video, paint, notepad, control, arcade, text, picture, network, prompt)"
+      },
+      {
+        "target": "(slice) assets/art/icons/*.png",
+        "asset_id": "e4f50a7d-24a0-462b-a7e4-c15c7988fbdf",
+        "what": "98-style system icon sheet, 4x4 (info, warning, error, question, volume, shutdown, run, help, floppy, drive, cd, printer, logo, security, clock, mail)"
+      },
+      {
+        "target": "assets/art/logon-banner.png",
+        "asset_id": "3aad5583-fd19-4db7-b494-1e7b117280a2",
+        "what": "Log-on banner, 2048x1152 (crop to 4:1)"
+      },
+      {
+        "target": "assets/art/start-banner.png",
+        "asset_id": "14da7cdf-bae5-4f97-bce9-d89947826520",
+        "what": "Start menu side banner, 1152x2048 (vertical)"
+      },
+      {
+        "target": "assets/art/wallpapers/classic98.png",
+        "asset_id": "c2f47d44-47e7-4223-865a-d4bba5dbe335",
+        "what": "Wallpaper: ColeForge 98 teal with emblem watermark, 2048x1152"
+      },
+      {
+        "target": "(unused)",
+        "asset_id": "996f4295-7568-41f1-8832-b9f197e35ba8",
+        "what": "98 window/frame widget sheet: came back as a 16x259 strip, not usable. The frames are drawn in CSS (css/theme98.css) instead."
+      }
+    ],
+    "reference": {
+      "asset_id": "4e1a75ed-32d2-4160-9846-7b26543b4630",
+      "what": "Cole likeness reference (imported, 112px) used for the avatar batch"
+    }
+  }
 }

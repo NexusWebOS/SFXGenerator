@@ -82,6 +82,7 @@ textarea, input { user-select: text; }
 #desktop.wall-energy { background-image: url("../assets/art/wallpapers/energy.png"), radial-gradient(ellipse at 30% 40%, #2d7fff 0, transparent 45%), radial-gradient(ellipse at 75% 70%, #5fb4ff 0, transparent 35%), linear-gradient(135deg, #02060f, #0a1a3f); }
 #desktop.wall-forge { background-image: url("../assets/art/boot-splash.webp"); }
 #desktop.wall-teal { background: #008080; }
+#desktop.wall-classic98 { background: url("../assets/art/wallpapers/classic98.png") center / cover no-repeat, #008080; }
 #desktop.wall-navy { background: radial-gradient(circle at 50% 30%, #1d3f86, #050b1c 75%); }
 #desktop.wall-custom { background-size: cover; }
 #icons { position: absolute; inset: 10px; display: grid; grid-auto-flow: column; grid-template-rows: repeat(auto-fill, 92px); grid-auto-columns: 92px; gap: 4px; align-content: start; pointer-events: none; }

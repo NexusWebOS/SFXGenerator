@@ -13,4 +13,5 @@ No official Doom, Quake or Duke Nukem 3D box art is included.
 
 `build_game_covers.py` (next to this file) composes these into
 `shell/assets/art/games/<game>.png`. To use your own cover for a game, drop a PNG at that
-path. Your Doom Legacy – ColeForge Edition cover goes at `shell/assets/art/games/doom-legacy.png`.
+path (.png, .webp or .jpg). Your DOOM Legacy – ColeForge Edition cover is `shell/assets/art/games/doom-legacy.webp`;
+the logo card this script builds for that port is `doom-legacy-port.png`.

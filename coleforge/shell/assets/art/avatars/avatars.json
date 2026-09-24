@@ -1,0 +1,77 @@
+[
+  {
+    "id": "cole-blue",
+    "label": "Command Deck",
+    "file": "assets/art/avatars/cole-blue.png"
+  },
+  {
+    "id": "cole-green",
+    "label": "Field Ops",
+    "file": "assets/art/avatars/cole-green.png"
+  },
+  {
+    "id": "cole-sly",
+    "label": "Sly",
+    "file": "assets/art/avatars/cole-sly.png"
+  },
+  {
+    "id": "cole-focused",
+    "label": "Focused",
+    "file": "assets/art/avatars/cole-focused.png"
+  },
+  {
+    "id": "cole-skeptic",
+    "label": "Skeptic",
+    "file": "assets/art/avatars/cole-skeptic.png"
+  },
+  {
+    "id": "cole-chill",
+    "label": "Chill",
+    "file": "assets/art/avatars/cole-chill.png"
+  },
+  {
+    "id": "cole-stern",
+    "label": "Stern",
+    "file": "assets/art/avatars/cole-stern.png"
+  },
+  {
+    "id": "cole-shout",
+    "label": "Shout",
+    "file": "assets/art/avatars/cole-shout.png"
+  },
+  {
+    "id": "cole-determined",
+    "label": "Determined",
+    "file": "assets/art/avatars/cole-determined.png"
+  },
+  {
+    "id": "cole-wink",
+    "label": "Wink",
+    "file": "assets/art/avatars/cole-wink.png"
+  },
+  {
+    "id": "cole-salute",
+    "label": "Salute",
+    "file": "assets/art/avatars/cole-salute.png"
+  },
+  {
+    "id": "cole-pilot",
+    "label": "Pilot",
+    "file": "assets/art/avatars/cole-pilot.png"
+  },
+  {
+    "id": "cole-shades",
+    "label": "Shades",
+    "file": "assets/art/avatars/cole-shades.png"
+  },
+  {
+    "id": "cole-smirk",
+    "label": "Smirk",
+    "file": "assets/art/avatars/cole-smirk.png"
+  },
+  {
+    "id": "cole-full",
+    "label": "Full Kit",
+    "file": "assets/art/avatars/cole-full.png"
+  }
+]

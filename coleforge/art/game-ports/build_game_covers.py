@@ -7,7 +7,7 @@ Writes 640x360 PNGs to coleforge/shell/assets/art/games/<game>.png.
 
 from pathlib import Path
 
-from PIL import Image, ImageChops, ImageDraw, ImageFilter
+from PIL import Image, ImageDraw, ImageFilter, ImageFont
 
 HERE = Path(__file__).resolve().parent
 OUT = HERE.parent.parent / "shell" / "assets" / "art" / "games"
@@ -61,13 +61,25 @@ def load(name):
     return Image.open(HERE / name).convert("RGBA")
 
 
-def key_out_black(img, floor=24):
-    """Make the near-black backdrop of a non-transparent logo transparent."""
-    r, g, b, a = img.split()
-    bright = ImageChops.lighter(ImageChops.lighter(r, g), b).point(lambda v: 255 if v >= floor else 0)
-    img = img.copy()
-    img.putalpha(ImageChops.multiply(a, bright))
-    return img
+def zandronum_card():
+    bg = radial((120, 16, 16), (14, 0, 0))
+    globe = Image.open(OUT.parent / "gamebrowser" / "logo.png").convert("RGBA")
+    place(bg, globe, 190, (255, 80, 40), nearest=True, y=0.42)
+    draw = ImageDraw.Draw(bg)
+    font = None
+    for name in ("DejaVuSans-Bold.ttf", "arialbd.ttf", "Arial Bold.ttf"):
+        try:
+            font = ImageFont.truetype(name, 46)
+            break
+        except OSError:
+            continue
+    font = font or ImageFont.load_default()
+    text = "ZANDRONUM"
+    w = draw.textlength(text, font=font)
+    x, y = (W - w) / 2, H * 0.78
+    draw.text((x + 3, y + 3), text, font=font, fill=(0, 0, 0, 200))
+    draw.text((x, y), text, font=font, fill=(255, 214, 90, 255))
+    return bg
 
 
 def main():
@@ -78,8 +90,10 @@ def main():
     fd = load("freedoom-titlepic.png").resize((640, 400), Image.NEAREST)
     covers["freedoom"] = fd.crop((0, 20, 640, 380))
 
-    # Doom Legacy uses Cole's own cover (games/doom-legacy.webp); this port-logo card is kept as an alternate.
-    covers["doom-legacy-port"] = place(radial((18, 60, 24), (2, 8, 4)), key_out_black(load("doom-legacy-logo.png"), floor=6), 240, (40, 160, 50), nearest=True)
+    # DOOM Legacy – ColeForge Edition (Cole's own port) uses Cole's cover, games/doom-legacy.webp.
+
+    # Zandronum: ColeForge's pixel server-browser globe on a deep red field, with a title.
+    covers["zandronum"] = zandronum_card()
 
     # Doom via Chocolate Doom: the chocolate-bar icon on hellish red.
     covers["doom"] = place(radial((150, 30, 12), (22, 2, 2)), load("chocolate-doom-icon.png"), 300, (255, 120, 40))

@@ -5,7 +5,7 @@
 (function () {
   const { h } = CF;
   const HOME = "forge://home";
-  const DEFAULT_FAVS = [["ColeForge Home", HOME], ["Doom Legacy", "https://doomlegacy.sourceforge.net/"], ["Freedoom", "https://freedoom.github.io/"], ["Archive.org", "https://archive.org/"], ["Wikipedia", "https://en.wikipedia.org/"]];
+  const DEFAULT_FAVS = [["ColeForge Home", HOME], ["Zandronum", "https://zandronum.com/"], ["Freedoom", "https://freedoom.github.io/"], ["Archive.org", "https://archive.org/"], ["Wikipedia", "https://en.wikipedia.org/"]];
   const hasWebview = !!(CF.host && CF.host.webview);
   let lastNewTab = null; // pop-ups from web pages open as tabs in the most recent browser window
   if (hasWebview && CF.host.onNewTab) CF.host.onNewTab((url) => lastNewTab ? lastNewTab(url) : CF.open("browser", { url }));

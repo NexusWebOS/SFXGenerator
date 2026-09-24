@@ -114,8 +114,9 @@
     } catch { /* audio unavailable */ }
   };
 
-  // In the Windows 98 theme ForgeChat wears its 16-bit pixel logo (assets/art/forgechat/).
-  CF.icon = (id) => id === "forgechat" && settings.theme === "98" ? "assets/art/forgechat/logo.png" : window.CFIcons.get(id);
+  // 16-bit pixel logos: the Game Browser always, ForgeChat in the Windows 98 theme.
+  const PIXEL_ICONS = { gamebrowser: "assets/art/gamebrowser/logo.png" };
+  CF.icon = (id) => PIXEL_ICONS[id] || (id === "forgechat" && settings.theme === "98" ? "assets/art/forgechat/logo.png" : window.CFIcons.get(id));
 
   /* ---------------- document store (My Documents + Recycle Bin) ---------------- */
   const vfsKey = "cf.vfs";
@@ -371,7 +372,7 @@
     ["mycomputer", "My Computer", "computer"], ["files", "My Documents", "documents"], ["recycle", "Recycle Bin", "recycle"],
     ["browser", "Forge Browser", "browser"], ["forgechat", "ForgeChat", "forgechat"], ["forgeamp", "ForgeAmp", "forgeamp"],
     ["forgevision", "ForgeVision", "forgevision"], ["forgecraft", "Forgecraft", "forgecraft"], ["arcade", "Forge Arcade", "arcade"],
-    ["notepad", "Notepad", "notepad"], ["control", "Control Panel", "control"],
+    ["gamebrowser", "Game Browser", "gamebrowser"], ["notepad", "Notepad", "notepad"], ["control", "Control Panel", "control"],
   ];
   function buildDesktop() {
     const icons = $("#icons");

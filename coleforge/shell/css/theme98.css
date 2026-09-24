@@ -225,3 +225,6 @@ body.theme-98 .chat-dot.away { background-image: url("../assets/art/forgechat/st
 body.theme-98 .chat-dot.busy { background-image: url("../assets/art/forgechat/status-busy.png"); }
 body.theme-98 .chat-avwrap .chat-dot { right: -6px; bottom: -6px; border: none; }
 body.theme-98 .chat-me .muted { color: #e0e8ff; }
+body.theme-98 .chat-server { background: var(--w98-face); border: none; border-radius: 0; box-shadow: var(--raised); color: #000; }
+body.theme-98 .lobby-server { color: #555; }
+body.theme-98 .lobby-server.up { color: #008000; }

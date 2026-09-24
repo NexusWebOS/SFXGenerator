@@ -5,7 +5,6 @@ No official Doom, Quake or Duke Nukem 3D box art is included.
 
 | File | From | License |
 | --- | --- | --- |
-| `doom-legacy-logo.png` | Doom Legacy website, `doomlegacy.sourceforge.net/images/menuback.gif` (converted to PNG) | Doom Legacy project, GPL-2.0 |
 | `chocolate-doom-icon.svg` / `.png` | [chocolate-doom/icon](https://github.com/chocolate-doom/icon) `doom.svg` (PNG rendered from the SVG) | GPL-2.0 |
 | `freedoom-titlepic.png` | [freedoom/freedoom](https://github.com/freedoom/freedoom) `graphics/titlepic/titlepic.png` | BSD 3-Clause, © Contributors to the Freedoom project |
 | `quakespasm-logo.png` | [andrei-drexler/ironwail](https://github.com/andrei-drexler/ironwail) `Misc/QuakeSpasm_512.png` | Shipped with QuakeSpasm/Ironwail (GPL-2.0); the Quake logo mark is an id Software trademark |
@@ -13,5 +12,6 @@ No official Doom, Quake or Duke Nukem 3D box art is included.
 
 `build_game_covers.py` (next to this file) composes these into
 `shell/assets/art/games/<game>.png`. To use your own cover for a game, drop a PNG at that
-path (.png, .webp or .jpg). Your DOOM Legacy – ColeForge Edition cover is `shell/assets/art/games/doom-legacy.webp`;
-the logo card this script builds for that port is `doom-legacy-port.png`.
+path (.png, .webp or .jpg). Your DOOM Legacy – ColeForge Edition cover (your own source port) is
+`shell/assets/art/games/doom-legacy.webp`. The Zandronum card is drawn from ColeForge's own pixel art
+(`art/gamebrowser/`), not Zandronum's logo.

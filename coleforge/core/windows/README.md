@@ -59,6 +59,16 @@ What the installer sets up:
 
 In shell mode, ColeForge's Shut Down / Restart / Log Off really power the machine off, restart it, or sign you out.
 
+### Zandronum (online Doom)
+
+```powershell
+.\get-zandronum.ps1            # latest official Windows build → %LOCALAPPDATA%\ColeForge\games\zandronum, added to PATH
+.\get-zandronum.ps1 -Firewall  # (admin) also allow UDP 10666 (game) and 15101 (LAN browser) on private networks
+```
+
+Copy `doom2.wad` or `freedoom2.wad` into that folder, restart ColeForge, and Zandronum shows up in
+Forge Arcade, ForgeChat lobbies and the Forge Game Browser.
+
 ## 3. Bootable USB for the spare laptop (Windows To Go)
 
 This makes a USB drive that boots a full, portable Windows install. Put ColeForge on it and

@@ -43,6 +43,21 @@
     return { name: clip(a.name, 120) || "file", type: clip(a.type, 80), size: +a.size || 0, data: a.data };
   }
 
+  // A shared game server card (Forge Game Browser → ForgeChat). Only plain, short fields survive.
+  const ADDRESS = /^[A-Za-z0-9.-]{1,253}:\d{1,5}$/;
+  const WAD = /^[\w.\- ]{1,64}\.(wad|pk3|pk7|pke|zip|deh|bex|ipk3)$/i;
+  function cleanServer(s) {
+    if (!s || !ADDRESS.test(String(s.address || ""))) return null;
+    const n = (v, max) => Math.max(0, Math.min(max, Math.floor(+v || 0)));
+    return {
+      game: s.game === "zandronum" ? "zandronum" : clip(s.game, 24).replace(/[^\w-]/g, "") || "zandronum",
+      address: String(s.address), name: clip(s.name, 64), map: clip(s.map, 16).replace(/[^\w]/g, ""), mode: clip(s.mode, 32),
+      players: n(s.players, 64), max: n(s.max, 64), iwad: WAD.test(s.iwad || "") ? s.iwad : "",
+      pwads: (Array.isArray(s.pwads) ? s.pwads : []).map(String).filter(w => WAD.test(w)).slice(0, 16),
+      password: !!s.password,
+    };
+  }
+
   // `sender` is the cleaned user object; its name travels with the message so history still
   // shows who spoke after they sign off.
   function cleanMessage(m, sender) {
@@ -53,7 +68,9 @@
     };
     for (const k of ["image", "file", "voice"]) { const a = cleanAttachment(m[k]); if (a) msg[k] = a; }
     if (typeof m.gif === "string" && /^(https?:|data:image\/gif)/.test(m.gif) && m.gif.length < LIMITS.file * 1.37) msg.gif = m.gif;
-    if (!msg.to || (!msg.text && !msg.image && !msg.file && !msg.voice && !msg.gif)) return null;
+    const server = cleanServer(m.server);
+    if (server) msg.server = server;
+    if (!msg.to || (!msg.text && !msg.image && !msg.file && !msg.voice && !msg.gif && !msg.server)) return null;
     return msg;
   }
 
@@ -77,6 +94,8 @@
       mode: l.mode === "coop" ? "coop" : "deathmatch",
       max: Math.max(2, Math.min(16, +l.max || 4)),
       address: clip(l.address, 64),
+      files: clip(l.files, 200),
+      zmode: /^[a-z]{3,16}$/.test(l.zmode || "") ? l.zmode : "",
       host: host.id, hostName: host.name,
       players: [{ id: host.id, name: host.name, ready: true }],
       state: "open", created: Date.now(),
@@ -116,5 +135,5 @@
     return lobby;
   }
 
-  return { LIMITS, CHANNELS, STATUSES, dmKey, roomOf, cleanUser, cleanMessage, cleanLobby, applyLobbyOp, forHistory };
+  return { LIMITS, CHANNELS, STATUSES, dmKey, roomOf, cleanUser, cleanMessage, cleanServer, cleanLobby, applyLobbyOp, forHistory };
 });

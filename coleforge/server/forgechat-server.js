@@ -3,6 +3,7 @@
 
 // ColeForge LAN server: serves the ColeForge shell over HTTP and runs the ForgeChat hub
 // (presence, channels, DMs, history, game lobbies, WebRTC call signalling) over WebSocket.
+// It also answers the Forge Game Browser: Zandronum master list, server queries, LAN servers.
 // Dependency-free: only Node's standard library. Usage:
 //   node coleforge/server/forgechat-server.js [--port 8098] [--host 0.0.0.0]
 
@@ -12,6 +13,7 @@ const path = require("path");
 const os = require("os");
 const crypto = require("crypto");
 const P = require("../shell/js/forgechat-protocol.js");
+const Zan = require("./zandronum/client.js");
 
 const args = process.argv.slice(2);
 const arg = (name, fallback) => { const i = args.indexOf("--" + name); return i >= 0 ? args[i + 1] : fallback; };
@@ -31,6 +33,10 @@ const MIME = {
 const server = http.createServer((req, res) => {
   let rel;
   try { rel = decodeURIComponent(new URL(req.url, "http://x").pathname); } catch { res.writeHead(400).end(); return; }
+  if (rel.startsWith("/api/zandronum/")) {
+    zandronumApi(req, res, new URL(req.url, "http://x")).catch((e) => { if (!res.headersSent) res.writeHead(500, { "Content-Type": "application/json" }).end(JSON.stringify({ error: e.message })); });
+    return;
+  }
   if (rel === "/") rel = "/index.html";
   const file = path.resolve(ROOT, "." + rel);
   if (!file.startsWith(ROOT + path.sep)) { res.writeHead(403).end(); return; }
@@ -40,6 +46,66 @@ const server = http.createServer((req, res) => {
     fs.createReadStream(file).pipe(res);
   });
 });
+
+/* ---------------- Zandronum: Forge Game Browser API ---------------- */
+// Browsers can't speak UDP, so the LAN server does it for them:
+//   GET /api/zandronum/browse?internet=1&lan=1&extra=host:port,...[&refresh=1]
+//   GET /api/zandronum/query?addr=host:port
+// ZANDRONUM_MASTER=host:port points at another master; ZANDRONUM_LAN=0 turns the LAN listener off.
+const ZAN_MASTER = Zan.parseAddress(process.env.ZANDRONUM_MASTER || "master.zandronum.com", 15300);
+const zanLan = process.env.ZANDRONUM_LAN === "0" ? null
+  : Zan.lanListener({ port: +(process.env.ZANDRONUM_LAN_PORT || 15101), onError: (e) => log(`Zandronum LAN listener off (${e.code || e.message}); LAN servers won't appear by themselves.`) });
+const zanAnswers = new Map(); // "host:port" -> { at, result }
+let zanMaster = { at: 0, status: "not asked", servers: [] }, zanMasterBusy = null;
+
+function zanMasterList(force) {
+  if (!force && zanMaster.at && Date.now() - zanMaster.at < 30000) return Promise.resolve(zanMaster);
+  // The master ignores a launcher that asks twice within 10 seconds; keep the last good list then.
+  if (!zanMasterBusy) zanMasterBusy = Zan.queryMaster(ZAN_MASTER).then((m) => {
+    const keep = !m.servers.length && zanMaster.servers.length;
+    zanMaster = { at: Date.now(), status: m.status, error: m.error, servers: keep ? zanMaster.servers : m.servers };
+    return zanMaster;
+  }).finally(() => { zanMasterBusy = null; });
+  return zanMasterBusy;
+}
+
+async function zanQuery(targets) {
+  // Servers also ignore repeat queries inside 10 seconds, so reuse answers that fresh.
+  const now = Date.now(), fresh = [], ask = [];
+  for (const t of targets) { const c = zanAnswers.get(Zan.key(t.host, t.port)); if (c && now - c.at < 10000) fresh.push(c.result); else ask.push(t); }
+  const got = ask.length ? await Zan.queryServers(ask) : [];
+  for (const r of got) zanAnswers.set(r.address, { at: Date.now(), result: r });
+  if (zanAnswers.size > 4000) for (const [k, v] of zanAnswers) if (now - v.at > 60000) zanAnswers.delete(k);
+  return [...fresh, ...got];
+}
+
+async function zandronumApi(req, res, url) {
+  const send = (code, obj) => res.writeHead(code, { "Content-Type": "application/json", "Cache-Control": "no-store" }).end(JSON.stringify(obj));
+  if (req.method !== "GET") return send(405, { error: "GET only" });
+  const q = url.searchParams;
+  if (url.pathname === "/api/zandronum/query") {
+    const a = Zan.parseAddress(q.get("addr"));
+    if (!a) return send(400, { error: "Expected addr=host:port" });
+    const [r] = await zanQuery([a]);
+    return send(200, r);
+  }
+  if (url.pathname !== "/api/zandronum/browse") return send(404, { error: "Unknown endpoint" });
+  const sources = new Map(); // "host:port" -> Set of sources
+  const add = (host, port, source) => { const k = Zan.key(host, port); if (!sources.has(k)) sources.set(k, { host, port, set: new Set() }); sources.get(k).set.add(source); };
+  for (const a of (q.get("extra") || "").split(",").slice(0, 64).map(x => Zan.parseAddress(x)).filter(Boolean)) add(a.host, a.port, "favorite");
+  let master = null;
+  if (q.get("internet") !== "0") { master = await zanMasterList(q.get("refresh") === "1"); for (const s of master.servers) add(s.host, s.port, "internet"); }
+  const lanServers = zanLan && q.get("lan") !== "0" ? zanLan.list() : [];
+  for (const s of lanServers) add(s.host, s.port, "lan");
+  const lanByKey = new Map(lanServers.map(s => [s.address, s]));
+  const answers = await zanQuery([...sources.values()].filter(s => !lanByKey.has(Zan.key(s.host, s.port))));
+  const servers = [...lanServers, ...answers].map(r => ({ ...r, sources: [...(sources.get(r.address)?.set || [])] }));
+  send(200, {
+    master: master && { host: ZAN_MASTER.host, status: master.status, error: master.error, count: master.servers.length, at: master.at },
+    lan: { listening: !!zanLan, count: lanServers.length },
+    servers,
+  });
+}
 
 /* ---------------- minimal RFC 6455 WebSocket ---------------- */
 class Socket {

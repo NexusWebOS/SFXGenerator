@@ -260,7 +260,7 @@
       function openRoom(room) {
         current = room; unread.delete(room);
         renderRail(); renderHeader();
-        if (room === "lobbies") { composer.style.display = "none"; renderLobbies(); return; }
+        if (room === "lobbies") { composer.style.display = "none"; renderLobbies(); pollLobbyServers(); return; }
         composer.style.display = "";
         log.replaceChildren(...(rooms.get(room) || []).map(renderMsg));
         if (!log.children.length) log.append(h("div", { class: "chat-empty muted" }, isDm(room) ? "This is the start of your conversation." : `Welcome to ${room}! ${channels.find(c => c.id === room)?.topic || ""}`));
@@ -322,6 +322,7 @@
         if (m.voice) parts.push(m.voice.data ? h("audio", { controls: true, src: m.voice.data, class: "chat-voice" }) : h("div", { class: "muted" }, "[voice clip expired]"));
         if (m.file) parts.push(h("div", { class: "chat-file" }, h("img", { src: CF.icon("file"), alt: "" }), h("div", { style: "flex:1" }, h("b", {}, m.file.name), h("div", { class: "muted" }, fmtSize(m.file.size))),
           m.file.data ? h("a", { class: "btn icon", href: m.file.data, download: m.file.name }, pix("download", "⬇")) : h("span", { class: "muted" }, "expired")));
+        if (m.server) parts.push(serverCard(m.server));
         const el = h("div", { class: "chat-msg" + (m.from === me.id ? " mine" : "") + (m.auto ? " auto" : "") },
           h("img", { class: "chat-av", src: u.avatar || CF.icon("forgechat"), alt: "" }),
           h("div", { class: "chat-bubble" }, h("div", { class: "chat-meta" }, h("b", {}, u.name), h("span", { class: "muted" }, new Date(m.ts).toLocaleTimeString([], { hour: "numeric", minute: "2-digit" })), m.auto ? h("span", { class: "muted" }, " (auto-response)") : null), ...parts));
@@ -338,6 +339,28 @@
           ]);
         });
         return el;
+      }
+      // A game server shared from Forge Game Browser: one click joins it.
+      function serverCard(s) {
+        const gb = (n) => h("img", { class: "px-ico", src: `assets/art/gamebrowser/${n}.png`, alt: "" });
+        async function join() {
+          const pw = {};
+          if (s.password) {
+            const r = await CF.dialog({ title: `Join ${s.name || s.address}`, icon: "question", message: "This server needs a password.", input: "", buttons: ["Join", "Cancel"] });
+            if (r.button !== "Join") return;
+            pw.password = r.value;
+          }
+          if (CF.joinServer) CF.joinServer({ address: s.address, name: s.name, iwad: s.iwad, pwads: s.pwads.map(name => ({ name })) }, pw);
+        }
+        return h("div", { class: "chat-server" },
+          h("img", { class: "chat-server-logo", src: "assets/art/gamebrowser/logo.png", alt: "" }),
+          h("div", { style: "flex:1;min-width:0" },
+            h("b", {}, s.password ? gb("lock") : null, s.name || s.address),
+            h("div", { class: "muted" }, [s.map, s.mode, `${s.players}/${s.max} players`, s.iwad].filter(Boolean).join(" · ")),
+            h("div", { class: "muted chat-server-addr" }, s.address + (s.pwads.length ? " · " + s.pwads.join(", ") : ""))),
+          h("div", { class: "chat-server-btns" },
+            h("button", { class: "btn", onclick: join }, gb("join"), " Join"),
+            h("button", { class: "btn flat", onclick: () => CF.open("gamebrowser", { select: s.address }) }, gb("logo"), " Browse")));
       }
       function receive(m) {
         const room = P.roomOf(m);
@@ -369,6 +392,19 @@
         }
       }
       function target() { return isDm(current) ? dmPeer(current) : current; }
+      // Hooks for Forge Game Browser: see ForgeChat's lobbies, share a server into the chat.
+      CF.chat = {
+        online: () => !!(hub && me && ready),
+        lobbies: () => lobbies,
+        createLobby(lobby) { if (hub && me && !myLobby()) { hub.send("lobby.create", { lobby }); return true; } return false; },
+        share(server) {
+          if (!hub || !me) return false;
+          if (current === "lobbies" || !current) openRoom("#games");
+          send({ server, text: "" });
+          win.restore(); win.focus();
+          return true;
+        },
+      };
       function send(payload) {
         if (current === "lobbies") return;
         if (isDm(current) && !users.has(dmPeer(current))) return CF.dialog({ title: "ForgeChat", icon: "warning", message: "That buddy is offline." });
@@ -471,7 +507,8 @@
       function renderLobbies() {
         const mine = myLobby();
         log.replaceChildren(
-          h("div", { class: "lobby-intro" }, h("img", { src: CF.icon("arcade"), alt: "" }), h("div", {}, h("b", {}, "LAN Game Lobbies"), h("div", { class: "muted" }, "Host a Doom, Quake or Duke Nukem 3D match, invite buddies, ready up, and ColeForge launches everyone into the same game."))),
+          h("div", { class: "lobby-intro" }, h("img", { src: CF.icon("arcade"), alt: "" }), h("div", { style: "flex:1" }, h("b", {}, "LAN Game Lobbies"), h("div", { class: "muted" }, "Host a DOOM Legacy, Zandronum, Quake or Duke Nukem 3D match, invite buddies, ready up, and ColeForge launches everyone into the same game.")),
+            h("button", { class: "btn", onclick: () => CF.open("gamebrowser") }, h("img", { class: "px-ico", src: "assets/art/gamebrowser/logo.png", alt: "" }), " Server Browser")),
           ...(lobbies.length ? lobbies.map(l => {
             const g = games()[l.game] || { name: l.game };
             const inIt = l.players.some(p => p.id === me.id), isHost = l.host === me.id;
@@ -485,11 +522,34 @@
               h("img", { class: "lobby-art", src: CF.gameArt ? CF.gameArt(l.game) : CF.icon("arcade"), alt: "" }),
               h("div", { style: "flex:1;min-width:0" },
                 h("div", {}, h("b", {}, l.name), h("span", { class: "muted" }, ` · ${g.name} · ${l.map} · ${l.mode} · ${l.players.length}/${l.max}`), l.state === "starting" ? h("span", { class: "lobby-live" }, " IN GAME") : null),
-                h("div", { class: "muted", style: "font-size:11px" }, `Host: ${l.hostName}${l.address ? " @ " + l.address : ""}`),
+                h("div", { class: "muted", style: "font-size:11px" }, `Host: ${l.hostName}${l.address ? " @ " + l.address : ""}${l.files ? " · " + l.files : ""}`),
+                l.game === "zandronum" && l.address ? lobbyServerLine(l) : null,
                 h("div", { class: "lobby-players" }, l.players.map(p => h("span", { class: "lobby-p" + (p.ready ? " ready" : "") }, (p.id === l.host ? "★ " : "") + p.name + (p.ready ? " ✓" : ""))))),
               h("div", { class: "lobby-actions" }, actions));
           }) : [h("div", { class: "chat-empty muted" }, "No games running. Be the hero — host one!")]));
       }
+      // Zandronum lobbies show what the real server says (map, players) once it's up.
+      const serverStatus = new Map(); // address -> { at, text, ok }
+      function lobbyServerLine(l) {
+        const addr = /:\d+$/.test(l.address) ? l.address : l.address + ":10666";
+        const st = serverStatus.get(addr);
+        return h("div", { class: "lobby-server" + (st?.ok ? " up" : "") }, h("img", { class: "px-ico", src: "assets/art/gamebrowser/" + (st?.ok ? "ping-good" : "host") + ".png", alt: "" }), " ", st ? st.text : "Checking server…");
+      }
+      async function pollLobbyServers() {
+        if (current !== "lobbies" || !log.isConnected) return;
+        const addrs = [...new Set(lobbies.filter(l => l.game === "zandronum" && l.address).map(l => /:\d+$/.test(l.address) ? l.address : l.address + ":10666"))];
+        if (!addrs.length) return;
+        await Promise.all(addrs.map(async (addr) => {
+          try {
+            const r = await fetch("/api/zandronum/query?addr=" + encodeURIComponent(addr)).then(res => res.json());
+            serverStatus.set(addr, r.status === "ok"
+              ? { ok: true, text: `Server up: ${r.info.name} · ${r.info.map} · ${r.info.numPlayers}/${r.info.maxClients} players · ${r.ping} ms` }
+              : { ok: false, text: "Server not answering yet (starts when the host hits Start)" });
+          } catch { serverStatus.set(addr, { ok: false, text: "Server status needs the ColeForge LAN server" }); }
+        }));
+        if (current === "lobbies") renderLobbies();
+      }
+      const lobbyStatusTimer = setInterval(pollLobbyServers, 12000);
       async function hostLobby() {
         if (myLobby()) return CF.dialog({ title: "ForgeChat", icon: "info", message: "You're already in a lobby. Leave it first." });
         const gs = games();
@@ -501,11 +561,12 @@
         const max = h("input", { class: "field", type: "number", min: 2, max: 16, value: 4, style: "width:70px" });
         const name = h("input", { class: "field", value: `${me.name}'s LAN Party` });
         const addr = h("input", { class: "field", placeholder: "your LAN IP, e.g. 192.168.1.20", value: CF.store.get("cf.lan.ip", "") });
-        const w = CF.createWindow({ title: "Host a Game", icon: "arcade", w: 400, h: 360, resizable: false });
-        w.body.append(h("div", { class: "pad form-grid" }, "Lobby name", name, "Game", gameSel, "Map", mapSel, "Mode", mode, "Max players", max, "Host address", addr,
+        const files = h("input", { class: "field", placeholder: "optional: maps.wad, mod.pk3" });
+        const w = CF.createWindow({ title: "Host a Game", icon: "arcade", w: 420, h: 390, resizable: false });
+        w.body.append(h("div", { class: "pad form-grid" }, "Lobby name", name, "Game", gameSel, "Map", mapSel, "Mode", mode, "Max players", max, "Host address", addr, "WADs / mods", files,
           h("div", {}), h("div", { class: "row" }, h("button", { class: "btn", onclick: () => {
             CF.store.set("cf.lan.ip", addr.value.trim());
-            hub.send("lobby.create", { lobby: { name: name.value, game: gameSel.value, map: mapSel.value, mode: mode.value, max: +max.value, address: addr.value.trim() } });
+            hub.send("lobby.create", { lobby: { name: name.value, game: gameSel.value, map: mapSel.value, mode: mode.value, max: +max.value, address: addr.value.trim(), files: files.value.trim() } });
             w.close(true); openRoom("lobbies");
           } }, "Create Lobby"), h("button", { class: "btn flat", onclick: () => w.close(true) }, "Cancel"))));
       }
@@ -611,7 +672,7 @@
       }
 
       win.on("args", (a) => { if (a.room && me) openRoom(a.room); });
-      win.on("close", () => { clearInterval(typingTimer); endCall(); if (hub) hub.close(); });
+      win.on("close", () => { clearInterval(typingTimer); clearInterval(lobbyStatusTimer); endCall(); if (hub) hub.close(); CF.chat = null; });
       signOnScreen();
       if (args.autoSignOn) signOn(CF.settings.user, "", "online");
     },

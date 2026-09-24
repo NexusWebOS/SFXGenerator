@@ -6,6 +6,9 @@
 (function () {
   const { h, esc } = CF;
   const P = window.ForgeChatProtocol;
+  // 16-bit pixel art (assets/art/forgechat/) in the Windows 98 theme, emoji glyphs otherwise.
+  const is98 = () => CF.settings.theme === "98";
+  const pix = (name, glyph) => is98() ? h("img", { class: "px-ico", src: `assets/art/forgechat/${name}.png`, alt: glyph }) : glyph;
 
   /* ---------------- transports ---------------- */
   class Emitter {
@@ -134,7 +137,7 @@
 
   CF.register({
     id: "forgechat", name: "ForgeChat", icon: "forgechat", single: true, desc: "Instant messenger with channels, DMs, media, video calls and LAN game lobbies.",
-    window: { w: 900, h: 600 },
+    window: { w: 900, h: 600, maximized: true },
     open(win, args) {
       let hub = null, me = null, current = "#general", channels = P.CHANNELS;
       const users = new Map(), rooms = new Map(), unread = new Map(), typing = new Map();
@@ -153,7 +156,7 @@
         name.addEventListener("keydown", (e) => { if (e.key === "Enter") go.click(); });
         win.body.replaceChildren(h("div", { class: "chat-signon" },
           h("div", { class: "chat-signon-card" },
-            h("img", { src: CF.icon("forgechat"), alt: "", style: "width:72px" }), h("h2", {}, "ForgeChat"), av,
+            ...(is98() ? [h("img", { class: "fc-banner", src: "assets/art/forgechat/banner.png", alt: "ForgeChat" })] : [h("img", { src: CF.icon("forgechat"), alt: "", style: "width:72px" }), h("h2", {}, "ForgeChat")]), av,
             h("label", {}, "Screen Name"), name, h("label", {}, "Status"), status, h("label", {}, "Server"), server, go, note)));
         name.focus();
         function pickAvatar() { CF.pickAvatar().then(() => { av.src = CF.avatar(); }); }
@@ -186,9 +189,9 @@
       function buildMain() {
         const tool = (glyph, title, fn) => { const b = h("button", { class: "tool", title }, h("b", {}, glyph)); b.addEventListener("click", fn); return b; };
         composer.replaceChildren(
-          h("div", { class: "chat-tools" }, tool("😊", "Emoji", emojiPicker), tool("GIF", "Send a GIF", gifPicker), tool("📎", "Share a file", shareFile), tool("🖼", "Send a picture", sharePicture),
-            tool("📷", "Webcam snapshot", webcamSnap), tool("🎙", "Record a voice clip", voiceClip), h("span", { style: "flex:1" }), h("span", { class: "muted", style: "font-size:11px" }, `Connected via ${hub.mode}`)),
-          h("div", { class: "row", style: "margin:0" }, input, h("button", { class: "btn", onclick: sendText }, "Send")));
+          h("div", { class: "chat-tools" }, tool(pix("smiley", "😊"), "Emoji", emojiPicker), tool(pix("gif", "GIF"), "Send a GIF", gifPicker), tool(pix("file", "📎"), "Share a file", shareFile), tool(pix("picture", "🖼"), "Send a picture", sharePicture),
+            tool(pix("webcam", "📷"), "Webcam snapshot", webcamSnap), tool(pix("mic", "🎙"), "Record a voice clip", voiceClip), h("span", { style: "flex:1" }), h("span", { class: "muted", style: "font-size:11px" }, `Connected via ${hub.mode}`)),
+          h("div", { class: "row", style: "margin:0" }, input, h("button", { class: "btn send-btn", onclick: sendText }, pix("send", ""), "Send")));
         win.body.replaceChildren(h("div", { class: "chat" }, rail, center));
         win.menubar([
           { label: "ForgeChat", items: () => [
@@ -269,11 +272,11 @@
         const btns = [];
         if (isDm(current)) {
           const peer = users.get(dmPeer(current));
-          btns.push(h("button", { class: "btn icon", title: "Voice call", onclick: () => startCall(dmPeer(current), false), disabled: !peer }, "📞"),
-            h("button", { class: "btn icon", title: "Video call", onclick: () => startCall(dmPeer(current), true), disabled: !peer }, "📹"));
+          btns.push(h("button", { class: "btn icon", title: "Voice call", onclick: () => startCall(dmPeer(current), false), disabled: !peer }, pix("call", "📞")),
+            h("button", { class: "btn icon", title: "Video call", onclick: () => startCall(dmPeer(current), true), disabled: !peer }, pix("video", "📹")));
           header.replaceChildren(h("img", { class: "chat-av", src: peer?.avatar || CF.icon("forgechat"), alt: "" }), h("div", { style: "flex:1" }, h("b", {}, roomTitle(current)), h("div", { class: "muted", style: "font-size:11px" }, peer ? (peer.status === "away" && peer.away ? "Away: " + peer.away : peer.status) : "offline")), ...btns);
         } else if (current === "lobbies") {
-          header.replaceChildren(h("b", { style: "flex:1" }, "🎮 Game Lobbies"), h("button", { class: "btn", onclick: hostLobby }, "Host a Game"));
+          header.replaceChildren(h("b", { style: "flex:1" }, pix("lobby", "🎮"), " Game Lobbies"), h("button", { class: "btn", onclick: hostLobby }, "Host a Game"));
         } else {
           header.replaceChildren(h("b", {}, "# " + current.slice(1)), h("span", { class: "muted", style: "flex:1;margin-left:10px" }, channels.find(c => c.id === current)?.topic || ""));
         }
@@ -293,7 +296,7 @@
         meBox.addEventListener("click", (e) => CF.contextMenu({ x: e.clientX, y: e.clientY }, [...P.STATUSES.map(s => ({ label: s, checked: me.status === s, action: () => setStatus(s) })), "-", { label: "Set Away Message…", action: setAway }, { label: "Sign Off", action: signOff }]));
         rail.replaceChildren(meBox,
           section("Channels"), ...channels.map(c => row(c.id, "# " + c.name, h("span", {}))),
-          row("lobbies", "Game Lobbies", h("span", {}, "🎮"), lobbies.length ? h("small", { class: "muted" }, lobbies.length) : null),
+          row("lobbies", "Game Lobbies", h("span", {}, pix("lobby", "🎮")), lobbies.length ? h("small", { class: "muted" }, lobbies.length) : null),
           section(`Buddies (${buddies.length} online)`),
           ...(buddies.length ? buddies.map(u => {
             const r = row(P.dmKey(me.id, u.id), u.name, h("span", { class: "chat-avwrap" }, h("img", { class: "chat-av sm", src: u.avatar || CF.icon("forgechat"), alt: "" }), h("i", { class: "chat-dot " + u.status })));
@@ -318,7 +321,7 @@
         if (m.image) parts.push(m.image.data ? h("img", { class: "chat-media clickable", src: m.image.data, alt: m.image.name, title: "Click to open in Forgecraft" }) : h("div", { class: "muted" }, "[image expired]"));
         if (m.voice) parts.push(m.voice.data ? h("audio", { controls: true, src: m.voice.data, class: "chat-voice" }) : h("div", { class: "muted" }, "[voice clip expired]"));
         if (m.file) parts.push(h("div", { class: "chat-file" }, h("img", { src: CF.icon("file"), alt: "" }), h("div", { style: "flex:1" }, h("b", {}, m.file.name), h("div", { class: "muted" }, fmtSize(m.file.size))),
-          m.file.data ? h("a", { class: "btn icon", href: m.file.data, download: m.file.name }, "⬇") : h("span", { class: "muted" }, "expired")));
+          m.file.data ? h("a", { class: "btn icon", href: m.file.data, download: m.file.name }, pix("download", "⬇")) : h("span", { class: "muted" }, "expired")));
         const el = h("div", { class: "chat-msg" + (m.from === me.id ? " mine" : "") + (m.auto ? " auto" : "") },
           h("img", { class: "chat-av", src: u.avatar || CF.icon("forgechat"), alt: "" }),
           h("div", { class: "chat-bubble" }, h("div", { class: "chat-meta" }, h("b", {}, u.name), h("span", { class: "muted" }, new Date(m.ts).toLocaleTimeString([], { hour: "numeric", minute: "2-digit" })), m.auto ? h("span", { class: "muted" }, " (auto-response)") : null), ...parts));
@@ -526,7 +529,7 @@
         const w = CF.createWindow({ title: `Call with ${peer?.name || "buddy"}`, icon: "forgechat", w: 640, h: 480 });
         const tb = (glyph, title, fn) => h("button", { class: "btn icon", title, onclick: fn }, glyph);
         w.body.append(h("div", { class: "call" }, remote, local, stateEl,
-          h("div", { class: "call-bar" }, tb("🎙", "Mute / unmute", () => toggleTrack("audio")), tb("📷", "Camera on / off", () => toggleTrack("video")), tb("🖥", "Share screen", shareScreen), h("button", { class: "btn", style: "background:linear-gradient(#ff7a6b,#c7291a)", onclick: () => endCall() }, "Hang Up"))));
+          h("div", { class: "call-bar" }, tb(pix("mic", "🎙"), "Mute / unmute", () => toggleTrack("audio")), tb(pix("webcam", "📷"), "Camera on / off", () => toggleTrack("video")), tb(pix("screen", "🖥"), "Share screen", shareScreen), h("button", { class: "btn hangup", onclick: () => endCall() }, pix("hangup", ""), "Hang Up"))));
         w.on("close", () => endCall());
         return { w, remote, local, stateEl };
       }

@@ -220,9 +220,9 @@
         "what": "Start menu side banner, 1152x2048 (vertical)"
       },
       {
-        "target": "assets/art/wallpapers/classic98.png",
+        "target": "assets/art/wallpapers/classic98-teal.png",
         "asset_id": "c2f47d44-47e7-4223-865a-d4bba5dbe335",
-        "what": "Wallpaper: ColeForge 98 teal with emblem watermark, 2048x1152"
+        "what": "Wallpaper: ColeForge 98 teal variant with emblem watermark, 2048x1152"
       },
       {
         "target": "(unused)",
@@ -234,5 +234,35 @@
       "asset_id": "4e1a75ed-32d2-4160-9846-7b26543b4630",
       "what": "Cole likeness reference (imported, 112px) used for the avatar batch"
     }
+  },
+  "forgechat_batch": {
+    "note": "ForgeChat 16-bit Windows 98 set. The shell ships hand-drawn pixel versions (art/forgechat/build_forgechat_icons.py); these are optional SpriteCook alternatives.",
+    "assets": [
+      {
+        "target": "assets/art/forgechat/logo-spritecook-a.png",
+        "asset_id": "4cf8071a-7a5b-4d97-aabc-969f0e1fb056",
+        "what": "ForgeChat logo + wordmark, variant A (256px pixel art)"
+      },
+      {
+        "target": "assets/art/forgechat/logo-spritecook-b.png",
+        "asset_id": "de1e0798-6558-40c0-acc3-872551226c03",
+        "what": "ForgeChat logo + wordmark, variant B (244px pixel art)"
+      },
+      {
+        "target": "(slice) assets/art/forgechat/*.png",
+        "asset_id": "27fc1d20-cbe1-43ef-b2b4-6c2cc9e289fe",
+        "what": "ForgeChat icon sheet 4x4: online, away, busy, offline, send, smiley, GIF, file, webcam, mic, call, hang up, lobby, invite, block, settings"
+      },
+      {
+        "target": "assets/art/wallpapers/classic98.png",
+        "asset_id": "9b949342-6f54-4c71-9708-362e8cd1247c",
+        "what": "Wallpaper: ColeForge 98 navy with emblem watermark, 2048x1152"
+      },
+      {
+        "target": "(unused)",
+        "asset_id": "31501c8f-94d8-4c29-a0ba-06e222476f94",
+        "what": "ForgeChat button sheet: came back as a 37x197 strip, not usable. Buttons are drawn in CSS (css/theme98.css)."
+      }
+    ]
   }
 }

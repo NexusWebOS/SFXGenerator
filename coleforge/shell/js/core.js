@@ -114,7 +114,8 @@
     } catch { /* audio unavailable */ }
   };
 
-  CF.icon = (id) => window.CFIcons.get(id);
+  // In the Windows 98 theme ForgeChat wears its 16-bit pixel logo (assets/art/forgechat/).
+  CF.icon = (id) => id === "forgechat" && settings.theme === "98" ? "assets/art/forgechat/logo.png" : window.CFIcons.get(id);
 
   /* ---------------- document store (My Documents + Recycle Bin) ---------------- */
   const vfsKey = "cf.vfs";
@@ -428,7 +429,7 @@
       [...icons.children].sort((a, b) => a.textContent.localeCompare(b.textContent)).forEach(n => icons.append(n));
     }
   }
-  const WALLPAPERS = [["classic98", "ColeForge 98"], ["lake", "Twilight Lake"], ["energy", "Blue Energy"], ["forge", "Forge Splash"], ["navy", "Midnight"], ["teal", "Classic Teal"], ["custom", "Custom Picture…"]];
+  const WALLPAPERS = [["classic98", "ColeForge 98 Navy"], ["lake", "Twilight Lake"], ["energy", "Blue Energy"], ["forge", "Forge Splash"], ["navy", "Midnight"], ["teal", "Classic Teal"], ["custom", "Custom Picture…"]];
   CF.WALLPAPERS = WALLPAPERS;
 
   /* ---------------- Start menu ---------------- */

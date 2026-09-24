@@ -19,7 +19,7 @@ body.theme-98 {
   font: var(--w98-font);
   color: #000;
   -webkit-font-smoothing: none;
-  background: #008080;
+  background: #000080;
 }
 body.theme-98 .muted { color: #555; }
 
@@ -141,7 +141,7 @@ body.theme-98 .toast small { color: #000; }
 body.theme-98 #shutdown { background: repeating-conic-gradient(rgba(0,0,0,.5) 0 25%, transparent 0 50%) 0 0 / 2px 2px; }
 
 /* ---------- Welcome / log-on dialog ---------- */
-body.theme-98 #welcome { background: #008080; }
+body.theme-98 #welcome { background: #000080; }
 body.theme-98 .welcome-card { width: min(440px, 94vw); padding: 3px; text-align: left; background: var(--w98-face); box-shadow: var(--raised-soft); }
 body.theme-98 .welcome-card .w98-title { height: 18px; display: flex; align-items: center; gap: 4px; padding: 0 3px; background: var(--w98-title); color: #fff; font-weight: bold; }
 body.theme-98 .welcome-card .w98-title img { width: 16px; height: 16px; }
@@ -184,7 +184,7 @@ body.theme-98 .lobby-p { background: #fff; border-radius: 0; box-shadow: var(--s
 body.theme-98 .lobby-p.ready { background: #c0ffc0; }
 body.theme-98 .chat-compose { background: var(--w98-face); border-top: none; }
 body.theme-98 .chat-typing { color: #555; }
-body.theme-98 .chat-signon { background: #008080; }
+body.theme-98 .chat-signon { background: var(--w98-face); }
 body.theme-98 .chat-signon-card { padding: 12px; background: var(--w98-face); box-shadow: var(--raised-soft); }
 body.theme-98 .chat-signon-card h2 { color: #000080; text-shadow: none; }
 body.theme-98 .chat-signon-card label { color: #000; }
@@ -208,3 +208,20 @@ body.theme-98 .arc-card:hover { transform: none; box-shadow: var(--raised); }
 body.theme-98 .arc-card.featured { border: none; box-shadow: var(--raised), 0 0 0 2px #800000; }
 body.theme-98 .arc-body p { color: #222; }
 body.theme-98 .avatar-grid .av.on { outline: 2px solid #000080; }
+
+/* ---------- ForgeChat, 16-bit edition ---------- */
+body.theme-98 img[src*="art/forgechat/"] { image-rendering: pixelated; }
+body.theme-98 .chat { background: var(--w98-face); }
+body.theme-98 .chat-signon { background: var(--w98-face); }
+body.theme-98 .chat-signon-card { width: min(340px, 92%); }
+body.theme-98 .chat-signon-card .fc-banner { width: 239px; height: 64px; margin: 4px auto 8px; }
+body.theme-98 .chat-tools .tool { width: 28px; height: 26px; padding: 0; display: inline-flex; align-items: center; justify-content: center; }
+body.theme-98 .chat-tools .px-ico { width: 20px; height: 20px; }
+body.theme-98 .chat-head .px-ico, body.theme-98 .send-btn .px-ico, body.theme-98 .btn.hangup .px-ico { width: 16px; height: 16px; margin-right: 4px; }
+body.theme-98 .btn.icon .px-ico { width: 20px; height: 20px; margin: 0; }
+body.theme-98 .btn.hangup { background: var(--w98-face); color: #800000; font-weight: bold; }
+body.theme-98 .chat-dot, body.theme-98 .chat-dot.away, body.theme-98 .chat-dot.busy { width: 16px; height: 16px; border: none; border-radius: 0; background: url("../assets/art/forgechat/status-online.png") center / 16px 16px no-repeat; image-rendering: pixelated; vertical-align: middle; }
+body.theme-98 .chat-dot.away { background-image: url("../assets/art/forgechat/status-away.png"); }
+body.theme-98 .chat-dot.busy { background-image: url("../assets/art/forgechat/status-busy.png"); }
+body.theme-98 .chat-avwrap .chat-dot { right: -6px; bottom: -6px; border: none; }
+body.theme-98 .chat-me .muted { color: #e0e8ff; }

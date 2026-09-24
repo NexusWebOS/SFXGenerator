@@ -74,11 +74,15 @@ Browsers visiting `http://<lan-ip>` may block the camera; use ColeForge.exe on e
   22 icons (desktop, apps, dialogs, tray, Start menu) and a 4-piece cursor set: 31 assets in all.
   `art/spritecook-assets.json` maps each asset ID to its path under `shell/`. Drop the PNGs there
   and the shell uses them automatically; until then it falls back to its built-in vector icons.
-- **Windows 98 theme** (`shell/css/theme98.css`): teal desktop, grey 3D bevels, navy title bars,
+- **Windows 98 theme** (`shell/css/theme98.css`): navy desktop, grey 3D bevels, navy title bars,
   classic Start menu with the vertical banner and Programs/Documents/Settings flyouts, and a 98
   log-on dialog. Switch in Control Panel → Display → Theme. Its art is built locally:
   `art/build_logon_banner.py` (log-on banner from the boot splash) and
-  `art/build_classic98_wallpaper.py` (the "ColeForge 98" wallpaper).
+  `art/build_classic98_wallpaper.py` (the "ColeForge 98 Navy" wallpaper).
+- **ForgeChat 16-bit art** (`shell/assets/art/forgechat/`): logo, wordmark, sign-on banner, 18
+  toolbar/call icons and 4 buddy status icons, hand-drawn pixel by pixel in the Windows 16-colour
+  palette by `art/forgechat/build_forgechat_icons.py` (preview: `art/forgechat/preview.png`).
+  In the 98 theme ForgeChat opens maximized on a grey window and uses this art throughout.
 - **Cole avatars** (`shell/assets/art/avatars/`): 15 pictures cut from your portraits by
   `art/cole/build_avatars.py`, listed in `avatars.json` for the picker (log-on, Start → Settings →
   Account Picture, Control Panel → Account, ForgeChat sign-on). More likeness avatars from SpriteCook

@@ -1,4 +1,4 @@
-"""Build the default "ColeForge 98" wallpaper: classic teal with a faint emblem watermark.
+"""Build the default "ColeForge 98" wallpaper: classic navy with a faint emblem watermark.
 
     python coleforge/art/build_classic98_wallpaper.py
 
@@ -14,20 +14,20 @@ from PIL import Image, ImageFilter
 HERE = Path(__file__).resolve().parent
 ART = HERE.parent / "shell" / "assets" / "art"
 W, H = 1920, 1080
-TEAL = np.array([0, 128, 128], dtype=np.float32)
-DARK = np.array([0, 96, 100], dtype=np.float32)
+NAVY = np.array([0, 0, 128], dtype=np.float32)
+MARK = np.array([24, 40, 168], dtype=np.float32)
 
 
 def main():
     splash = Image.open(ART / "boot-splash.webp").convert("L")
-    # The flag emblem, used only as a luminance mask so it reads as a darker-teal watermark.
+    # The flag emblem, used only as a luminance mask so it reads as a lighter-navy watermark.
     flag = splash.crop((400, 60, 1040, 580)).resize((520, 422), Image.LANCZOS)
     mask = Image.new("L", (W, H), 0)
     mask.paste(flag, ((W - flag.width) // 2, (H - flag.height) // 2 - 40))
     m = np.asarray(mask.filter(ImageFilter.GaussianBlur(1.2)), dtype=np.float32)[..., None] / 255
     m = np.clip((m - 0.25) * 1.6, 0, 1) * 0.55
 
-    img = TEAL * (1 - m) + DARK * m
+    img = NAVY * (1 - m) + MARK * m
     out = ART / "wallpapers" / "classic98.png"
     out.parent.mkdir(parents=True, exist_ok=True)
     Image.fromarray(img.round().astype(np.uint8)).save(out, optimize=True)

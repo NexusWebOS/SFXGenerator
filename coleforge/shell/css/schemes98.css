@@ -1,0 +1,113 @@
+/* Appearance colour schemes for the Windows 98 theme: ColeForge Dark plus the classic
+   High Contrast schemes (Black, White, #1, #2), recreated in the spirit of Windows 98's
+   Display Properties → Appearance. Each scheme only overrides theme98.css's system colours.
+   `.w98-scope` lets a small preview (Control Panel) show a scheme without applying it. */
+
+/* ---------- ColeForge Dark ---------- */
+body.theme-98.scheme-dark, .w98-scope.scheme-dark {
+  color-scheme: dark;
+  --w98-face: #3a3d45; --w98-light: #4a4e58; --w98-hilite: #6b707d; --w98-shadow: #1f2126; --w98-dark: #08090b;
+  --w98-text: #e8eaf0; --w98-window: #1d1f24; --w98-wtext: #e8eaf0; --w98-gray: #9aa0ad;
+  --w98-sel: #2f62d8; --w98-sel-text: #fff;
+  --w98-title-a: #0b1a4a; --w98-title-b: #2f6fd6; --w98-title-text: #fff;
+  --w98-title-off-a: #2a2c32; --w98-title-off-b: #4a4d56; --w98-title-off-text: #9aa0ad;
+  --w98-accent: #7fb8ff; --w98-link: #7fb8ff; --w98-link2: #ff8a7a;
+  --w98-info: #2b2e35; --w98-info-text: #e8eaf0; --w98-appspace: #15161a;
+  --w98-desktop: #0a0f24; --w98-desk-text: #fff; --w98-ready: #1f5a2c; --w98-stripe: #23262c;
+}
+
+/* ---------- High Contrast Black ---------- */
+body.theme-98.scheme-hc-black, .w98-scope.scheme-hc-black {
+  color-scheme: dark;
+  --w98-face: #000; --w98-light: #000; --w98-hilite: #fff; --w98-shadow: #808080; --w98-dark: #fff;
+  --w98-text: #fff; --w98-window: #000; --w98-wtext: #fff; --w98-gray: #00ff00;
+  --w98-sel: #800080; --w98-sel-text: #fff;
+  --w98-title-a: #800080; --w98-title-b: #800080; --w98-title-text: #fff;
+  --w98-title-off-a: #008000; --w98-title-off-b: #008000; --w98-title-off-text: #fff;
+  --w98-accent: #fff; --w98-link: #ffff00; --w98-link2: #00ffff;
+  --w98-info: #000; --w98-info-text: #fff; --w98-appspace: #000;
+  --w98-desktop: #000; --w98-desk-text: #fff; --w98-ready: #008000; --w98-stripe: #000;
+}
+
+/* ---------- High Contrast White ---------- */
+body.theme-98.scheme-hc-white, .w98-scope.scheme-hc-white {
+  color-scheme: light;
+  --w98-face: #fff; --w98-light: #fff; --w98-hilite: #000; --w98-shadow: #808080; --w98-dark: #000;
+  --w98-text: #000; --w98-window: #fff; --w98-wtext: #000; --w98-gray: #600000;
+  --w98-sel: #000; --w98-sel-text: #fff;
+  --w98-title-a: #000; --w98-title-b: #000; --w98-title-text: #fff;
+  --w98-title-off-a: #fff; --w98-title-off-b: #fff; --w98-title-off-text: #000;
+  --w98-accent: #000; --w98-link: #00009f; --w98-link2: #600000;
+  --w98-info: #fff; --w98-info-text: #000; --w98-appspace: #fff;
+  --w98-desktop: #fff; --w98-desk-text: #000; --w98-ready: #fff; --w98-stripe: #fff;
+}
+
+/* ---------- High Contrast #1: yellow on black ---------- */
+body.theme-98.scheme-hc1, .w98-scope.scheme-hc1 {
+  color-scheme: dark;
+  --w98-face: #000; --w98-light: #000; --w98-hilite: #ffff00; --w98-shadow: #808080; --w98-dark: #ffff00;
+  --w98-text: #ffff00; --w98-window: #000; --w98-wtext: #ffff00; --w98-gray: #00ff00;
+  --w98-sel: #0000ff; --w98-sel-text: #fff;
+  --w98-title-a: #0000ff; --w98-title-b: #0000ff; --w98-title-text: #fff;
+  --w98-title-off-a: #00ffff; --w98-title-off-b: #00ffff; --w98-title-off-text: #000;
+  --w98-accent: #ffff00; --w98-link: #00ffff; --w98-link2: #ff00ff;
+  --w98-info: #000; --w98-info-text: #ffff00; --w98-appspace: #000;
+  --w98-desktop: #000; --w98-desk-text: #ffff00; --w98-ready: #0000ff; --w98-stripe: #000;
+}
+
+/* ---------- High Contrast #2: green on black ---------- */
+body.theme-98.scheme-hc2, .w98-scope.scheme-hc2 {
+  color-scheme: dark;
+  --w98-face: #000; --w98-light: #000; --w98-hilite: #00ff00; --w98-shadow: #808080; --w98-dark: #00ff00;
+  --w98-text: #00ff00; --w98-window: #000; --w98-wtext: #00ff00; --w98-gray: #ffff00;
+  --w98-sel: #00ffff; --w98-sel-text: #000;
+  --w98-title-a: #ff00ff; --w98-title-b: #ff00ff; --w98-title-text: #000;
+  --w98-title-off-a: #008080; --w98-title-off-b: #008080; --w98-title-off-text: #fff;
+  --w98-accent: #00ff00; --w98-link: #00ffff; --w98-link2: #ffff00;
+  --w98-info: #000; --w98-info-text: #00ff00; --w98-appspace: #000;
+  --w98-desktop: #000; --w98-desk-text: #00ff00; --w98-ready: #008000; --w98-stripe: #000;
+}
+
+/* ---------- what High Contrast changes beyond colours ---------- */
+/* Like Windows, high contrast drops the wallpaper and any decorative colour. */
+body.hc #desktop { background: var(--w98-desktop) !important; }
+body.hc #desk-brand .w, body.hc #desk-brand .e, body.hc #desk-brand .t { color: var(--w98-desk-text); filter: none; text-shadow: none; }
+body.hc .desk-icon.selected span { border-color: var(--w98-sel-text); }
+body.hc .desk-icon.selected img { filter: none; outline: 1px dotted var(--w98-desk-text); }
+body.hc .chat-me .muted, body.hc .lobby-server.up, body.hc .gb-full, body.hc .gb-some { color: inherit; }
+body.hc .btn.hangup, body.hc .arc-body p { color: var(--w98-text); }
+body.hc .arc-card.featured { box-shadow: var(--raised), 0 0 0 2px var(--w98-text); }
+body.hc .welcome-card .w98-banner { outline: 1px solid var(--w98-text); }
+body.hc :focus-visible { outline: 2px solid var(--w98-text) !important; outline-offset: 1px; }
+body.hc .toast { box-shadow: 0 0 0 2px var(--w98-info-text); }
+body.hc .ctx .ci.disabled { text-shadow: none; color: var(--w98-gray); }
+body.hc .btn:disabled, body.hc .gb .btn:disabled { text-shadow: none; }
+/* App surfaces that normally keep their own glass colours follow the scheme too. */
+body.hc .amp-screen, body.hc .vis-stage, body.hc .br-view, body.hc .exp-main, body.hc .arc, body.hc .arc-card { background: var(--w98-window); color: var(--w98-wtext); }
+body.theme-98.scheme-dark .arc-card, body.theme-98.scheme-dark .exp-main { background: var(--w98-window); color: var(--w98-wtext); }
+
+/* When Windows itself is in High Contrast (ColeForge.exe as your shell), ColeForge draws its own
+   faithful scheme instead of letting the browser engine repaint everything. */
+@media (forced-colors: active) {
+  body { forced-color-adjust: none; }
+}
+
+/* ---------- Control Panel: scheme preview (like Win98's Appearance sample) ---------- */
+.w98-preview { position: relative; height: 170px; padding: 10px; background: var(--w98-desktop); font: 11px "MS Sans Serif", Tahoma, sans-serif; overflow: hidden; }
+.w98-preview .pv-win { position: absolute; background: var(--w98-face); color: var(--w98-text); padding: 3px;
+  box-shadow: inset -1px -1px var(--w98-dark), inset 1px 1px var(--w98-light), inset -2px -2px var(--w98-shadow), inset 2px 2px var(--w98-hilite); }
+.w98-preview .pv-title { height: 16px; padding: 0 4px; display: flex; align-items: center; font-weight: bold; background: linear-gradient(90deg, var(--w98-title-off-a), var(--w98-title-off-b)); color: var(--w98-title-off-text); }
+.w98-preview .pv-win.active .pv-title { background: linear-gradient(90deg, var(--w98-title-a), var(--w98-title-b)); color: var(--w98-title-text); }
+.w98-preview .pv-menu { display: flex; gap: 12px; padding: 2px 4px; }
+.w98-preview .pv-menu .sel { background: var(--w98-sel); color: var(--w98-sel-text); padding: 0 3px; }
+.w98-preview .pv-menu .dis { color: var(--w98-shadow); text-shadow: 1px 1px var(--w98-hilite); }
+.w98-preview .pv-text { background: var(--w98-window); color: var(--w98-wtext); margin: 2px; padding: 4px 6px; height: 44px;
+  box-shadow: inset -1px -1px var(--w98-hilite), inset 1px 1px var(--w98-shadow), inset -2px -2px var(--w98-light), inset 2px 2px var(--w98-dark); }
+.w98-preview .pv-btn { display: inline-block; margin: 4px auto 0; padding: 3px 18px; background: var(--w98-face); color: var(--w98-text);
+  box-shadow: inset -1px -1px var(--w98-dark), inset 1px 1px var(--w98-hilite), inset -2px -2px var(--w98-shadow), inset 2px 2px var(--w98-light); }
+.w98-preview .pv-link { color: var(--w98-link); text-decoration: underline; }
+
+/* Pressed/toggled states use a solid highlight in High Contrast: the 98 checker dither would make text unreadable. */
+body.hc .task.active, body.hc .tool.on { background: var(--w98-sel); color: var(--w98-sel-text); }
+body.hc ::-webkit-scrollbar-track { background: var(--w98-face); box-shadow: inset 0 0 0 1px var(--w98-shadow); }
+.w98-scope[class*="scheme-hc"] .pv-menu .dis { text-shadow: none; color: var(--w98-gray); }

@@ -205,70 +205,78 @@ body.forge-cursors .fc-over[data-tool="text"] { cursor: var(--cursor-text); }
 /* ---------- Forge Game Browser: always 16-bit Windows 98, whatever the theme ---------- */
 .gb {
   --gb-face: #c0c0c0; --gb-hi: #fff; --gb-light: #dfdfdf; --gb-shadow: #808080; --gb-dark: #000; --gb-sel: #000080;
+  --gb-sel-text: #fff; --gb-text: #000; --gb-window: #fff; --gb-wtext: #000; --gb-gray: #555; --gb-link: #0000ee; --gb-stripe: #f4f4f4;
   --gb-raised: inset -1px -1px var(--gb-dark), inset 1px 1px var(--gb-hi), inset -2px -2px var(--gb-shadow), inset 2px 2px var(--gb-light);
   --gb-sunken: inset -1px -1px var(--gb-hi), inset 1px 1px var(--gb-shadow), inset -2px -2px var(--gb-light), inset 2px 2px var(--gb-dark);
-  height: 100%; display: flex; flex-direction: column; background: var(--gb-face); color: #000;
+  height: 100%; display: flex; flex-direction: column; background: var(--gb-face); color: var(--gb-text);
   font: 11px "MS Sans Serif", "Microsoft Sans Serif", Tahoma, sans-serif; -webkit-font-smoothing: none;
 }
 .gb img { image-rendering: pixelated; }
 .gb .gb-ico { width: 16px; height: 16px; vertical-align: middle; }
-.gb .muted { color: #555; }
-.gb .btn { background: var(--gb-face); color: #000; border: none; border-radius: 0; box-shadow: var(--gb-raised); padding: 3px 10px; font: inherit; min-width: 0; }
+.gb .muted { color: var(--gb-gray); }
+.gb .btn { background: var(--gb-face); color: var(--gb-text); border: none; border-radius: 0; box-shadow: var(--gb-raised); padding: 3px 10px; font: inherit; min-width: 0; }
 .gb .btn:active { box-shadow: var(--gb-sunken); }
-.gb .btn:disabled { color: #808080; text-shadow: 1px 1px #fff; }
+.gb .btn:disabled { color: var(--gb-shadow); text-shadow: 1px 1px var(--gb-hi); }
 .gb .btn .gb-ico { margin-top: -2px; }
 .gb-toolbar { display: flex; align-items: center; gap: 2px; padding: 3px 4px; border-bottom: 1px solid var(--gb-shadow); box-shadow: 0 1px var(--gb-hi); }
-.gb-tool { display: flex; flex-direction: column; align-items: center; gap: 1px; min-width: 52px; padding: 3px 4px; background: none; border: none; font: inherit; color: #000; cursor: pointer; }
+.gb-tool { display: flex; flex-direction: column; align-items: center; gap: 1px; min-width: 52px; padding: 3px 4px; background: none; border: none; font: inherit; color: var(--gb-text); cursor: pointer; }
 .gb-tool:hover:not(:disabled) { box-shadow: inset -1px -1px var(--gb-shadow), inset 1px 1px var(--gb-hi); }
 .gb-tool:active:not(:disabled) { box-shadow: inset 1px 1px var(--gb-shadow), inset -1px -1px var(--gb-hi); }
 .gb-tool:disabled { opacity: .45; filter: grayscale(1); cursor: default; }
 .gb-tool-ico { width: 32px; height: 32px; }
 .gb-toolbar > .gb-tool-ico { width: 20px; height: 20px; margin-left: 6px; }
 .gb-sep { width: 2px; align-self: stretch; margin: 2px 4px; box-shadow: inset 1px 0 var(--gb-shadow), inset -1px 0 var(--gb-hi); }
-.gb-filter { flex: 1; max-width: 260px; margin-left: 4px; background: #fff; color: #000; border: none; border-radius: 0; box-shadow: var(--gb-sunken); padding: 4px 5px; font: inherit; }
+.gb-filter { flex: 1; max-width: 260px; margin-left: 4px; background: var(--gb-window); color: var(--gb-wtext); border: none; border-radius: 0; box-shadow: var(--gb-sunken); padding: 4px 5px; font: inherit; }
 .gb-tabs { display: flex; gap: 0; padding: 6px 6px 0; }
-.gb-tab { background: var(--gb-face); border: none; font: inherit; color: #000; padding: 3px 10px 4px; margin-right: -1px; cursor: pointer;
+.gb-tab { background: var(--gb-face); border: none; font: inherit; color: var(--gb-text); padding: 3px 10px 4px; margin-right: -1px; cursor: pointer;
   box-shadow: inset 1px 1px var(--gb-hi), inset -1px 0 var(--gb-dark), inset -2px 0 var(--gb-shadow); position: relative; top: 2px; }
 .gb-tab.on { top: 0; padding-bottom: 6px; z-index: 1; font-weight: bold; }
-.gb-tab small { color: #555; font-weight: normal; }
+.gb-tab small { color: var(--gb-gray); font-weight: normal; }
 .gb-main { flex: 1; min-height: 0; position: relative; display: flex; margin: 0 6px; box-shadow: var(--gb-raised); padding: 4px; }
-.gb-list { flex: 1; min-width: 0; display: flex; flex-direction: column; background: #fff; box-shadow: var(--gb-sunken); padding: 2px; }
+.gb-list { flex: 1; min-width: 0; display: flex; flex-direction: column; background: var(--gb-window); color: var(--gb-wtext); box-shadow: var(--gb-sunken); padding: 2px; }
 .gb-head { display: flex; flex: none; }
 .gb-th { padding: 2px 5px; background: var(--gb-face); box-shadow: var(--gb-raised); white-space: nowrap; overflow: hidden; }
 .gb-th:active { box-shadow: var(--gb-sunken); }
 .gb-th.sorted { font-weight: bold; }
 .gb-rows { flex: 1; overflow: auto; }
 .gb-row { display: flex; align-items: center; height: 19px; }
-.gb-row:nth-child(even) { background: #f4f4f4; }
-.gb-row.sel { background: var(--gb-sel); color: #fff; }
+.gb-row:nth-child(even) { background: var(--gb-stripe); }
+.gb-row.sel { background: var(--gb-sel); color: var(--gb-sel-text); }
 .gb-row.sel .muted { color: #ccd; }
-.gb-row.dead { color: #808080; }
+.gb-row.dead { color: var(--gb-shadow); }
 .gb-td { padding: 0 5px; white-space: nowrap; display: flex; align-items: center; gap: 2px; overflow: hidden; }
 .gb-ellip { overflow: hidden; text-overflow: ellipsis; display: block; }
 .gb-mono { font-family: "Courier New", monospace; }
 .gb-full { color: #c00000; font-weight: bold; }
 .gb-some { color: #008000; font-weight: bold; }
-.gb-row.sel .gb-full, .gb-row.sel .gb-some { color: #fff; }
+.gb-row.sel .gb-full, .gb-row.sel .gb-some { color: var(--gb-sel-text); }
 .gb-empty { display: flex; gap: 12px; align-items: center; padding: 30px; }
 .gb-empty .gb-ico { width: 32px; height: 32px; }
-.gb-splash { position: absolute; inset: 4px; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 6px; background: #fff; }
+.gb-splash { position: absolute; inset: 4px; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 6px; background: var(--gb-window); }
 .gb-splash img { width: 64px; height: 64px; animation: gb-spin 1.2s steps(8) infinite; }
 @keyframes gb-spin { from { transform: rotate(0); } to { transform: rotate(360deg); } }
 .gb-details { flex: none; height: 190px; display: flex; gap: 6px; margin: 6px; }
 .gb-hint { display: flex; align-items: center; gap: 6px; padding: 8px; }
-.gb-players { flex: 1; min-width: 0; overflow: auto; background: #fff; box-shadow: var(--gb-sunken); padding: 2px; }
+.gb-players { flex: 1; min-width: 0; overflow: auto; background: var(--gb-window); color: var(--gb-wtext); box-shadow: var(--gb-sunken); padding: 2px; }
 .gb-prow { display: grid; grid-template-columns: 20px 1fr 50px 44px 64px 40px; align-items: center; height: 18px; padding: 0 3px; }
 .gb-prow.gb-phead { background: var(--gb-face); box-shadow: var(--gb-raised); font-weight: bold; position: sticky; top: 0; }
-.gb-prow.spec { color: #808080; font-style: italic; }
+.gb-prow.spec { color: var(--gb-shadow); font-style: italic; }
 .gb-info { width: 380px; flex: none; overflow: auto; padding: 4px 8px; box-shadow: var(--gb-raised); }
 .gb-title { display: flex; align-items: center; gap: 4px; font-size: 12px; margin-bottom: 4px; }
 .gb-info dl { display: grid; grid-template-columns: 70px 1fr; gap: 1px 6px; margin: 0 0 4px; }
-.gb-info dt { color: #555; }
+.gb-info dt { color: var(--gb-gray); }
 .gb-info dd { margin: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .gb-wads { display: flex; flex-wrap: wrap; gap: 4px; margin: 4px 0; }
-.gb-wad { display: inline-flex; align-items: center; padding: 1px 4px; background: #fff; box-shadow: var(--gb-sunken); }
-.gb-link { color: #0000ee; text-decoration: underline; display: block; margin-bottom: 4px; }
+.gb-wad { display: inline-flex; align-items: center; padding: 1px 4px; background: var(--gb-window); color: var(--gb-wtext); box-shadow: var(--gb-sunken); }
+.gb-link { color: var(--gb-link); text-decoration: underline; display: block; margin-bottom: 4px; }
 .gb .row { display: flex; gap: 4px; }
+
+/* In the Windows 98 theme the Game Browser follows the Appearance colour scheme (dark, high contrast…). */
+body.theme-98 .gb {
+  --gb-face: var(--w98-face); --gb-hi: var(--w98-hilite); --gb-light: var(--w98-light); --gb-shadow: var(--w98-shadow); --gb-dark: var(--w98-dark);
+  --gb-sel: var(--w98-sel); --gb-sel-text: var(--w98-sel-text); --gb-text: var(--w98-text); --gb-window: var(--w98-window); --gb-wtext: var(--w98-wtext);
+  --gb-gray: var(--w98-gray); --gb-link: var(--w98-link); --gb-stripe: var(--w98-stripe, #f4f4f4);
+}
 
 /* ForgeChat: shared server cards and Zandronum lobby status */
 .chat-server { display: flex; align-items: center; gap: 10px; margin-top: 4px; padding: 8px 10px; max-width: 520px; border-radius: 8px; background: rgba(10, 30, 70, .55); border: 1px solid rgba(127, 184, 255, .35); }

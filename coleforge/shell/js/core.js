@@ -27,6 +27,7 @@
   const DEFAULTS = {
     user: "Cole", avatar: null, wallpaper: "classic98", customWall: null, accent: "#1f6fff", theme: "98",
     cursors: false, sounds: true, soundScheme: "studio", volume: 0.8, uiScale: 1, showBrand: true, fastBoot: false, clock24: false,
+    scheme: "standard", highContrast: false, hcScheme: "hc-black", hcShortcut: true, followSystemHC: true,
   };
   const settings = Object.assign({}, DEFAULTS, store.get("cf.settings", {}));
 
@@ -50,7 +51,12 @@
     root.setProperty("--accent-lo", shade(settings.accent, -0.55));
     root.setProperty("--ui-scale", settings.uiScale);
     document.body.classList.toggle("forge-cursors", !!settings.cursors);
-    document.body.classList.toggle("theme-98", settings.theme === "98");
+    // Appearance scheme: High Contrast (the Accessibility switch, or Windows' own when running as the
+    // shell) wins, then the chosen scheme. High Contrast always uses the Windows 98 look, like 1998.
+    const scheme = CF.effectiveScheme(), hc = scheme.startsWith("hc");
+    document.body.classList.toggle("theme-98", settings.theme === "98" || hc);
+    for (const [id] of CF.SCHEMES) document.body.classList.toggle("scheme-" + id, id === scheme && id !== "standard" && id !== "auto");
+    document.body.classList.toggle("hc", hc);
     const desk = $("#desktop");
     if (desk) {
       desk.className = "wall-" + settings.wallpaper;
@@ -64,6 +70,34 @@
   };
   CF.avatar = () => settings.avatar || "assets/art/avatars/cole-blue.png";
   CF.THEMES = [["98", "Windows 98 Classic"], ["glass", "ColeForge Glass"]];
+  CF.SCHEMES = [["standard", "Windows Standard"], ["dark", "ColeForge Dark"], ["auto", "Automatic (match Windows light/dark)"],
+    ["hc-black", "High Contrast Black"], ["hc-white", "High Contrast White"], ["hc1", "High Contrast #1"], ["hc2", "High Contrast #2"]];
+  CF.HC_SCHEMES = CF.SCHEMES.filter(([id]) => id.startsWith("hc"));
+  const mq = (q) => (window.matchMedia ? matchMedia(q) : { matches: false, addEventListener() {} });
+  const systemHC = mq("(forced-colors: active)"), systemDark = mq("(prefers-color-scheme: dark)");
+  CF.effectiveScheme = () => {
+    if (settings.highContrast) return settings.hcScheme || "hc-black";
+    if (settings.followSystemHC && systemHC.matches) return systemDark.matches ? "hc-black" : "hc-white";
+    if (settings.scheme === "auto") return systemDark.matches ? "dark" : "standard";
+    return CF.SCHEMES.some(([id]) => id === settings.scheme) ? settings.scheme : "standard";
+  };
+  systemHC.addEventListener?.("change", () => CF.applySettings());
+  systemDark.addEventListener?.("change", () => CF.applySettings());
+
+  // Left Alt + Left Shift + Print Screen, with the confirmation Windows 98 showed.
+  CF.toggleHighContrast = async (ask = true) => {
+    const turningOn = !settings.highContrast;
+    if (ask) {
+      const r = await CF.dialog({ title: "High Contrast", icon: "question", buttons: ["OK", "Cancel"],
+        message: turningOn
+          ? "The keyboard shortcut for High Contrast is: Press Left ALT+Left SHIFT+PRINT SCREEN.\n\nThis shortcut sets up High Contrast, which makes the screen easier to read. Do you want to use High Contrast?"
+          : "Do you want to turn off High Contrast?" });
+      if (r.button !== "OK") return;
+    }
+    settings.highContrast = turningOn;
+    CF.saveSettings();
+    CF.sound(turningOn ? "maximize" : "minimize");
+  };
 
   /* ---------------- avatar picker ---------------- */
   let avatarList = null;
@@ -116,7 +150,7 @@
 
   // 16-bit pixel logos: the Game Browser always, ForgeChat in the Windows 98 theme.
   const PIXEL_ICONS = { gamebrowser: "assets/art/gamebrowser/logo.png" };
-  CF.icon = (id) => PIXEL_ICONS[id] || (id === "forgechat" && settings.theme === "98" ? "assets/art/forgechat/logo.png" : window.CFIcons.get(id));
+  CF.icon = (id) => PIXEL_ICONS[id] || (id === "forgechat" && document.body?.classList.contains("theme-98") ? "assets/art/forgechat/logo.png" : window.CFIcons.get(id));
 
   /* ---------------- document store (My Documents + Recycle Bin) ---------------- */
   const vfsKey = "cf.vfs";
@@ -454,7 +488,7 @@
         h("div", { class: "sm98-sep" }),
         row("Programs", "folder", null, { sub: programs }),
         row("Documents", "documents", null, { sub: docs.length ? docs : [row("(Empty)", "file", () => CF.open("files"), { small: true })] }),
-        row("Settings", "control", null, { sub: [row("Control Panel", "control", () => CF.open("control"), { small: true }), row("Display", "computer", () => CF.open("control", { tab: "display" }), { small: true }), row("Sounds", "volume", () => CF.open("control", { tab: "sounds" }), { small: true }), row("Account Picture…", "image", () => CF.pickAvatar(), { small: true })] }),
+        row("Settings", "control", null, { sub: [row("Control Panel", "control", () => CF.open("control"), { small: true }), row("Display", "computer", () => CF.open("control", { tab: "display" }), { small: true }), row("Sounds", "volume", () => CF.open("control", { tab: "sounds" }), { small: true }), row("Account Picture…", "image", () => CF.pickAvatar(), { small: true }), row("Accessibility Options", "control", () => CF.open("control", { tab: "access" }), { small: true })] }),
         row("Find", "browser", () => CF.open("browser")),
         row("Help", "question", () => CF.open("about")),
         row("Run...", "run", runDialog),
@@ -658,6 +692,11 @@
     else if (e.key === "Escape") { CF.closeMenus(); CF.toggleStart(false); }
     else if (e.key === "F5" && !e.target.closest(".win")) { e.preventDefault(); buildDesktop(); }
     else if (e.ctrlKey && e.key.toLowerCase() === "r" && e.shiftKey) { e.preventDefault(); runDialog(); }
+  });
+  // Browsers only report Print Screen on key-up. (When ColeForge is the Windows shell, Windows catches
+  // this shortcut itself, switches to High Contrast, and ColeForge follows it through forced-colors.)
+  addEventListener("keyup", (e) => {
+    if (e.key === "PrintScreen" && e.altKey && e.shiftKey && settings.hcShortcut) { e.preventDefault(); CF.toggleHighContrast(); }
   });
   /* ---------------- right-click: text boxes, taskbar, Start, tray ---------------- */
   // Text boxes get a themed Cut/Copy/Paste menu (ColeForge.exe has no native one to fall back on).

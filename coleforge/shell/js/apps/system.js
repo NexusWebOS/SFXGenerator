@@ -213,7 +213,18 @@
     window: { w: 560, h: 500 },
     open(win, args) {
       const s = CF.settings;
-      const tabs = [["display", "Display"], ["cursors", "Mouse"], ["sounds", "Sounds"], ["account", "Account"], ["system", "System"]];
+      const tabs = [["display", "Display"], ["cursors", "Mouse"], ["sounds", "Sounds"], ["access", "Accessibility"], ["account", "Account"], ["system", "System"]];
+      // A little Windows 98 "Appearance" sample, drawn with a scheme's colours without applying it.
+      const preview = (scheme) => {
+        const id = scheme === "auto" ? (matchMedia("(prefers-color-scheme: dark)").matches ? "dark" : "standard") : scheme;
+        return h("div", { class: "w98-preview w98-scope" + (id !== "standard" ? " scheme-" + id : "") },
+          h("div", { class: "pv-win", style: "left:10px;top:10px;width:230px" }, h("div", { class: "pv-title" }, "Inactive Window")),
+          h("div", { class: "pv-win active", style: "left:26px;top:36px;width:290px" }, h("div", { class: "pv-title" }, "Active Window"),
+            h("div", { class: "pv-menu" }, h("span", {}, "Normal"), h("span", { class: "dis" }, "Disabled"), h("span", { class: "sel" }, "Selected")),
+            h("div", { class: "pv-text" }, "Window Text ", h("span", { class: "pv-link" }, "Hyperlink"))),
+          h("div", { class: "pv-win active", style: "left:190px;top:108px;width:170px;text-align:center" }, h("div", { class: "pv-title" }, "Message Box"),
+            h("div", { style: "padding:4px 0 0" }, "Message Text"), h("span", { class: "pv-btn" }, "OK")));
+      };
       const tabBar = h("div", { class: "tabs" });
       const page = h("div", { class: "pad", style: "overflow:auto;position:absolute;inset:34px 0 0" });
       win.body.append(tabBar, page);
@@ -264,7 +275,12 @@
           scale.addEventListener("change", () => { s.uiScale = +scale.value; save(); });
           const theme = h("select", { class: "field" }, CF.THEMES.map(([id, label]) => h("option", { value: id, selected: s.theme === id }, label)));
           theme.addEventListener("change", () => { s.theme = theme.value; save(); show("display"); });
+          const scheme = h("select", { class: "field" }, CF.SCHEMES.map(([id, label]) => h("option", { value: id, selected: (s.scheme || "standard") === id }, label)));
+          scheme.addEventListener("change", () => { s.scheme = scheme.value; save(); show("display"); });
+          const hcNote = s.highContrast ? "High Contrast is on (Accessibility tab), so it overrides the scheme." : s.theme !== "98" ? "Colour schemes apply to the Windows 98 look; High Contrast switches to it automatically." : "";
           return [h("div", { class: "group" }, h("div", { class: "legend" }, "Theme"), h("div", { class: "row" }, "Look:", theme)),
+            h("div", { class: "group" }, h("div", { class: "legend" }, "Appearance"), preview(s.highContrast ? s.hcScheme : s.scheme || "standard"),
+              h("div", { class: "row" }, "Scheme:", scheme), hcNote ? h("p", { class: "muted" }, hcNote) : null),
             h("div", { class: "group" }, h("div", { class: "legend" }, "Wallpaper"), walls),
             h("div", { class: "group" }, h("div", { class: "legend" }, "Colour scheme"), h("div", { class: "row" }, "Accent:", accent, ...swatches)),
             h("div", { class: "group" }, h("div", { class: "legend" }, "Appearance"), h("div", { class: "row" }, "Text & UI size", scale), check("Show ColeForge branding on the desktop", "showBrand"), check("24-hour clock", "clock24"), check("Fast boot (skip long BIOS/splash)", "fastBoot"))];
@@ -281,6 +297,25 @@
           scheme.addEventListener("change", () => { s.soundScheme = scheme.value; save(); CF.sound("logon"); });
           return [h("div", { class: "group" }, h("div", { class: "legend" }, "Sound scheme"), h("div", { class: "row" }, "Scheme:", scheme), check("Play system sounds", "sounds"), h("div", { class: "row" }, "Volume", vol)),
             h("div", { class: "list", style: "height:230px" }, events.map(([id, label]) => { const r = h("div", { class: "item clickable" }, h("img", { src: CF.icon("volume"), alt: "", style: "filter:invert(.3)" }), h("span", { style: "flex:1" }, label), h("small", { class: "muted" }, id + ".wav")); r.addEventListener("click", () => CF.sound(id)); return r; }))];
+        },
+        access: () => {
+          const hcSel = h("select", { class: "field" }, CF.HC_SCHEMES.map(([id, label]) => h("option", { value: id, selected: s.hcScheme === id }, label)));
+          hcSel.addEventListener("change", () => { s.hcScheme = hcSel.value; save(); show("access"); });
+          const sizes = [[1, "Normal"], [1.25, "Large"], [1.5, "Extra large"]];
+          const size = h("select", { class: "field" }, sizes.map(([v, label]) => h("option", { value: v, selected: +s.uiScale === v }, label)),
+            sizes.some(([v]) => v === +s.uiScale) ? null : h("option", { value: s.uiScale, selected: true }, `Custom (${Math.round(s.uiScale * 100)}%)`));
+          size.addEventListener("change", () => { s.uiScale = +size.value; save(); });
+          const winHC = matchMedia("(forced-colors: active)").matches;
+          return [h("div", { class: "group" }, h("div", { class: "legend" }, "High Contrast"),
+              h("p", {}, "Use this option if you want ColeForge to use colors and fonts designed for easy reading."),
+              check("Use High Contrast", "highContrast", () => show("access")),
+              h("div", { class: "row" }, "Scheme:", hcSel),
+              preview(s.hcScheme),
+              check("Use shortcut: Left ALT+Left SHIFT+PRINT SCREEN", "hcShortcut"),
+              check("Follow Windows High Contrast (when ColeForge is your Windows shell)", "followSystemHC", () => show("access")),
+              winHC ? h("p", { class: "muted" }, "Windows High Contrast is on right now.") : null),
+            h("div", { class: "group" }, h("div", { class: "legend" }, "Display"), h("div", { class: "row" }, "Text and window size:", size),
+              h("p", { class: "muted" }, "Windows 98's High Contrast came in large and extra large sizes too; pick them here."))];
         },
         account: () => {
           const name = h("input", { class: "field", value: s.user, maxlength: 24 });

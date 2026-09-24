@@ -23,6 +23,8 @@
     set(key, value) { try { localStorage.setItem(key, JSON.stringify(value)); return true; } catch { return false; } },
   };
   const host = window.forgeHost || null; // Electron bridge when running as the real shell
+  // Pop-ups from any web view go to the browser window used last (Forge Browser, NightBrowser, NightAmp).
+  if (host && host.onNewTab) host.onNewTab((url) => (window.CF.newTabTarget || ((u) => window.CF.open("nightbrowser", { url: u })))(url));
 
   const DEFAULTS = {
     user: "Cole", avatar: null, wallpaper: "nightcode-live", customWall: null, accent: "#1f6fff", theme: "nightcode",
@@ -191,6 +193,7 @@
   const PIXEL_ICONS = {
     gamebrowser: "assets/art/gamebrowser/logo.png", legacy: "assets/art/legacy/logo.png",
     netcon: "assets/art/programs/netcon-64.png", diskdude: "assets/art/programs/diskdude-64.png", nightcode: "assets/art/nightcode/logo-128.png",
+    winnight: "assets/art/nightapps/winnight.png", nightamp: "assets/art/nightapps/nightamp.png", nightbrowser: "assets/art/nightapps/nightbrowser.png",
   };
   // The NightCode theme has its own neon pixel set (art/nightcode/build_nightcode_theme.py).
   const NC_ICONS = new Set(["computer", "documents", "folder", "recycle", "forgeamp", "forgevision", "forgecraft", "browser", "notepad", "control",
@@ -242,6 +245,34 @@
       store.set(vfsKey, fs); CF.emit("vfs");
     },
     emptyBin() { const fs = vfsLoad(); fs.bin = {}; store.set(vfsKey, fs); CF.emit("vfs"); CF.sound("recycle"); },
+    // Binary files (archives, music, video) are kept as data: URLs with type "file".
+    readBytes(name) {
+      const d = vfsLoad().docs[name];
+      if (!d) return null;
+      if (typeof d.data === "string" && d.data.startsWith("data:")) {
+        const b64 = d.data.slice(d.data.indexOf(",") + 1), bin = atob(b64), out = new Uint8Array(bin.length);
+        for (let i = 0; i < bin.length; i++) out[i] = bin.charCodeAt(i);
+        return out;
+      }
+      return new TextEncoder().encode(d.data || "");
+    },
+    writeBytes(name, bytes, mime = "application/octet-stream") {
+      let bin = "";
+      for (let i = 0; i < bytes.length; i += 0x8000) bin += String.fromCharCode.apply(null, bytes.subarray(i, i + 0x8000));
+      const type = mime.startsWith("image/") ? "image" : "file";
+      return CF.vfs.write(name, `data:${mime};base64,${btoa(bin)}`, type);
+    },
+  };
+
+  // File associations: programs claim extensions so My Documents (and each other) open files with them.
+  CF.fileTypes = [];
+  CF.associate = (exts, app, icon) => CF.fileTypes.push({ exts, app, icon: icon || app });
+  CF.fileType = (name) => { const ext = String(name).toLowerCase().split(".").pop(); return CF.fileTypes.find(t => t.exts.includes(ext)) || null; };
+  CF.download = (name, bytes, mime = "application/octet-stream") => {
+    const url = URL.createObjectURL(bytes instanceof Blob ? bytes : new Blob([bytes], { type: mime }));
+    const a = h("a", { href: url, download: name });
+    document.body.append(a); a.click(); a.remove();
+    setTimeout(() => URL.revokeObjectURL(url), 30000);
   };
 
   /* ---------------- tiny event bus ---------------- */
@@ -286,19 +317,20 @@
   }, true);
 
   /* ---------------- dialogs & toasts ---------------- */
-  CF.dialog = ({ title = "ColeForge", icon = "info", message = "", buttons = ["OK"], input = null, sound } = {}) => new Promise(resolve => {
-    const field = input != null ? h("input", { class: "field", value: input }) : null;
+  // inputType: "password" etc. content: extra form elements shown under the message.
+  CF.dialog = ({ title = "ColeForge", icon = "info", message = "", buttons = ["OK"], input = null, inputType = "text", content = null, sound } = {}) => new Promise(resolve => {
+    const field = input != null ? h("input", { class: "field", value: input, type: inputType, autocomplete: "off" }) : null;
     const veil = h("div", { class: "dlg-veil" });
     const finish = (button) => { veil.remove(); resolve({ button, value: field ? field.value : undefined }); };
     const win = h("div", { class: "win active" },
       h("div", { class: "titlebar" }, h("img", { src: CF.icon("logo"), alt: "" }), h("span", { class: "title" }, title),
         h("button", { class: "tb-btn close", title: "Close", onclick: () => finish(null) }, "✕")),
-      h("div", { class: "dlg-body" }, h("img", { src: CF.icon(icon), alt: "" }), h("div", { style: "flex:1" }, h("div", { class: "msg" }, message), field)),
+      h("div", { class: "dlg-body" }, h("img", { src: CF.icon(icon), alt: "" }), h("div", { style: "flex:1;min-width:0" }, h("div", { class: "msg" }, message), field, content)),
       h("div", { class: "dlg-btns" }, buttons.map((b, i) => h("button", { class: "btn" + (i ? " flat" : ""), onclick: () => finish(b) }, b))));
     veil.append(h("div", { class: "dlg" }, win));
     veil.addEventListener("keydown", (e) => { if (e.key === "Enter") finish(buttons[0]); if (e.key === "Escape") finish(null); });
     document.body.append(veil);
-    (field || win.querySelector(".dlg-btns .btn")).focus();
+    (field || content?.querySelector?.("input, select, textarea") || win.querySelector(".dlg-btns .btn")).focus();
     CF.sound(sound || { info: "ding", warning: "exclamation", error: "critical_stop", question: "question" }[icon] || "ding");
   });
   CF.toast = ({ title, body = "", icon = "info", timeout = 5000, onclick } = {}) => {
@@ -331,7 +363,8 @@
     return w;
   };
 
-  CF.createWindow = ({ appId = null, title = "Window", icon = "logo", w = 640, h: hh = 440, x, y, resizable = true, maximized = false } = {}) => {
+  // frameless: the app draws its own skinned title bar (NightAmp) and calls win.dragBy(handle).
+  CF.createWindow = ({ appId = null, title = "Window", icon = "logo", w = 640, h: hh = 440, x, y, resizable = true, maximized = false, frameless = false } = {}) => {
     const desk = $("#desktop");
     const dw = desk.clientWidth, dh = desk.clientHeight;
     w = Math.min(w, dw - 8); hh = Math.min(hh, dh - 8);
@@ -340,7 +373,7 @@
     const bodyEl = h("div", { class: "win-body" });
     const titleEl = h("span", { class: "title" }, title);
     const iconEl = h("img", { src: CF.icon(icon), alt: "" });
-    const el = h("div", { class: "win opening", id, style: `left:${x}px;top:${y}px;width:${w}px;height:${hh}px` },
+    const el = h("div", { class: "win opening" + (frameless ? " frameless" : ""), id, style: `left:${x}px;top:${y}px;width:${w}px;height:${hh}px` },
       h("div", { class: "titlebar" }, iconEl, titleEl,
         h("button", { class: "tb-btn", title: "Minimize", "data-act": "min" }, "▁"),
         resizable ? h("button", { class: "tb-btn", title: "Maximize", "data-act": "max" }, "□") : null,
@@ -420,7 +453,7 @@
         "-", { label: "Close", key: "Alt+F4", action: () => win.close() },
       ]);
     });
-    dragBehaviour(win, resizable);
+    win.dragBy = dragBehaviour(win, resizable);
     taskBtn.addEventListener("click", () => {
       if (el.classList.contains("min")) { win.restore(); win.focus(); }
       else if (el.classList.contains("active")) win.minimize();
@@ -447,8 +480,8 @@
       target.addEventListener("pointermove", move);
       target.addEventListener("pointerup", up);
     };
-    bar.addEventListener("pointerdown", (e) => {
-      if (e.button !== 0 || e.target.closest(".tb-btn") || el.classList.contains("max")) return;
+    const dragBy = (handle) => handle.addEventListener("pointerdown", (e) => {
+      if (e.button !== 0 || e.target.closest(".tb-btn, button, input, select, [data-nodrag]") || el.classList.contains("max")) return;
       const ox = e.clientX - el.offsetLeft, oy = e.clientY - el.offsetTop;
       const desk = el.parentElement;
       track(e, (m) => {
@@ -456,11 +489,29 @@
         el.style.top = Math.max(0, Math.min(desk.clientHeight - 30, m.clientY - oy)) + "px";
       });
     });
+    dragBy(bar);
     if (resizable && grip) grip.addEventListener("pointerdown", (e) => {
       const sx = e.clientX, sy = e.clientY, sw = el.offsetWidth, sh = el.offsetHeight;
       track(e, (m) => { el.style.width = Math.max(240, sw + m.clientX - sx) + "px"; el.style.height = Math.max(140, sh + m.clientY - sy) + "px"; });
     });
+    return dragBy;
   }
+
+  // A program's start-up splash (WinNight, NightAmp, NightBrowser): the picture fades in over the
+  // desktop, then out; click to skip. Shown once per session per program unless `always`.
+  const splashed = new Set();
+  CF.appSplash = ({ id, image, ms = 1600, always = false }) => new Promise(resolve => {
+    if (settings.fastBoot || (!always && splashed.has(id))) return resolve();
+    splashed.add(id);
+    const img = h("img", { src: image, alt: "" });
+    const el = h("div", { class: "app-splash" }, img);
+    let done = false;
+    const finish = () => { if (done) return; done = true; el.classList.add("out"); setTimeout(() => el.remove(), 300); resolve(); };
+    el.addEventListener("click", finish);
+    img.addEventListener("error", finish);
+    document.body.append(el);
+    setTimeout(finish, ms);
+  });
 
   CF.activeWindow = () => CF.windows.find(w => w.el.classList.contains("active"));
 
@@ -469,7 +520,7 @@
     ["mycomputer", "My Computer", "computer"], ["files", "My Documents", "documents"], ["recycle", "Recycle Bin", "recycle"],
     ["browser", "Forge Browser", "browser"], ["forgechat", "ForgeChat", "forgechat"], ["forgeamp", "ForgeAmp", "forgeamp"],
     ["forgevision", "ForgeVision", "forgevision"], ["forgecraft", "Forgecraft", "forgecraft"], ["arcade", "Forge Arcade", "arcade"],
-    ["gamebrowser", "Game Browser", "gamebrowser"], ["legacy", "Legacy Mode", "legacy"], ["netcon", "Netcon", "netcon"], ["diskdude", "Disk Dude", "diskdude"], ["notepad", "Notepad", "notepad"], ["control", "Control Panel", "control"],
+    ["gamebrowser", "Game Browser", "gamebrowser"], ["legacy", "Legacy Mode", "legacy"], ["netcon", "Netcon", "netcon"], ["diskdude", "Disk Dude", "diskdude"], ["winnight", "WinNight", "winnight"], ["nightamp", "NightAmp", "nightamp"], ["nightbrowser", "NightBrowser", "nightbrowser"], ["notepad", "Notepad", "notepad"], ["control", "Control Panel", "control"],
   ];
   function buildDesktop() {
     const icons = $("#icons");
@@ -601,7 +652,7 @@
     const r = await CF.dialog({ title: "Run", icon: "run", message: "Type the name of a program, folder, document or Internet resource, and ColeForge will open it for you.", input: "", buttons: ["OK", "Cancel"] });
     if (r.button !== "OK" || !r.value.trim()) return;
     const v = r.value.trim(), lower = v.toLowerCase();
-    const alias = { cmd: "about", winver: "about", mspaint: "forgecraft", paint: "forgecraft", explorer: "files", iexplore: "browser", control: "control", notepad: "notepad", doom: "arcade", quake: "arcade", aim: "forgechat", chat: "forgechat" };
+    const alias = { winrar: "winnight", rar: "winnight", "7z": "winnight", zip: "winnight", winzip: "winnight", winamp: "nightamp", amp: "nightamp", nightbrowse: "nightbrowser", nb: "nightbrowser", cmd: "about", winver: "about", mspaint: "forgecraft", paint: "forgecraft", explorer: "files", iexplore: "browser", control: "control", notepad: "notepad", doom: "arcade", quake: "arcade", aim: "forgechat", chat: "forgechat" };
     if (/^https?:\/\/|^www\./.test(lower)) CF.open("browser", { url: v });
     else if (CF.apps[lower]) CF.open(lower);
     else if (alias[lower]) CF.open(alias[lower]);

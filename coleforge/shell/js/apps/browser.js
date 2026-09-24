@@ -7,8 +7,7 @@
   const HOME = "forge://home";
   const DEFAULT_FAVS = [["ColeForge Home", HOME], ["Zandronum", "https://zandronum.com/"], ["Freedoom", "https://freedoom.github.io/"], ["Archive.org", "https://archive.org/"], ["Wikipedia", "https://en.wikipedia.org/"]];
   const hasWebview = !!(CF.host && CF.host.webview);
-  let lastNewTab = null; // pop-ups from web pages open as tabs in the most recent browser window
-  if (hasWebview && CF.host.onNewTab) CF.host.onNewTab((url) => lastNewTab ? lastNewTab(url) : CF.open("browser", { url }));
+  // Pop-ups from web pages open as tabs in the most recent browser window (routed by core.js).
 
   function homePage() {
     return `<!doctype html><html><head><meta charset="utf-8"><style>
@@ -165,9 +164,9 @@
         else if (e.ctrlKey && e.key.toLowerCase() === "l") { e.preventDefault(); addr.focus(); }
       });
       win.on("args", (a) => a.url && newTab(normalize(a.url)));
-      win.on("focus", () => { lastNewTab = newTab; });
-      win.on("close", () => { removeEventListener("message", onMsg); if (lastNewTab === newTab) lastNewTab = null; });
-      lastNewTab = newTab;
+      win.on("focus", () => { CF.newTabTarget = newTab; });
+      win.on("close", () => { removeEventListener("message", onMsg); if (CF.newTabTarget === newTab) CF.newTabTarget = null; });
+      CF.newTabTarget = newTab;
       renderFavs();
       newTab(args.url ? normalize(args.url) : HOME);
     },

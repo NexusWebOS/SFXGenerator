@@ -10,7 +10,8 @@ logo, and the whole desktop wears the **NightCode theme**:
 - A terminal-style BIOS, the "Enter the NightCode" boot screen and a Shadow Grid log-on.
 - NightCode cursors, the NightCode chiptune sound scheme and a code-rain screen saver.
 
-NightCode's **Netcon** and **Disk Dude** ship as official ColeForge programs.
+Official ColeForge programs: **WinNight** (archiver), **NightAmp** (media player), **NightBrowser** (web browser),
+and NightCode's **Netcon** and **Disk Dude**.
 
 A private, experimental "what if Windows 98 SE never stopped evolving" build: a 98 SE-style
 desktop with a modern glass finish, running on a modern kernel so today's hardware (Radeon,
@@ -43,6 +44,9 @@ cross-PC ForgeChat, which needs the server.
 | **Forge Arcade + LAN lobbies** | DOOM Legacy – ColeForge Edition (your own source port), **Zandronum**, Doom/Doom II, Freedoom, Quake, Duke Nukem 3D. Host a lobby in ForgeChat, friends join and ready up, the host hits Start and everyone's game launches pointed at the host. Zandronum lobbies start a real server on the host and show its live map/players. |
 | **Legacy Mode** | 90's games on modern hardware: **DOSBox – ColeForge Edition** (DOSBox Staging with era presets from an IBM XT to a Pentium MMX + Voodoo, IPX LAN play) for DOS games, and complete Windows 98 SE PCs in **86Box**, including **Voodoo3 Mode** (Pentium II 450, 440BX, 3dfx Voodoo3 3000 AGP) and a Voodoo2 SLI rig. Generates the configs, creates the disk, launches the emulator. See [legacy/README.md](legacy/README.md). |
 | **Forge Game Browser** | A 16-bit, GameSpy-style Zandronum server browser: internet servers from the Zandronum master, LAN servers found automatically from their broadcasts, favourites and ForgeChat lobbies. Sort by ping/players, filter, see every player's score/ping/team, WADs, limits and skill; double-click to join (password prompt included), host your own server, or **Share** a server into ForgeChat as a one-click Join card. |
+| **WinNight** *(NightCode)* | The archiver: a big-button archive manager with its own 16-bit toolbar and splash. Opens ZIP, **RAR (v4/v5)**, **7-Zip**, TAR, GZ/TGZ, XZ, BZIP2, ZSTD, ISO, CAB and more; creates ZIP, TAR, TAR.GZ/XZ/BZ2/ZST. **Lock** archives with **AES-256** (WinZip AE-2, opens in WinRAR/7-Zip/Windows), Add, Extract To (My Documents or this PC), Test (CRC-32 + AES authentication), View (text, pictures, hex; music/video go to NightAmp), Delete, Rename, New folder, Find (names and text inside files), Info, comments, **Repair** (rebuilds a ZIP from its local headers), Convert between formats, and **self-extracting archives** as a single .html file. Engine: `shell/js/zipkit.js`. |
+| **NightAmp** *(NightCode)* | The media player: a clean-room take on the classic Winamp 2 layout (275×116 main window at double size, LED time, spectrum/oscilloscope, scrolling title, 10-band equalizer with presets, playlist editor, windowshade, Z/X/C/V/B keys) in an original NightCode skin. Plays MP3, AAC/M4A, FLAC, Opus, Vorbis, WAV, WebM audio, **AIFF** (built-in converter), **MIDI and Doom .MUS** (ForgeMIDI); **video** MP4/H.264, WebM/VP9/AV1, MKV, MOV and **HLS .m3u8** with subtitles, speed, picture-in-picture and full screen; **internet radio** and M3U/PLS playlists; a **built-in web & radio browser**; and **NightDrop**, audio-reactive code rain when there's no picture. |
+| **NightBrowser** *(NightCode)* | Forge Browser, cloned and upgraded: NightCode start page with code rain and an editable speed dial, **NightShield** tracker/ad blocking and **HTTPS upgrade** (ColeForge.exe), **private tabs** in their own in-memory session, bookmarks bar, find in page, zoom, mute tab, page screenshot → Forgecraft, "Play in NightAmp" for media links, search engine choice (DuckDuckGo default). |
 | **Netcon** *(NightCode)* | Official ColeForge program: SAMPLE ID badge maker with PNG export, RFID/NFC asset inventory (IDs you type in, no radio reading), lock service/damage log, game ownership and compatibility catalog. |
 | **Disk Dude** *(NightCode)* | Official ColeForge program: detects PS1/PS2/Dreamcast/Xbox/DVD/VCD/music/data discs, verified copy with SHA-256 manifest + ZIP, data-disc burning, Audio CD playback, one-click emulator launch. See [programs/README.md](programs/README.md). |
 | **Sounds** | Three 19-sound schemes, switchable in Control Panel → Sounds: **NightCode** (default, chiptune synth by `audio/build_nightcode_scheme.py`), **ColeForge Studio** (generated with ElevenLabs) and **ColeForge Classic** (synthesized by `generate_coleforge_system_sounds.js`). Compare them at `shell/assets/sounds/audition.html`. |
@@ -55,6 +59,8 @@ coleforge/
   server/       LAN server: serves the shell + ForgeChat hub + Game Browser API (no dependencies)
   server/zandronum/  Zandronum master/launcher protocol + Huffman codec (ported from Zandronum's source)
   programs/     official NightCode programs (Netcon, Disk Dude), vendored from NexusWebOS/NightCode
+  shell/vendor/ libarchive.js (RAR/7z/… for WinNight) and hls.js (HLS for NightAmp), see vendor/README.md
+  tests/        ZipKit (WinNight's engine) and NightShield tests
   lively/       NightCode Code Rain packaged for Lively Wallpaper (build script + page)
   legacy/       Legacy Mode docs (then vs now, CPU/GPU emulation, Voodoo3 Mode), sample configs, tests
   desktop/      Electron host → ColeForge.exe, shell replacement, real browser tabs, game launching
@@ -110,6 +116,10 @@ Browsers visiting `http://<lan-ip>` may block the camera; use ColeForge.exe on e
   icons are true 16-bit pixel art: a strict 16-colour NightCode palette, black keylines and dithered
   3-5 tone shading. Cursors are in `shell/assets/cursors/nightcode/`. The fonts are Share Tech Mono and
   Orbitron (SIL Open Font License 1.1, licences next to them in `shell/assets/fonts/`).
+- **WinNight, NightAmp, NightBrowser** (`shell/assets/art/nightapps/`): program icons, WinNight's 10 toolbar
+  buttons and file-type icons, NightBrowser's toolbar, NightAmp's transport buttons and LED digits, all 16-bit
+  in the NightCode palette, plus the three start-up splash screens, drawn by `art/nightcode/build_nightcode_apps.py`
+  (preview `art/nightcode/apps-preview.png`). NightAmp's skin is otherwise drawn in CSS and a built-in 5×6 pixel font.
 - **NightCode Live** (`shell/js/nightcode-rain.js`): the code rain behind the desktop (30 fps, paused under
   a maximized window) and in the screen saver. `lively/` packages it for Lively Wallpaper.
 - **NightCode art** (`art/nightcode/`): Cole's four NightCode pictures are in `source/`; the skull-chip logo
@@ -160,3 +170,20 @@ Browsers visiting `http://<lan-ip>` may block the camera; use ColeForge.exe on e
 
 This build uses the Windows name for personal, non-distributed use. Before sharing it
 publicly, rename it and drop Microsoft marks.
+
+## Tests
+
+```
+node coleforge/tests/zipkit.test.js       # WinNight's ZIP/TAR/AES engine against Python, Info-ZIP and pyzipper
+node coleforge/tests/nightshield.test.js  # NightBrowser's tracker blocker and HTTPS upgrade rules
+node coleforge/server/zandronum/test/zandronum.test.js
+node coleforge/legacy/test/legacy-profiles.test.js
+```
+
+## About NightAmp and Winamp's source code
+
+NightAmp doesn't use Winamp's code. The source Llama Group published in 2024 came under the Winamp
+Collaborative License, which doesn't allow modified versions to be shared (and the repository was taken
+down weeks later). So NightAmp is written from scratch for the ColeForge shell. It follows the classic
+Winamp 2 layout and behaviour, with an original skin and presets and no Nullsoft code or art.
+

@@ -59,6 +59,12 @@ app.on("web-contents-created", (_e, contents) => {
   if (contents.getType() === "webview") contents.setWindowOpenHandler(({ url }) => { win?.webContents.send("forge:new-tab", url); return { action: "deny" }; });
 });
 
+/* ---------------- NightShield (NightBrowser's tracker blocker + HTTPS upgrade) ---------------- */
+const shield = require("./nightshield").createShield();
+ipcMain.handle("forge:shield", (_e, opts) => shield.set(opts));
+ipcMain.handle("forge:shieldStats", (_e, id) => shield.stats(id));
+ipcMain.handle("forge:shieldReset", (_e, id) => shield.reset(id));
+
 /* ---------------- host bridge ---------------- */
 ipcMain.handle("forge:openExternal", (_e, url) => { if (/^https?:\/\//.test(url)) shell.openExternal(url); });
 
@@ -184,6 +190,7 @@ ipcMain.handle("forge:runProgram", (_e, id) => new Promise((resolve, reject) => 
 app.whenReady().then(async () => {
   // Allow webcam/mic/screen capture for ForgeChat calls from the local shell only.
   session.defaultSession.setPermissionRequestHandler((wc, permission, cb) => cb(wc.getURL().startsWith(`http://localhost:${PORT}`) && ["media", "display-capture", "clipboard-read", "clipboard-sanitized-write", "notifications", "fullscreen"].includes(permission)));
+  for (const part of ["persist:nightbrowser", "nightbrowser-private"]) shield.install(session.fromPartition(part));
   await startLanServer();
   createWindow();
 });

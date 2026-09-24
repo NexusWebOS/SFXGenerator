@@ -16,4 +16,7 @@ contextBridge.exposeInMainWorld("forgeHost", {
   programStatus: (id) => ipcRenderer.invoke("forge:programStatus", id),
   runProgram: (id) => ipcRenderer.invoke("forge:runProgram", id),
   onNewTab: (fn) => ipcRenderer.on("forge:new-tab", (_e, url) => fn(url)),
+  shield: (opts) => ipcRenderer.invoke("forge:shield", opts),
+  shieldStats: (webContentsId) => ipcRenderer.invoke("forge:shieldStats", webContentsId),
+  shieldReset: (webContentsId) => ipcRenderer.invoke("forge:shieldReset", webContentsId),
 });

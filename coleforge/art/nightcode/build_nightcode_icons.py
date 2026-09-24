@@ -37,8 +37,8 @@ BAYER = [[0, 8, 2, 10], [12, 4, 14, 6], [3, 11, 1, 9], [15, 7, 13, 5]]
 LIGHT = (-0.55, -0.6, 0.58)
 
 
-def canvas():
-    img = Image.new("RGBA", (32, 32), T)
+def canvas(n=32):
+    img = Image.new("RGBA", (n, n) if isinstance(n, int) else n, T)
     return img, ImageDraw.Draw(img)
 
 
@@ -107,13 +107,14 @@ def outline(img):
     """The 16-bit black keyline around every silhouette."""
     src, out = img.load(), img.copy()
     op = out.load()
-    for y in range(32):
-        for x in range(32):
+    iw, ih = img.size
+    for y in range(ih):
+        for x in range(iw):
             if src[x, y][3]:
                 continue
             for dx, dy in ((1, 0), (-1, 0), (0, 1), (0, -1)):
                 nx, ny = x + dx, y + dy
-                if 0 <= nx < 32 and 0 <= ny < 32 and src[nx, ny][3]:
+                if 0 <= nx < iw and 0 <= ny < ih and src[nx, ny][3]:
                     op[x, y] = K
                     break
     return out

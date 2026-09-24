@@ -70,8 +70,13 @@
   });
 
   /* ---------------- My Documents / Recycle Bin ---------------- */
-  const typeIcon = (d) => d.type === "image" ? "image" : "file";
-  function openDoc(d) { CF.open(d.type === "image" ? "forgecraft" : "notepad", { file: d.name }); }
+  const typeIcon = (d) => CF.fileType(d.name)?.icon || (d.type === "image" ? "image" : "file");
+  function openDoc(d) {
+    const t = CF.fileType(d.name);
+    if (t) return CF.open(t.app, { file: d.name });
+    if (d.type === "file") return CF.download(d.name, CF.vfs.readBytes(d.name));
+    CF.open(d.type === "image" ? "forgecraft" : "notepad", { file: d.name });
+  }
 
   CF.register({
     id: "files", name: "My Documents", icon: "documents", single: true, desc: "Your saved documents and pictures.",
@@ -90,7 +95,8 @@
         inp.addEventListener("change", () => [...inp.files].forEach(f => {
           const r = new FileReader();
           if (f.type.startsWith("image/")) { r.onload = () => CF.vfs.write(f.name, r.result, "image"); r.readAsDataURL(f); }
-          else { r.onload = () => CF.vfs.write(f.name, r.result, "text"); r.readAsText(f); }
+          else if (f.type.startsWith("text/") || /\.(txt|md|json|js|css|html?|ini|cfg|log|csv|xml|bat|ps1|py)$/i.test(f.name)) { r.onload = () => CF.vfs.write(f.name, r.result, "text"); r.readAsText(f); }
+          else { r.onload = () => CF.vfs.write(f.name, r.result, "file"); r.readAsDataURL(f); }
         }));
         inp.click();
       }

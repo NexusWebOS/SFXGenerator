@@ -1,0 +1,14 @@
+{
+  "AppVersion": "2.0.0.0",
+  "Title": "NightCode Code Rain",
+  "Thumbnail": "thumbnail.jpg",
+  "Preview": "preview.gif",
+  "Desc": "Neon code rain with the glowing NightCode logo, from Windows – ColeForge Edition's NightCode theme. Customise speed, density, logo and colours.",
+  "Author": "Cole (NightCode) · ColeForge",
+  "License": "NightCode logo by Cole. Font: Share Tech Mono, SIL Open Font License 1.1 (OFL-ShareTechMono.txt).",
+  "Contact": "https://github.com/NexusWebOS/NightCode",
+  "Type": 1,
+  "FileName": "index.html",
+  "Arguments": null,
+  "IsAbsolutePath": false
+}

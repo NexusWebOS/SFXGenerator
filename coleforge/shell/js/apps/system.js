@@ -277,7 +277,7 @@
           theme.addEventListener("change", () => {
             s.theme = theme.value;
             // Like a Windows 98 Desktop Theme, NightCode brings its wallpaper, pointers and sounds along.
-            if (s.theme === "nightcode") Object.assign(s, { wallpaper: s.wallpaper === "custom" ? s.wallpaper : "nightcode", cursors: true, soundScheme: "nightcode" });
+            if (s.theme === "nightcode") Object.assign(s, { wallpaper: s.wallpaper === "custom" ? s.wallpaper : "nightcode-live", cursors: true, soundScheme: "nightcode" });
             save(); show("display");
             if (s.theme === "nightcode") CF.sound("logon");
           });
@@ -288,7 +288,10 @@
           return [h("div", { class: "group" }, h("div", { class: "legend" }, "Theme"), h("div", { class: "row" }, "Look:", theme)),
             h("div", { class: "group" }, h("div", { class: "legend" }, "Appearance"), preview(s.highContrast ? s.hcScheme : ncTheme ? "nightcode" : s.scheme || "standard"),
               h("div", { class: "row" }, "Scheme:", scheme), hcNote ? h("p", { class: "muted" }, hcNote) : null),
-            h("div", { class: "group" }, h("div", { class: "legend" }, "Wallpaper"), walls),
+            h("div", { class: "group" }, h("div", { class: "legend" }, "Wallpaper"), walls,
+              h("p", { class: "muted" }, "Want NightCode Live on your real Windows desktop? ",
+                h("a", { class: "exp-link", href: "assets/lively/NightCode-Code-Rain.zip", download: "NightCode-Code-Rain.zip" }, "Download it for Lively Wallpaper"),
+                " and drag the .zip into Lively.")),
             (() => {
               const saver = h("select", { class: "field" }, CF.SAVERS.map(([id, label]) => h("option", { value: id, selected: s.screensaver === id }, label)));
               saver.addEventListener("change", () => { s.screensaver = saver.value; save(); CF.screensaver.arm(); });

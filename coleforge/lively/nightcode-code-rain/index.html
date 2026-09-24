@@ -1,0 +1,48 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>NightCode Code Rain</title>
+<!-- NightCode Code Rain for Lively Wallpaper (Windows – ColeForge Edition, NightCode theme).
+     The animation is ColeForge's js/nightcode-rain.js; options come from LivelyProperties.json. -->
+<style>
+  @font-face { font-family: "Share Tech Mono"; src: url("ShareTechMono-Regular.ttf") format("truetype"); }
+  html, body { margin: 0; height: 100%; overflow: hidden; background: #02050e; }
+  #wall { position: fixed; inset: 0; background: #02050e url("circuits.jpg") center / cover no-repeat; }
+  #wall.plain { background-image: none; }
+</style>
+</head>
+<body>
+<div id="wall"></div>
+<script src="nightcode-rain.js"></script>
+<script>
+  "use strict";
+  const LOGO_MODES = [
+    { logo: "fixed", logoX: 0.62, logoY: 0.48 },  // hover, right (like the ColeForge desktop)
+    { logo: "fixed", logoX: 0.5, logoY: 0.46 },   // hover, centre
+    { logo: "drift" },                            // drift (like the screen saver)
+    { logo: "off" },
+  ];
+  const trail = { main: "#1e78ff", accent: "#31d7e8" };
+  const rain = NightCodeRain(document.getElementById("wall"), Object.assign({ logoSrc: "logo.png", logoSize: 0.74, fps: 30 }, LOGO_MODES[0]));
+  const setTrail = () => rain.set({ trail: [trail.main, trail.main, trail.accent] });
+
+  // Called by Lively for each property in LivelyProperties.json, at start and whenever you change one.
+  function livelyPropertyListener(name, val) {
+    switch (name) {
+      case "speed": rain.set({ speed: val / 100 }); break;
+      case "density": rain.set({ density: val }); break;
+      case "logoMode": rain.set(LOGO_MODES[val] || LOGO_MODES[0]); break;
+      case "logoSize": rain.set({ logoSize: val / 100 }); break;
+      case "rainColor": trail.main = val; setTrail(); break;
+      case "accentColor": trail.accent = val; setTrail(); break;
+      case "headColor": rain.set({ head: val }); break;
+      case "trailLength": rain.set({ fade: 0.3 - val / 100 * 0.27 }); break;
+      case "circuits": document.getElementById("wall").classList.toggle("plain", !val); break;
+      case "fps": rain.set({ fps: val === 1 ? 60 : 30 }); break;
+    }
+  }
+</script>
+</body>
+</html>

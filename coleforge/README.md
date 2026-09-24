@@ -4,7 +4,9 @@
 
 **NightCode edition:** the ultimate hacker build. The NightCode skull-chip logo is the official
 logo, and the whole desktop wears the **NightCode theme**:
-- Neon circuit window chrome with Orbitron/Share Tech Mono type and a neon pixel icon set.
+- **NightCode Live**, the animated code-rain wallpaper, is the default background. It's also packaged for
+  [Lively Wallpaper](lively/README.md) so it can run on your regular Windows desktop.
+- Neon circuit window chrome with Orbitron/Share Tech Mono type and a 16-bit pixel icon set.
 - A terminal-style BIOS, the "Enter the NightCode" boot screen and a Shadow Grid log-on.
 - NightCode cursors, the NightCode chiptune sound scheme and a code-rain screen saver.
 
@@ -53,6 +55,7 @@ coleforge/
   server/       LAN server: serves the shell + ForgeChat hub + Game Browser API (no dependencies)
   server/zandronum/  Zandronum master/launcher protocol + Huffman codec (ported from Zandronum's source)
   programs/     official NightCode programs (Netcon, Disk Dude), vendored from NexusWebOS/NightCode
+  lively/       NightCode Code Rain packaged for Lively Wallpaper (build script + page)
   legacy/       Legacy Mode docs (then vs now, CPU/GPU emulation, Voodoo3 Mode), sample configs, tests
   desktop/      Electron host → ColeForge.exe, shell replacement, real browser tabs, game launching
   core/windows/ run ColeForge as your Windows shell + Windows To Go USB guide
@@ -102,9 +105,13 @@ Browsers visiting `http://<lan-ip>` may block the camera; use ColeForge.exe on e
 ## Art
 
 - **NightCode theme** (`css/nightcode.css`, built on the 98 theme): `art/nightcode/build_nightcode_theme.py`
-  draws the 21 neon pixel icons (`shell/assets/art/nightcode/icons/`, preview `art/nightcode/theme-preview.png`),
-  the boot screen and the log-on banner. Cursors are in `shell/assets/cursors/nightcode/`. The fonts are
-  Share Tech Mono and Orbitron (SIL Open Font License 1.1, licences next to them in `shell/assets/fonts/`).
+  builds the boot screen, the log-on banner and the circuit backdrop, and calls `build_nightcode_icons.py`
+  for the 21 icons (`shell/assets/art/nightcode/icons/`, preview `art/nightcode/theme-preview.png`). The
+  icons are true 16-bit pixel art: a strict 16-colour NightCode palette, black keylines and dithered
+  3-5 tone shading. Cursors are in `shell/assets/cursors/nightcode/`. The fonts are Share Tech Mono and
+  Orbitron (SIL Open Font License 1.1, licences next to them in `shell/assets/fonts/`).
+- **NightCode Live** (`shell/js/nightcode-rain.js`): the code rain behind the desktop (30 fps, paused under
+  a maximized window) and in the screen saver. `lively/` packages it for Lively Wallpaper.
 - **NightCode art** (`art/nightcode/`): Cole's four NightCode pictures are in `source/`; the skull-chip logo
   is the official logo (About box, avatar, desktop wallpaper). `art/nightcode/build_nightcode_art.py`
   builds the logo sizes, the NightCode avatar, 4 wallpapers (NightCode, Enter the NightCode, Shadow

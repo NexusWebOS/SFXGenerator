@@ -46,8 +46,9 @@ body.theme-nc ::-webkit-scrollbar-button:single-button { display: none; }
 body.theme-nc ::-webkit-scrollbar-corner { background: var(--nc-ink); }
 
 /* ---------- desktop ---------- */
-body.theme-nc img[src*="nightcode/icons/"] { image-rendering: pixelated; }
-body.theme-nc .desk-icon img { filter: drop-shadow(0 0 4px rgba(30, 120, 255, .55)); }
+/* 16-bit icons: crisp pixels at their native 32px (and 2x); smooth when a menu shrinks them. */
+body.theme-nc :is(.desk-icon, .dlg-body, .ncp-hero) img[src*="nightcode/icons/"] { image-rendering: pixelated; }
+body.theme-nc .desk-icon img { filter: drop-shadow(0 0 3px rgba(30, 120, 255, .45)); }
 body.theme-nc .desk-icon span { font: calc(12px * var(--ui-scale, 1))/1.2 var(--nc-mono); color: #d8ecff; text-shadow: 0 0 2px #000, 0 0 6px rgba(30, 120, 255, .9); padding: 0 3px; }
 body.theme-nc .desk-icon:hover span { color: #fff; text-shadow: 0 0 2px #000, 0 0 8px var(--nc-cyan); }
 body.theme-nc .desk-icon.selected span { background: rgba(30, 120, 255, .85); border: 1px dotted var(--nc-cyan); text-shadow: none; color: #fff; }

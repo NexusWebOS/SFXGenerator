@@ -1,0 +1,12 @@
+{
+  "speed": { "type": "slider", "text": "Rain speed (%)", "min": 10, "max": 300, "step": 5, "tick": 58, "value": 100 },
+  "density": { "type": "slider", "text": "Columns across the screen", "min": 50, "max": 220, "step": 5, "tick": 34, "value": 110 },
+  "trailLength": { "type": "slider", "text": "Trail length", "min": 0, "max": 100, "step": 1, "tick": 100, "value": 67 },
+  "logoMode": { "type": "dropdown", "text": "NightCode logo", "items": ["Hover (right)", "Hover (centre)", "Drift", "Off"], "value": 0 },
+  "logoSize": { "type": "slider", "text": "Logo size (%)", "min": 20, "max": 95, "step": 1, "tick": 75, "value": 74 },
+  "rainColor": { "type": "color", "text": "Rain colour", "value": "#1E78FF" },
+  "accentColor": { "type": "color", "text": "Accent rain colour", "value": "#31D7E8" },
+  "headColor": { "type": "color", "text": "Leading character colour", "value": "#BFF4FF" },
+  "circuits": { "type": "checkbox", "text": "Circuit board background", "value": true },
+  "fps": { "type": "dropdown", "text": "Frame rate", "items": ["30 fps (lighter on your PC)", "60 fps (smoother)"], "value": 0 }
+}

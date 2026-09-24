@@ -25,24 +25,28 @@
   const host = window.forgeHost || null; // Electron bridge when running as the real shell
 
   const DEFAULTS = {
-    user: "Cole", avatar: null, wallpaper: "nightcode", customWall: null, accent: "#1f6fff", theme: "nightcode",
+    user: "Cole", avatar: null, wallpaper: "nightcode-live", customWall: null, accent: "#1f6fff", theme: "nightcode",
     cursors: true, sounds: true, soundScheme: "nightcode", volume: 0.8, uiScale: 1, showBrand: true, fastBoot: false, clock24: false,
     scheme: "nightcode", screensaver: "nightcode", saverMinutes: 10, highContrast: false, hcScheme: "hc-black", hcShortcut: true, followSystemHC: true,
   };
   const settings = Object.assign({}, DEFAULTS, store.get("cf.settings", {}));
   // NightCode edition: move existing installs over once (1: wallpaper, avatar, colours; 2: the full
-  // NightCode desktop theme with its cursors and sounds). Afterwards they're ordinary settings you can
-  // change in Control Panel.
-  if ((settings.nightcode || 0) < 2) {
-    if (!settings.nightcode) {
+  // NightCode desktop theme with its cursors and sounds; 3: the animated NightCode Live wallpaper).
+  // Afterwards they're ordinary settings you can change in Control Panel.
+  const ncVersion = settings.nightcode || 0;
+  if (ncVersion < 3) {
+    if (ncVersion < 1) {
       settings.wallpaper = "nightcode";
       settings.scheme = "nightcode";
       if (!settings.avatar || settings.avatar === "assets/art/avatars/cole-blue.png") settings.avatar = "assets/art/avatars/nightcode.png";
     }
-    settings.theme = "nightcode";
-    settings.cursors = true;
-    settings.soundScheme = "nightcode";
-    settings.nightcode = 2;
+    if (ncVersion < 2) {
+      settings.theme = "nightcode";
+      settings.cursors = true;
+      settings.soundScheme = "nightcode";
+    }
+    if (settings.wallpaper === "nightcode") settings.wallpaper = "nightcode-live";
+    settings.nightcode = 3;
     store.set("cf.settings", settings);
   }
 
@@ -81,6 +85,7 @@
     if (desk) {
       desk.className = "wall-" + settings.wallpaper;
       desk.style.backgroundImage = settings.wallpaper === "custom" && settings.customWall ? `url("${settings.customWall}")` : "";
+      liveWallpaper(desk, settings.wallpaper === "nightcode-live");
     }
     const brand = $("#desk-brand");
     if (brand) brand.style.display = settings.showBrand ? "" : "none";
@@ -88,6 +93,17 @@
     document.querySelectorAll("img.my-avatar").forEach(img => { img.src = av; });
     document.querySelectorAll(".my-name").forEach(el => { el.textContent = settings.user; });
   };
+  // "NightCode Live": the code rain (js/nightcode-rain.js) behind the desktop icons, with the logo where
+  // the still wallpaper has it. 30 fps, and paused while a maximized window covers the desktop.
+  let live = null;
+  function liveWallpaper(desk, on) {
+    if (!on || !window.NightCodeRain) { if (live) { live.rain.stop(); live.el.remove(); live = null; } return; }
+    if (live) return;
+    const el = h("div", { id: "live-wall" });
+    desk.prepend(el);
+    const covered = () => CF.windows.some(w => w.el.classList.contains("max") && !w.el.classList.contains("min"));
+    live = { el, rain: NightCodeRain(el, { logo: "fixed", logoX: 0.62, logoY: 0.48, logoSize: 0.74, fps: 30, rainOpacity: 0.85, paused: covered }) };
+  }
   CF.avatar = () => settings.avatar || "assets/art/avatars/nightcode.png";
   CF.THEMES = [["nightcode", "NightCode"], ["98", "Windows 98 Classic"], ["glass", "ColeForge Glass"]];
   CF.is98 = () => document.body.classList.contains("theme-98");
@@ -511,7 +527,7 @@
       [...icons.children].sort((a, b) => a.textContent.localeCompare(b.textContent)).forEach(n => icons.append(n));
     }
   }
-  const WALLPAPERS = [["nightcode", "NightCode"], ["nightcode-enter", "Enter the NightCode"], ["nightcode-grid", "Shadow Grid"], ["nightcode-beyond", "Beyond the Light"], ["classic98", "ColeForge 98 Navy"], ["lake", "Twilight Lake"], ["energy", "Blue Energy"], ["forge", "Forge Splash"], ["navy", "Midnight"], ["teal", "Classic Teal"], ["custom", "Custom Picture…"]];
+  const WALLPAPERS = [["nightcode-live", "NightCode Live (animated)"], ["nightcode", "NightCode"], ["nightcode-enter", "Enter the NightCode"], ["nightcode-grid", "Shadow Grid"], ["nightcode-beyond", "Beyond the Light"], ["classic98", "ColeForge 98 Navy"], ["lake", "Twilight Lake"], ["energy", "Blue Energy"], ["forge", "Forge Splash"], ["navy", "Midnight"], ["teal", "Classic Teal"], ["custom", "Custom Picture…"]];
   CF.WALLPAPERS = WALLPAPERS;
 
   /* ---------------- Start menu ---------------- */

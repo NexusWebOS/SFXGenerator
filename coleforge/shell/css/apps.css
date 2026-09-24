@@ -335,6 +335,8 @@ body.theme-98 .lg-sheet { border: none; border-radius: 0; background: var(--w98-
 body.theme-98 .lg-mcard.featured .lg-sheet { box-shadow: var(--raised), 0 0 0 2px #ff8c00; }
 body.theme-98 .lg-then-row { border-bottom: 1px solid var(--w98-shadow); }
 body.theme-98 .lg-then-head { background: var(--w98-title); color: var(--w98-title-text); }
+.wall-prev.wall-nightcode-live { position: relative; background: url("../assets/art/wallpapers/nightcode.png") center / cover, #04081a; }
+.wall-prev.wall-nightcode-live::after { content: "LIVE"; position: absolute; right: 4px; bottom: 4px; padding: 1px 4px; font: bold 9px/1.2 Consolas, monospace; letter-spacing: .1em; color: #02050e; background: #31d7e8; box-shadow: 0 0 6px #31d7e8; }
 .wall-prev.wall-nightcode { background: url("../assets/art/wallpapers/nightcode.png") center / cover, #04081a; }
 .wall-prev.wall-nightcode-enter { background: url("../assets/art/wallpapers/nightcode-enter.jpg") center / cover, #04081a; }
 .wall-prev.wall-nightcode-grid { background: url("../assets/art/wallpapers/nightcode-grid.jpg") center / cover, #04081a; }

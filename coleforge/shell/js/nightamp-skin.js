@@ -1,0 +1,243 @@
+"use strict";
+
+// NightSkin: loads Winamp 2.x classic skins (.wsz, a ZIP of BMPs plus viscolor.txt / pledit.txt) and
+// NightAmp's own built-in skins, and turns every sprite into a CSS custom property so the player's
+// stylesheet can draw any skin. Skins are read with ZipKit; BMPs are decoded by the browser.
+//
+// The sprite coordinates below come from Webamp's skin sprite map (webamp/js/skinSprites.ts):
+//   The MIT License (MIT) - Copyright (c) 2015 Jordan Eldredge
+//   Permission is hereby granted, free of charge, to any person obtaining a copy of this software and
+//   associated documentation files (the "Software"), to deal in the Software without restriction,
+//   including without limitation the rights to use, copy, modify, merge, publish, distribute,
+//   sublicense, and/or sell copies of the Software, and to permit persons to whom the Software is
+//   furnished to do so, subject to the following conditions: The above copyright notice and this
+//   permission notice shall be included in all copies or substantial portions of the Software.
+//   THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT
+//   NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
+//   NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM,
+//   DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT
+//   OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+(function () {
+  // [x, y, w, h] inside each sheet.
+  const SPRITES = {
+    BALANCE: {MAIN_BALANCE_BACKGROUND: [9,0,38,420], MAIN_BALANCE_THUMB: [15,422,14,11], MAIN_BALANCE_THUMB_ACTIVE: [0,422,14,11]},
+    CBUTTONS: {MAIN_PREVIOUS_BUTTON: [0,0,23,18], MAIN_PREVIOUS_BUTTON_ACTIVE: [0,18,23,18], MAIN_PLAY_BUTTON: [23,0,23,18], MAIN_PLAY_BUTTON_ACTIVE: [23,18,23,18], MAIN_PAUSE_BUTTON: [46,0,23,18], MAIN_PAUSE_BUTTON_ACTIVE: [46,18,23,18], MAIN_STOP_BUTTON: [69,0,23,18], MAIN_STOP_BUTTON_ACTIVE: [69,18,23,18], MAIN_NEXT_BUTTON: [92,0,23,18], MAIN_NEXT_BUTTON_ACTIVE: [92,18,22,18], MAIN_EJECT_BUTTON: [114,0,22,16], MAIN_EJECT_BUTTON_ACTIVE: [114,16,22,16]},
+    MAIN: {MAIN_WINDOW_BACKGROUND: [0,0,275,116]},
+    MONOSTER: {MAIN_STEREO: [0,12,29,12], MAIN_STEREO_SELECTED: [0,0,29,12], MAIN_MONO: [29,12,27,12], MAIN_MONO_SELECTED: [29,0,27,12]},
+    NUMBERS: {NO_MINUS_SIGN: [9,6,5,1], MINUS_SIGN: [20,6,5,1], DIGIT_0: [0,0,9,13], DIGIT_1: [9,0,9,13], DIGIT_2: [18,0,9,13], DIGIT_3: [27,0,9,13], DIGIT_4: [36,0,9,13], DIGIT_5: [45,0,9,13], DIGIT_6: [54,0,9,13], DIGIT_7: [63,0,9,13], DIGIT_8: [72,0,9,13], DIGIT_9: [81,0,9,13]},
+    NUMS_EX: {NO_MINUS_SIGN_EX: [90,0,9,13], MINUS_SIGN_EX: [99,0,9,13], DIGIT_0_EX: [0,0,9,13], DIGIT_1_EX: [9,0,9,13], DIGIT_2_EX: [18,0,9,13], DIGIT_3_EX: [27,0,9,13], DIGIT_4_EX: [36,0,9,13], DIGIT_5_EX: [45,0,9,13], DIGIT_6_EX: [54,0,9,13], DIGIT_7_EX: [63,0,9,13], DIGIT_8_EX: [72,0,9,13], DIGIT_9_EX: [81,0,9,13]},
+    PLAYPAUS: {MAIN_PLAYING_INDICATOR: [0,0,9,9], MAIN_PAUSED_INDICATOR: [9,0,9,9], MAIN_STOPPED_INDICATOR: [18,0,9,9], MAIN_NOT_WORKING_INDICATOR: [36,0,9,9], MAIN_WORKING_INDICATOR: [39,0,9,9]},
+    PLEDIT: {PLAYLIST_TOP_TILE: [127,21,25,20], PLAYLIST_TOP_LEFT_CORNER: [0,21,25,20], PLAYLIST_TITLE_BAR: [26,21,100,20], PLAYLIST_TOP_RIGHT_CORNER: [153,21,25,20], PLAYLIST_TOP_TILE_SELECTED: [127,0,25,20], PLAYLIST_TOP_LEFT_SELECTED: [0,0,25,20], PLAYLIST_TITLE_BAR_SELECTED: [26,0,100,20], PLAYLIST_TOP_RIGHT_CORNER_SELECTED: [153,0,25,20], PLAYLIST_LEFT_TILE: [0,42,12,29], PLAYLIST_RIGHT_TILE: [31,42,20,29], PLAYLIST_BOTTOM_TILE: [179,0,25,38], PLAYLIST_BOTTOM_LEFT_CORNER: [0,72,125,38], PLAYLIST_BOTTOM_RIGHT_CORNER: [126,72,150,38], PLAYLIST_VISUALIZER_BACKGROUND: [205,0,75,38], PLAYLIST_SHADE_BACKGROUND: [72,57,25,14], PLAYLIST_SHADE_BACKGROUND_LEFT: [72,42,25,14], PLAYLIST_SHADE_BACKGROUND_RIGHT: [99,57,50,14], PLAYLIST_SHADE_BACKGROUND_RIGHT_SELECTED: [99,42,50,14], PLAYLIST_SCROLL_HANDLE_SELECTED: [61,53,8,18], PLAYLIST_SCROLL_HANDLE: [52,53,8,18], PLAYLIST_ADD_URL: [0,111,22,18], PLAYLIST_ADD_URL_SELECTED: [23,111,22,18], PLAYLIST_ADD_DIR: [0,130,22,18], PLAYLIST_ADD_DIR_SELECTED: [23,130,22,18], PLAYLIST_ADD_FILE: [0,149,22,18], PLAYLIST_ADD_FILE_SELECTED: [23,149,22,18], PLAYLIST_REMOVE_ALL: [54,111,22,18], PLAYLIST_REMOVE_ALL_SELECTED: [77,111,22,18], PLAYLIST_CROP: [54,130,22,18], PLAYLIST_CROP_SELECTED: [77,130,22,18], PLAYLIST_REMOVE_SELECTED: [54,149,22,18], PLAYLIST_REMOVE_SELECTED_SELECTED: [77,149,22,18], PLAYLIST_REMOVE_MISC: [54,168,22,18], PLAYLIST_REMOVE_MISC_SELECTED: [77,168,22,18], PLAYLIST_INVERT_SELECTION: [104,111,22,18], PLAYLIST_INVERT_SELECTION_SELECTED: [127,111,22,18], PLAYLIST_SELECT_ZERO: [104,130,22,18], PLAYLIST_SELECT_ZERO_SELECTED: [127,130,22,18], PLAYLIST_SELECT_ALL: [104,149,22,18], PLAYLIST_SELECT_ALL_SELECTED: [127,149,22,18], PLAYLIST_SORT_LIST: [154,111,22,18], PLAYLIST_SORT_LIST_SELECTED: [177,111,22,18], PLAYLIST_FILE_INFO: [154,130,22,18], PLAYLIST_FILE_INFO_SELECTED: [177,130,22,18], PLAYLIST_MISC_OPTIONS: [154,149,22,18], PLAYLIST_MISC_OPTIONS_SELECTED: [177,149,22,18], PLAYLIST_NEW_LIST: [204,111,22,18], PLAYLIST_NEW_LIST_SELECTED: [227,111,22,18], PLAYLIST_SAVE_LIST: [204,130,22,18], PLAYLIST_SAVE_LIST_SELECTED: [227,130,22,18], PLAYLIST_LOAD_LIST: [204,149,22,18], PLAYLIST_LOAD_LIST_SELECTED: [227,149,22,18], PLAYLIST_ADD_MENU_BAR: [48,111,3,54], PLAYLIST_REMOVE_MENU_BAR: [100,111,3,72], PLAYLIST_SELECT_MENU_BAR: [150,111,3,54], PLAYLIST_MISC_MENU_BAR: [200,111,3,54], PLAYLIST_LIST_BAR: [250,111,3,54], PLAYLIST_CLOSE_SELECTED: [52,42,9,9], PLAYLIST_COLLAPSE_SELECTED: [62,42,9,9], PLAYLIST_EXPAND_SELECTED: [150,42,9,9]},
+    EQ_EX: {EQ_SHADE_BACKGROUND_SELECTED: [0,0,275,14], EQ_SHADE_BACKGROUND: [0,15,275,14], EQ_SHADE_VOLUME_SLIDER_LEFT: [1,30,3,7], EQ_SHADE_VOLUME_SLIDER_CENTER: [4,30,3,7], EQ_SHADE_VOLUME_SLIDER_RIGHT: [7,30,3,7], EQ_SHADE_BALANCE_SLIDER_LEFT: [11,30,3,7], EQ_SHADE_BALANCE_SLIDER_CENTER: [14,30,3,7], EQ_SHADE_BALANCE_SLIDER_RIGHT: [17,30,3,7], EQ_MAXIMIZE_BUTTON_ACTIVE: [1,38,9,9], EQ_MINIMIZE_BUTTON_ACTIVE: [1,47,9,9], EQ_SHADE_CLOSE_BUTTON: [11,38,9,9], EQ_SHADE_CLOSE_BUTTON_ACTIVE: [11,47,9,9]},
+    EQMAIN: {EQ_WINDOW_BACKGROUND: [0,0,275,116], EQ_TITLE_BAR: [0,149,275,14], EQ_TITLE_BAR_SELECTED: [0,134,275,14], EQ_SLIDER_BACKGROUND: [13,164,209,129], EQ_SLIDER_THUMB: [0,164,11,11], EQ_SLIDER_THUMB_SELECTED: [0,176,11,11], EQ_CLOSE_BUTTON: [0,116,9,9], EQ_CLOSE_BUTTON_ACTIVE: [0,125,9,9], EQ_MAXIMIZE_BUTTON_ACTIVE_FALLBACK: [254,152,9,9], EQ_ON_BUTTON: [10,119,26,12], EQ_ON_BUTTON_DEPRESSED: [128,119,26,12], EQ_ON_BUTTON_SELECTED: [69,119,26,12], EQ_ON_BUTTON_SELECTED_DEPRESSED: [187,119,26,12], EQ_AUTO_BUTTON: [36,119,32,12], EQ_AUTO_BUTTON_DEPRESSED: [154,119,32,12], EQ_AUTO_BUTTON_SELECTED: [95,119,32,12], EQ_AUTO_BUTTON_SELECTED_DEPRESSED: [213,119,32,12], EQ_GRAPH_BACKGROUND: [0,294,113,19], EQ_GRAPH_LINE_COLORS: [115,294,1,19], EQ_PRESETS_BUTTON: [224,164,44,12], EQ_PRESETS_BUTTON_SELECTED: [224,176,44,12], EQ_PREAMP_LINE: [0,314,113,1]},
+    POSBAR: {MAIN_POSITION_SLIDER_BACKGROUND: [0,0,248,10], MAIN_POSITION_SLIDER_THUMB: [248,0,29,10], MAIN_POSITION_SLIDER_THUMB_SELECTED: [278,0,29,10]},
+    SHUFREP: {MAIN_SHUFFLE_BUTTON: [28,0,47,15], MAIN_SHUFFLE_BUTTON_DEPRESSED: [28,15,47,15], MAIN_SHUFFLE_BUTTON_SELECTED: [28,30,47,15], MAIN_SHUFFLE_BUTTON_SELECTED_DEPRESSED: [28,45,47,15], MAIN_REPEAT_BUTTON: [0,0,28,15], MAIN_REPEAT_BUTTON_DEPRESSED: [0,15,28,15], MAIN_REPEAT_BUTTON_SELECTED: [0,30,28,15], MAIN_REPEAT_BUTTON_SELECTED_DEPRESSED: [0,45,28,15], MAIN_EQ_BUTTON: [0,61,23,12], MAIN_EQ_BUTTON_SELECTED: [0,73,23,12], MAIN_EQ_BUTTON_DEPRESSED: [46,61,23,12], MAIN_EQ_BUTTON_DEPRESSED_SELECTED: [46,73,23,12], MAIN_PLAYLIST_BUTTON: [23,61,23,12], MAIN_PLAYLIST_BUTTON_SELECTED: [23,73,23,12], MAIN_PLAYLIST_BUTTON_DEPRESSED: [69,61,23,12], MAIN_PLAYLIST_BUTTON_DEPRESSED_SELECTED: [69,73,23,12]},
+    TITLEBAR: {MAIN_TITLE_BAR: [27,15,275,14], MAIN_TITLE_BAR_SELECTED: [27,0,275,14], MAIN_EASTER_EGG_TITLE_BAR: [27,72,275,14], MAIN_EASTER_EGG_TITLE_BAR_SELECTED: [27,57,275,14], MAIN_OPTIONS_BUTTON: [0,0,9,9], MAIN_OPTIONS_BUTTON_DEPRESSED: [0,9,9,9], MAIN_MINIMIZE_BUTTON: [9,0,9,9], MAIN_MINIMIZE_BUTTON_DEPRESSED: [9,9,9,9], MAIN_SHADE_BUTTON: [0,18,9,9], MAIN_SHADE_BUTTON_DEPRESSED: [9,18,9,9], MAIN_CLOSE_BUTTON: [18,0,9,9], MAIN_CLOSE_BUTTON_DEPRESSED: [18,9,9,9], MAIN_CLUTTER_BAR_BACKGROUND: [304,0,8,43], MAIN_CLUTTER_BAR_BACKGROUND_DISABLED: [312,0,8,43], MAIN_CLUTTER_BAR_BUTTON_O_SELECTED: [304,47,8,8], MAIN_CLUTTER_BAR_BUTTON_A_SELECTED: [312,55,8,7], MAIN_CLUTTER_BAR_BUTTON_I_SELECTED: [320,62,8,7], MAIN_CLUTTER_BAR_BUTTON_D_SELECTED: [328,69,8,8], MAIN_CLUTTER_BAR_BUTTON_V_SELECTED: [336,77,8,7], MAIN_SHADE_BACKGROUND: [27,42,275,14], MAIN_SHADE_BACKGROUND_SELECTED: [27,29,275,14], MAIN_SHADE_BUTTON_SELECTED: [0,27,9,9], MAIN_SHADE_BUTTON_SELECTED_DEPRESSED: [9,27,9,9], MAIN_SHADE_POSITION_BACKGROUND: [0,36,17,7], MAIN_SHADE_POSITION_THUMB: [20,36,3,7], MAIN_SHADE_POSITION_THUMB_LEFT: [17,36,3,7], MAIN_SHADE_POSITION_THUMB_RIGHT: [23,36,3,7]},
+    VOLUME: {MAIN_VOLUME_BACKGROUND: [0,0,68,420], MAIN_VOLUME_THUMB: [15,422,14,11], MAIN_VOLUME_THUMB_SELECTED: [0,422,14,11]},
+    GEN: {GEN_TOP_LEFT_SELECTED: [0,0,25,20], GEN_TOP_LEFT_END_SELECTED: [26,0,25,20], GEN_TOP_CENTER_FILL_SELECTED: [52,0,25,20], GEN_TOP_RIGHT_END_SELECTED: [78,0,25,20], GEN_TOP_LEFT_RIGHT_FILL_SELECTED: [104,0,25,20], GEN_TOP_RIGHT_SELECTED: [130,0,25,20], GEN_TOP_LEFT: [0,21,25,20], GEN_TOP_LEFT_END: [26,21,25,20], GEN_TOP_CENTER_FILL: [52,21,25,20], GEN_TOP_RIGHT_END: [78,21,25,20], GEN_TOP_LEFT_RIGHT_FILL: [104,21,25,20], GEN_TOP_RIGHT: [130,21,25,20], GEN_BOTTOM_LEFT: [0,42,125,14], GEN_BOTTOM_RIGHT: [0,57,125,14], GEN_BOTTOM_FILL: [127,72,25,14], GEN_MIDDLE_LEFT: [127,42,11,29], GEN_MIDDLE_LEFT_BOTTOM: [158,42,11,24], GEN_MIDDLE_RIGHT: [139,42,8,29], GEN_MIDDLE_RIGHT_BOTTOM: [170,42,8,24], GEN_CLOSE_SELECTED: [148,42,9,9]},
+  };
+  // text.bmp: 5x6 cells, [row, column].
+  const FONT = {};
+  "abcdefghijklmnopqrstuvwxyz\"@".split("").forEach((c, i) => { FONT[c] = [0, i]; });
+  "0123456789….:()-'!_+\\/[]^&%,=$#".split("").forEach((c, i) => { FONT[c] = [1, i]; });
+  "åöä?*".split("").forEach((c, i) => { FONT[c] = [2, i]; });
+  Object.assign(FONT, { " ": [0, 30], "<": [1, 22], ">": [1, 23], "{": [1, 22], "}": [1, 23] });
+
+  const FILES = { MAIN: "main", TITLEBAR: "titlebar", CBUTTONS: "cbuttons", SHUFREP: "shufrep", POSBAR: "posbar", VOLUME: "volume", BALANCE: "balance",
+    MONOSTER: "monoster", PLAYPAUS: "playpaus", NUMBERS: "numbers", NUMS_EX: "nums_ex", TEXT: "text", EQMAIN: "eqmain", EQ_EX: "eq_ex", PLEDIT: "pledit", GEN: "gen" };
+  const BASE = "assets/art/nightapps/skins/";
+  const BUILTIN = [
+    { id: "nightcode", name: "NightCode", file: "NightCode.wsz" },
+    { id: "classic", name: "ColeForge Classic", file: "ColeForge-Classic.wsz" },
+    { id: "silver", name: "ColeForge Silver", file: "ColeForge-Silver.wsz" },
+  ];
+  const FALLBACK = "classic";   // what fills in sheets a .wsz leaves out (like Winamp's base skin)
+
+  const PL_DEFAULT = { normal: "#00ff00", current: "#ffffff", normalbg: "#000000", selectedbg: "#0000c6", font: "Arial" };
+  const VIS_DEFAULT = [[0, 0, 0], [24, 33, 41], [239, 49, 16], [206, 41, 16], [214, 90, 0], [214, 102, 0], [214, 115, 0], [198, 123, 8], [222, 165, 24], [214, 181, 33],
+    [189, 222, 41], [148, 222, 33], [41, 206, 16], [50, 190, 16], [57, 181, 16], [49, 156, 8], [41, 148, 0], [24, 132, 8], [255, 255, 255], [214, 214, 222],
+    [181, 189, 189], [160, 170, 175], [148, 156, 165], [150, 150, 150]];
+
+  function parseViscolor(text) {
+    const out = [];
+    for (const line of String(text).split(/\r?\n/)) {
+      const m = /^\s*(\d+)\s*,\s*(\d+)\s*,\s*(\d+)/.exec(line);
+      if (m) out.push([+m[1], +m[2], +m[3]].map(v => Math.min(255, v)));
+      if (out.length === 24) break;
+    }
+    while (out.length < 24) out.push(VIS_DEFAULT[out.length]);
+    return out.map(([r, g, b]) => `rgb(${r},${g},${b})`);
+  }
+  function parsePledit(text) {
+    const out = Object.assign({}, PL_DEFAULT);
+    let inText = false;
+    for (const line of String(text).split(/\r?\n/)) {
+      const sec = /^\s*\[(.+)\]/.exec(line);
+      if (sec) { inText = sec[1].trim().toLowerCase() === "text"; continue; }
+      const m = /^\s*([a-z]+)\s*=\s*(.+?)\s*$/i.exec(line);
+      if (!inText || !m) continue;
+      const k = m[1].toLowerCase();
+      let v = m[2];
+      if (k === "font") { out.font = v; continue; }
+      if (!(k in out)) continue;
+      if (!v.startsWith("#")) v = "#" + v;           // some skins leave out the '#'
+      if (/^#[0-9a-f]{6}/i.test(v)) out[k] = v.slice(0, 7);
+    }
+    return out;
+  }
+
+  async function decode(bytes) {
+    const blob = new Blob([bytes], { type: bytes[0] === 0x42 && bytes[1] === 0x4d ? "image/bmp" : "image/png" });
+    const bmp = await createImageBitmap(blob);
+    const c = document.createElement("canvas");
+    c.width = bmp.width; c.height = bmp.height;
+    c.getContext("2d").drawImage(bmp, 0, 0);
+    bmp.close?.();
+    return c;
+  }
+  async function fetchBytes(url) {
+    const r = await fetch(url);
+    if (!r.ok) throw new Error(`${url}: ${r.status}`);
+    return new Uint8Array(await r.arrayBuffer());
+  }
+
+  // Raw sheets for a skin: { sheets: {MAIN: canvas, ...}, viscolor, pledit }
+  const builtinCache = {};
+  async function readBuiltin(id) {
+    if (builtinCache[id]) return builtinCache[id];
+    const dir = `${BASE}${id}/`;
+    const sheets = {};
+    await Promise.all(Object.entries(FILES).map(async ([k, f]) => {
+      try { sheets[k] = await decode(await fetchBytes(`${dir}${f}.png`)); } catch { /* optional sheet */ }
+    }));
+    const text = async (f) => { try { return await (await fetch(dir + f)).text(); } catch { return ""; } };
+    const [viscolor, pledit, meta] = await Promise.all([text("viscolor.txt"), text("pledit.txt"), text("skin.json")]);
+    let info = {};
+    try { info = JSON.parse(meta); } catch { /* none */ }
+    return (builtinCache[id] = { sheets, viscolor, pledit, name: info.name || id });
+  }
+  async function readWsz(bytes) {
+    if (!window.ZipKit) throw new Error("ZipKit isn't loaded.");
+    const zip = ZipKit.readZip(bytes);
+    const byBase = {};
+    for (const e of zip.entries) {
+      if (e.dir) continue;
+      const base = e.name.split(/[\\/]/).pop().toLowerCase();
+      if (!(base in byBase)) byBase[base] = e;       // first match wins, like Winamp
+    }
+    const get = async (n) => { const e = byBase[n]; if (!e) return null; try { return await ZipKit.extract(zip, e); } catch { return null; } };
+    const sheets = {};
+    await Promise.all(Object.entries(FILES).map(async ([k, f]) => {
+      const b = await get(f + ".bmp") || await get(f + ".png");
+      if (b) { try { sheets[k] = await decode(b); } catch { /* unreadable image */ } }
+    }));
+    if (!Object.keys(sheets).length) throw new Error("This isn't a Winamp classic skin: it has no skin bitmaps.");
+    const td = new TextDecoder("latin1");
+    const vis = await get("viscolor.txt"), ple = await get("pledit.txt");
+    return { sheets, viscolor: vis ? td.decode(vis) : "", pledit: ple ? td.decode(ple) : "" };
+  }
+
+  function crop(sheet, [x, y, w, hh]) {
+    const c = document.createElement("canvas");
+    c.width = w; c.height = hh;
+    if (sheet) c.getContext("2d").drawImage(sheet, x, y, w, hh, 0, 0, w, hh);
+    return c;
+  }
+  const toUrl = (canvas) => new Promise(res => canvas.toBlob(b => res(URL.createObjectURL(b)), "image/png"));
+
+  // Build a usable skin from raw sheets.
+  async function build(raw, meta) {
+    const fb = meta.id === FALLBACK ? null : await readBuiltin(FALLBACK);
+    const sheets = Object.assign({}, fb?.sheets || {});
+    for (const [k, v] of Object.entries(raw.sheets)) sheets[k] = v;
+    if (!raw.sheets.BALANCE && raw.sheets.VOLUME) sheets.BALANCE = raw.sheets.VOLUME;   // Winamp's rule
+    const numbersEx = !!raw.sheets.NUMS_EX;
+    const vars = {}, urls = [];
+    const jobs = [];
+    for (const [sheetName, sprites] of Object.entries(SPRITES)) {
+      const sheet = sheets[sheetName];
+      if (!sheet) continue;
+      for (const [name, rect] of Object.entries(sprites)) {
+        jobs.push(toUrl(crop(sheet, rect)).then(u => { vars[name] = u; urls.push(u); }));
+      }
+    }
+    await Promise.all(jobs);
+    const skin = {
+      id: meta.id, name: meta.name, builtin: !!meta.builtin, vars, urls, sheets, numbersEx,
+      hasEqEx: !!raw.sheets.EQ_EX,
+      colors: parseViscolor(raw.viscolor || fb?.viscolor || ""),
+      pl: parsePledit(raw.pledit || fb?.pledit || ""),
+    };
+    const eqg = sheets.EQMAIN;
+    if (eqg && eqg.height >= 313) {                         // the EQ graph's line colours, top to bottom
+      const d = eqg.getContext("2d").getImageData(115, 294, 1, 19).data;
+      skin.graphColors = Array.from({ length: 19 }, (_, i) => `rgb(${d[i * 4]},${d[i * 4 + 1]},${d[i * 4 + 2]})`);
+    } else skin.graphColors = Array(19).fill(skin.colors[2]);
+    return skin;
+  }
+
+  async function load(src) {
+    if (src.builtin) {
+      const b = BUILTIN.find(x => x.id === src.builtin) || BUILTIN[0];
+      const raw = await readBuiltin(b.id);
+      return build(raw, { id: b.id, name: b.name, builtin: true });
+    }
+    const raw = await readWsz(src.bytes);
+    const name = (src.name || "Skin").replace(/\.(wsz|zip)$/i, "");
+    return build(raw, { id: "wsz:" + name, name });
+  }
+  function dispose(skin) { skin?.urls.forEach(u => URL.revokeObjectURL(u)); }
+
+  // Put every sprite on an element as a CSS variable: --MAIN_PLAY_BUTTON: url(...)
+  function apply(el, skin, previous) {
+    if (previous) for (const k of Object.keys(previous.vars)) el.style.removeProperty("--" + k);
+    for (const [k, u] of Object.entries(skin.vars)) el.style.setProperty("--" + k, `url("${u}")`);
+    el.style.setProperty("--pl-normal", skin.pl.normal);
+    el.style.setProperty("--pl-current", skin.pl.current);
+    el.style.setProperty("--pl-bg", skin.pl.normalbg);
+    el.style.setProperty("--pl-selbg", skin.pl.selectedbg);
+    el.style.setProperty("--pl-font", `"${skin.pl.font.replace(/"/g, "")}", Arial, sans-serif`);
+    el.style.setProperty("--vis-bg", skin.colors[0]);
+  }
+
+  // Draw text with the skin's text.bmp font. Returns the x after the last character.
+  function text(ctx, skin, str, x, y) {
+    const sheet = skin.sheets.TEXT;
+    const s = String(str).toLowerCase().normalize("NFC");
+    for (const ch0 of s) {
+      let ch = ch0;
+      if (!FONT[ch]) ch = ch.normalize("NFD").replace(/[̀-ͯ]/g, "");
+      const p = FONT[ch] || FONT[" "];
+      if (sheet) ctx.drawImage(sheet, p[1] * 5, p[0] * 6, 5, 6, x, y, 5, 6);
+      x += 5;
+    }
+    return x;
+  }
+
+  // Make a built-in skin's .wsz URL (they ship next to the skins so people can use them in other players).
+  const wszUrl = (id) => BASE + (BUILTIN.find(b => b.id === id)?.file || "");
+
+  // Skins you load are kept in IndexedDB (they're too big for localStorage), by name.
+  let dbp = null;
+  function db() {
+    if (dbp) return dbp;
+    dbp = new Promise((res, rej) => {
+      if (!window.indexedDB) return rej(new Error("no IndexedDB"));
+      const r = indexedDB.open("nightamp-skins", 1);
+      r.onupgradeneeded = () => r.result.createObjectStore("skins");
+      r.onsuccess = () => res(r.result);
+      r.onerror = () => rej(r.error);
+    });
+    dbp.catch(() => { dbp = null; });
+    return dbp;
+  }
+  const req = (r) => new Promise((res, rej) => { r.onsuccess = () => res(r.result); r.onerror = () => rej(r.error); });
+  const saved = {
+    async list() { try { const d = await db(); return (await req(d.transaction("skins").objectStore("skins").getAllKeys())).sort((a, b) => a.localeCompare(b)); } catch { return []; } },
+    async get(name) { const d = await db(); return req(d.transaction("skins").objectStore("skins").get(name)); },
+    async put(name, bytes) { try { const d = await db(); await req(d.transaction("skins", "readwrite").objectStore("skins").put(bytes, name)); return true; } catch { return false; } },
+    async remove(name) { const d = await db(); await req(d.transaction("skins", "readwrite").objectStore("skins").delete(name)); },
+  };
+
+  window.NightSkin = { SPRITES, FONT, BUILTIN, load, dispose, apply, text, parseViscolor, parsePledit, wszUrl, saved };
+})();

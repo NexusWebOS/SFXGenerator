@@ -1,0 +1,6 @@
+[Text]
+Normal=#9FD3FF
+Current=#FFFFFF
+NormalBG=#050A16
+SelectedBG=#13265A
+Font=Share Tech Mono

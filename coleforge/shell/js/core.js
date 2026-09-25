@@ -392,6 +392,7 @@
         el.style.zIndex = ++zTop; el.classList.add("active"); taskBtn.classList.add("active");
         win.emit("focus");
       },
+      setTopmost(on) { win.topmost = !!on; el.classList.toggle("topmost", !!on); },
       minimize() { el.classList.add("min"); el.classList.remove("active"); taskBtn.classList.remove("active"); CF.sound("minimize"); },
       restore() { if (el.classList.contains("min")) { el.classList.remove("min"); CF.sound("maximize"); } },
       toggleMax() {

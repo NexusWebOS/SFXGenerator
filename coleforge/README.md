@@ -45,7 +45,7 @@ cross-PC ForgeChat, which needs the server.
 | **Legacy Mode** | 90's games on modern hardware: **DOSBox – ColeForge Edition** (DOSBox Staging with era presets from an IBM XT to a Pentium MMX + Voodoo, IPX LAN play) for DOS games, and complete Windows 98 SE PCs in **86Box**, including **Voodoo3 Mode** (Pentium II 450, 440BX, 3dfx Voodoo3 3000 AGP) and a Voodoo2 SLI rig. Generates the configs, creates the disk, launches the emulator. See [legacy/README.md](legacy/README.md). |
 | **Forge Game Browser** | A 16-bit, GameSpy-style Zandronum server browser: internet servers from the Zandronum master, LAN servers found automatically from their broadcasts, favourites and ForgeChat lobbies. Sort by ping/players, filter, see every player's score/ping/team, WADs, limits and skill; double-click to join (password prompt included), host your own server, or **Share** a server into ForgeChat as a one-click Join card. |
 | **WinNight** *(NightCode)* | The archiver: a big-button archive manager with its own 16-bit toolbar and splash. Opens ZIP, **RAR (v4/v5)**, **7-Zip**, TAR, GZ/TGZ, XZ, BZIP2, ZSTD, ISO, CAB and more; creates ZIP, TAR, TAR.GZ/XZ/BZ2/ZST. **Lock** archives with **AES-256** (WinZip AE-2, opens in WinRAR/7-Zip/Windows), Add, Extract To (My Documents or this PC), Test (CRC-32 + AES authentication), View (text, pictures, hex; music/video go to NightAmp), Delete, Rename, New folder, Find (names and text inside files), Info, comments, **Repair** (rebuilds a ZIP from its local headers), Convert between formats, and **self-extracting archives** as a single .html file. Engine: `shell/js/zipkit.js`. |
-| **NightAmp** *(NightCode)* | The media player: a clean-room take on the classic Winamp 2 layout (275×116 main window at double size, LED time, spectrum/oscilloscope, scrolling title, 10-band equalizer with presets, playlist editor, windowshade, Z/X/C/V/B keys) in an original NightCode skin. Plays MP3, AAC/M4A, FLAC, Opus, Vorbis, WAV, WebM audio, **AIFF** (built-in converter), **MIDI and Doom .MUS** (ForgeMIDI); **video** MP4/H.264, WebM/VP9/AV1, MKV, MOV and **HLS .m3u8** with subtitles, speed, picture-in-picture and full screen; **internet radio** and M3U/PLS playlists; a **built-in web & radio browser**; and **NightDrop**, audio-reactive code rain when there's no picture. |
+| **NightAmp** *(NightCode)* | The media player: a clean-room Winamp 2 that draws itself from **Winamp classic skins (.wsz)**. Drop any of the thousands of community skins on it (or Winamp's own look, from the [Winamp Skin Museum](https://skins.webamp.org/)) and it wears it; three original skins are built in: **NightCode** (default), **ColeForge Classic** (the grey/green look) and **ColeForge Silver** (the silver/blue look). Main window, 10-band equalizer with presets, playlist editor with Winamp's pop-up ADD/REM/SEL/MISC/LIST menus, windowshade, double size, clutter bar (O A I D V), Z/X/C/V/B keys. A **Media Library** (Alt+L) reads ID3/FLAC/Ogg/MP4 tags, sorts by artist and album, keeps its files between sessions and holds saved playlists, internet radio and skins. Plays MP3, AAC/M4A, FLAC, Opus, Vorbis, WAV, WebM audio, **AIFF** (built-in converter), **MIDI and Doom .MUS** (ForgeMIDI); **video** MP4/H.264, WebM/VP9/AV1, MKV, MOV and **HLS .m3u8** with subtitles, speed, picture-in-picture and full screen; **internet radio** and M3U/PLS playlists; a **built-in web & radio browser**; and **NightDrop**, audio-reactive code rain when there's no picture. |
 | **NightBrowser** *(NightCode)* | Forge Browser, cloned and upgraded: NightCode start page with code rain and an editable speed dial, **NightShield** tracker/ad blocking and **HTTPS upgrade** (ColeForge.exe), **private tabs** in their own in-memory session, bookmarks bar, find in page, zoom, mute tab, page screenshot → Forgecraft, "Play in NightAmp" for media links, search engine choice (DuckDuckGo default). |
 | **Netcon** *(NightCode)* | Official ColeForge program: SAMPLE ID badge maker with PNG export, RFID/NFC asset inventory (IDs you type in, no radio reading), lock service/damage log, game ownership and compatibility catalog. |
 | **Disk Dude** *(NightCode)* | Official ColeForge program: detects PS1/PS2/Dreamcast/Xbox/DVD/VCD/music/data discs, verified copy with SHA-256 manifest + ZIP, data-disc burning, Audio CD playback, one-click emulator launch. See [programs/README.md](programs/README.md). |
@@ -60,7 +60,7 @@ coleforge/
   server/zandronum/  Zandronum master/launcher protocol + Huffman codec (ported from Zandronum's source)
   programs/     official NightCode programs (Netcon, Disk Dude), vendored from NexusWebOS/NightCode
   shell/vendor/ libarchive.js (RAR/7z/… for WinNight) and hls.js (HLS for NightAmp), see vendor/README.md
-  tests/        ZipKit (WinNight's engine) and NightShield tests
+  tests/        ZipKit (WinNight's engine), NightShield and NightAmp (skins, tags) tests
   lively/       NightCode Code Rain packaged for Lively Wallpaper (build script + page)
   legacy/       Legacy Mode docs (then vs now, CPU/GPU emulation, Voodoo3 Mode), sample configs, tests
   desktop/      Electron host → ColeForge.exe, shell replacement, real browser tabs, game launching
@@ -117,9 +117,13 @@ Browsers visiting `http://<lan-ip>` may block the camera; use ColeForge.exe on e
   3-5 tone shading. Cursors are in `shell/assets/cursors/nightcode/`. The fonts are Share Tech Mono and
   Orbitron (SIL Open Font License 1.1, licences next to them in `shell/assets/fonts/`).
 - **WinNight, NightAmp, NightBrowser** (`shell/assets/art/nightapps/`): program icons, WinNight's 10 toolbar
-  buttons and file-type icons, NightBrowser's toolbar, NightAmp's transport buttons and LED digits, all 16-bit
-  in the NightCode palette, plus the three start-up splash screens, drawn by `art/nightcode/build_nightcode_apps.py`
-  (preview `art/nightcode/apps-preview.png`). NightAmp's skin is otherwise drawn in CSS and a built-in 5×6 pixel font.
+  buttons and file-type icons and NightBrowser's toolbar, all 16-bit in the NightCode palette, plus the three
+  start-up splash screens, drawn by `art/nightcode/build_nightcode_apps.py` (preview `art/nightcode/apps-preview.png`).
+- **NightAmp skins** (`shell/assets/art/nightapps/skins/`): NightCode, ColeForge Classic and ColeForge Silver,
+  every Winamp 2 skin sheet (main, title bar, buttons, sliders, LED digits, text font, equalizer, playlist, frames,
+  viscolor.txt, pledit.txt) drawn by `art/nightcode/build_nightamp_skins.py`. Each is also exported as a real
+  `.wsz` (`NightCode.wsz`, `ColeForge-Classic.wsz`, `ColeForge-Silver.wsz`) that works in Winamp and Webamp.
+  Preview: `art/nightcode/nightamp-skins.png`.
 - **NightCode Live** (`shell/js/nightcode-rain.js`): the code rain behind the desktop (30 fps, paused under
   a maximized window) and in the screen saver. `lively/` packages it for Lively Wallpaper.
 - **NightCode art** (`art/nightcode/`): Cole's four NightCode pictures are in `source/`; the skull-chip logo
@@ -176,6 +180,7 @@ publicly, rename it and drop Microsoft marks.
 ```
 node coleforge/tests/zipkit.test.js       # WinNight's ZIP/TAR/AES engine against Python, Info-ZIP and pyzipper
 node coleforge/tests/nightshield.test.js  # NightBrowser's tracker blocker and HTTPS upgrade rules
+node coleforge/tests/nightamp.test.js     # NightAmp's skins (.wsz, sheet sizes) and tag reader (mutagen when installed)
 node coleforge/server/zandronum/test/zandronum.test.js
 node coleforge/legacy/test/legacy-profiles.test.js
 ```
@@ -185,5 +190,18 @@ node coleforge/legacy/test/legacy-profiles.test.js
 NightAmp doesn't use Winamp's code. The source Llama Group published in 2024 came under the Winamp
 Collaborative License, which doesn't allow modified versions to be shared (and the repository was taken
 down weeks later). So NightAmp is written from scratch for the ColeForge shell. It follows the classic
-Winamp 2 layout and behaviour, with an original skin and presets and no Nullsoft code or art.
+Winamp 2 layout and behaviour, with original skins and presets and no Nullsoft code or art.
+
+### Getting the Winamp look back
+
+NightAmp reads the Winamp 2 skin format, so the real Winamp designs come back the same way they always did:
+by loading a skin. Right-click NightAmp → **Skins → Get more skins** opens the Winamp Skin Museum in the
+built-in browser; downloading a `.wsz` there puts it on straight away. You can also drop a `.wsz` on NightAmp,
+open one from My Documents, or use **Skins → Load skin**. Skins you load are kept (IndexedDB) and listed in the
+Skins menu and in the Media Library's Skins page. Winamp's default "base skin" isn't included because it's
+Nullsoft's art; ColeForge Classic and ColeForge Silver are original skins in the same spirit.
+
+The skin engine (`shell/js/nightamp-skin.js`) uses the sprite coordinates from Webamp's skin map
+(Copyright (c) 2015 Jordan Eldredge, MIT licence, notice in the file). A sheet a skin leaves out is taken
+from ColeForge Classic, like Winamp falls back to its base skin.
 

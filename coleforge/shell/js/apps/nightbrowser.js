@@ -15,7 +15,7 @@
     ["Mojeek", "https://www.mojeek.com/search?q="], ["Google", "https://www.google.com/search?q="], ["Bing", "https://www.bing.com/search?q="]];
   const DEFAULT_DIAL = [["NightCode", "https://github.com/NexusWebOS/NightCode"], ["Zandronum", "https://zandronum.com/"], ["Freedoom", "https://freedoom.github.io/"],
     ["Archive.org", "https://archive.org/"], ["SomaFM", "https://somafm.com/"], ["Wikipedia", "https://en.wikipedia.org/"], ["Doomworld", "https://www.doomworld.com/"], ["Hacker News", "https://news.ycombinator.com/"]];
-  const MEDIA_RX = /\.(mp3|m4a|aac|flac|ogg|oga|opus|wav|weba|mp4|m4v|webm|mkv|mov|ogv|m3u8|mid|midi|pls|m3u)(\?|#|$)/i;
+  const MEDIA_RX = /\.(wsz|mp3|m4a|aac|flac|ogg|oga|opus|wav|weba|mp4|m4v|webm|mkv|mov|ogv|m3u8|mid|midi|pls|m3u)(\?|#|$)/i;
   const prefs = () => Object.assign({ engine: ENGINES[0][1], shield: true, https: true, dial: DEFAULT_DIAL, bookmarks: DEFAULT_DIAL.slice(0, 5), showBar: true, splash: true }, CF.store.get(KEY, {}));
   const setPrefs = (p) => CF.store.set(KEY, p);
   let shieldApplied = false;

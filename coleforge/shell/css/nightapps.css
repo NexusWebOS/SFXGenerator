@@ -100,86 +100,194 @@ body.theme-nc .nb-toolbar { background: #0a1224; box-shadow: inset 0 -1px var(--
 body.theme-nc .nb-btn:hover { border-color: var(--nc-cyan); box-shadow: 0 0 6px rgba(49, 215, 232, .4); }
 .nb [hidden], .wn [hidden] { display: none !important; }
 
-/* ================= NightAmp (its own NightCode skin in every theme) ================= */
+/* ================= NightAmp: every piece is a sprite from the loaded Winamp-format skin =================
+   NightSkin (js/nightamp-skin.js) sets one CSS variable per sprite on .na, e.g. --MAIN_PLAY_BUTTON. */
 .na { --z: 2; display: flex; width: max-content; align-items: flex-start; outline: none; font: 12px "Share Tech Mono", Consolas, monospace; color: #cfe6ff; user-select: none; }
+.na.loading { visibility: hidden; }
 .na [hidden] { display: none !important; }
-.na canvas { image-rendering: pixelated; }
-.na-col { display: flex; flex-direction: column; }
+.na canvas, .na .na-s { image-rendering: pixelated; }
+.na-col { display: flex; flex-direction: column; zoom: var(--z); }
 .na-col2 { display: flex; flex-direction: column; width: 560px; }
-.na-win { position: relative; background: linear-gradient(#0d1a38, #070d1e); box-shadow: inset 0 0 0 1px #2d5aa8, 0 0 0 1px #000; }
-.na-dragging .na-win { box-shadow: inset 0 0 0 1px #31d7e8, 0 0 12px rgba(49, 215, 232, .6); }
-.na-main, .na-eq { width: 275px; height: 116px; zoom: var(--z); }
-.na-main > *, .na-eq > *, .na-lcd > * { position: absolute; }
-.na-main.shade { height: 14px; }
-.na-main.shade > :not(.na-title) { display: none; }
-.na-title { display: flex; align-items: center; gap: 2px; padding: 0 2px 0 3px; background: linear-gradient(90deg, #01030a, #0b2a6e 60%, #1e78ff); cursor: default; box-sizing: border-box; }
-.na-titletext { flex: 1; height: 6px; min-width: 0; object-fit: none; object-position: left; }
-.na-ticon { width: 10px; height: 10px; cursor: pointer; }
-.na-tbtn { flex: none; width: 9px; height: 9px; padding: 0; border: 1px solid #2d5aa8; background: #050a16; color: #31d7e8; font: bold 7px/6px Consolas, monospace; cursor: pointer; }
-.na-tbtn:hover { border-color: #31d7e8; }
-.na-tbtn.close:hover { background: #ff5c8a; color: #fff; }
-.na-clutter { display: flex; flex-direction: column; justify-content: space-between; background: #050a16; box-shadow: inset 0 0 0 1px #1f3a6e; }
-.na-clut { width: 8px; height: 8px; padding: 0; border: none; background: transparent; cursor: pointer; opacity: .55; }
-.na-clut.on { opacity: 1; background: #13265a; }
-.na-clut:hover { opacity: 1; }
-.na-clut canvas { display: block; }
-.na-lcd { background: #02050e; box-shadow: inset 0 0 0 1px #1f3a6e, inset 0 0 6px rgba(30, 120, 255, .35); cursor: pointer; }
-.na-status { left: 4px; top: 8px; }
-.na-vis { left: 4px; top: 23px; }
-.na-digit { background: url("../assets/art/nightapps/nightamp/numbers.png") 0 0 no-repeat; }
-.na-colon { background: linear-gradient(#31d7e8 0 2px, transparent 2px 5px, #31d7e8 5px 7px, transparent 7px); }
-.na-song { background: #02050e; box-shadow: inset 0 0 0 1px #1f3a6e; overflow: hidden; }
-.na-marquee { position: absolute; left: 2px; top: 3px; }
-.na-slider { cursor: pointer; }
-.na-slider::before { content: ""; position: absolute; left: 0; right: 0; top: 4px; bottom: 4px; background: #050a16; box-shadow: inset 0 0 0 1px #1f3a6e; }
-.na-fill { position: absolute; left: 0; top: 5px; bottom: 5px; background: linear-gradient(90deg, #13265a, #1e78ff, #31d7e8); }
-.na-balance .na-fill { display: none; }
-.na-thumb { position: absolute; top: 1px; bottom: 1px; background: linear-gradient(#dbe6f2, #9fb0c8 50%, #5a6a88); box-shadow: inset 0 0 0 1px #02040c; }
-.na-seek::before { top: 3px; bottom: 3px; }
-.na-seek .na-fill { top: 4px; bottom: 4px; }
-.na-seek .na-thumb { top: 0; bottom: 0; }
-.na-seek.live .na-thumb { background: repeating-linear-gradient(90deg, #31d7e8 0 2px, #1e78ff 2px 4px); }
-.na-tog { padding: 0; border: none; background: #050a16; box-shadow: inset 0 0 0 1px #1f3a6e; cursor: pointer; }
-.na-tog canvas { display: block; opacity: .5; }
-.na-tog.on { background: #0f2456; box-shadow: inset 0 0 0 1px #31d7e8; }
-.na-tog.on canvas { opacity: 1; }
-.na-tog:hover canvas { opacity: .9; }
-.na-cb { padding: 0; border: none; background: url("../assets/art/nightapps/nightamp/cbuttons.png") no-repeat; cursor: pointer; }
-.na-cb:active { background-position: var(--pos) -18px !important; }
-.na-logo { padding: 0; border: none; background: transparent; cursor: pointer; }
-.na-logo img { width: 18px; height: 18px; image-rendering: auto; filter: drop-shadow(0 0 2px #1e78ff); }
-.na-graph { box-shadow: 0 0 0 1px #1f3a6e; }
-.na-eqlabels { pointer-events: none; }
-.na-vslider { background: #050a16; box-shadow: inset 0 0 0 1px #1f3a6e; cursor: pointer; }
-.na-vbar { position: absolute; left: 5px; width: 4px; background: #31d7e8; }
-.na-vbar.down { background: #1e78ff; }
-.na-vthumb { position: absolute; left: 1px; width: 12px; height: 11px; background: linear-gradient(#dbe6f2, #9fb0c8 50%, #5a6a88); box-shadow: inset 0 0 0 1px #02040c; }
-.na-pl { width: calc(275px * var(--z)); display: flex; flex-direction: column; background: #050a16; }
-.na-ptitle { position: relative; height: calc(14px * var(--z)); flex: none; }
-.na-ptitle .na-titletext { zoom: var(--z); height: 6px; }
-.na-ptitle .na-tbtn { zoom: var(--z); }
-.na-ptitle .na-pbtn, .na-ptitle .na-mini { margin: 0 2px; }
-.na-search { margin: 5px 6px 3px; padding: 3px 6px; background: #02050e; color: #cfe6ff; border: 1px solid #1f3a6e; font: inherit; outline: none; user-select: text; }
-.na-search:focus { border-color: #31d7e8; }
-.na-list { overflow: auto; outline: none; margin: 0 2px; }
-.na-row { display: flex; gap: 6px; padding: 1px 6px; color: #9fd3ff; white-space: nowrap; cursor: default; }
-.na-row:hover { background: rgba(30, 120, 255, .12); }
-.na-row.sel { background: #13265a; }
-.na-row.cur { color: #fff; text-shadow: 0 0 5px #31d7e8; }
-.na-row.over { box-shadow: inset 0 2px #31d7e8; }
-.na-idx { min-width: 28px; text-align: right; color: #5f80ab; }
+.na-win { position: relative; }
+.na-dragging .na-col, .na-dragging .na-col2 { filter: drop-shadow(0 0 6px rgba(49, 215, 232, .9)); }
+.na-s { position: absolute; display: block; padding: 0; margin: 0; border: 0; background: transparent no-repeat; }
+
+/* ---- main window ---- */
+.na-main { width: 275px; height: 116px; background-image: var(--MAIN_WINDOW_BACKGROUND); }
+.na-main.shade { height: 14px; background: none; }
+.na-main.shade > :not(.na-tb):not(.na-shade-only), .na-main:not(.shade) .na-shade-only { display: none; }
+.na-tb { background-image: var(--MAIN_TITLE_BAR); }
+.na-focused .na-main.sel .na-tb { background-image: var(--MAIN_TITLE_BAR_SELECTED); }
+.na-main.shade .na-tb { background-image: var(--MAIN_SHADE_BACKGROUND); }
+.na-focused .na-main.shade.sel .na-tb { background-image: var(--MAIN_SHADE_BACKGROUND_SELECTED); }
+.na-opt { background-image: var(--MAIN_OPTIONS_BUTTON); } .na-opt:active { background-image: var(--MAIN_OPTIONS_BUTTON_DEPRESSED); }
+.na-min { background-image: var(--MAIN_MINIMIZE_BUTTON); } .na-min:active { background-image: var(--MAIN_MINIMIZE_BUTTON_DEPRESSED); }
+.na-shd { background-image: var(--MAIN_SHADE_BUTTON); } .na-shd:active { background-image: var(--MAIN_SHADE_BUTTON_DEPRESSED); }
+.na-main.shade .na-shd { background-image: var(--MAIN_SHADE_BUTTON_SELECTED); } .na-main.shade .na-shd:active { background-image: var(--MAIN_SHADE_BUTTON_SELECTED_DEPRESSED); }
+.na-cls { background-image: var(--MAIN_CLOSE_BUTTON); } .na-cls:active { background-image: var(--MAIN_CLOSE_BUTTON_DEPRESSED); }
+.na-clutter { background-image: var(--MAIN_CLUTTER_BAR_BACKGROUND); }
+.na-ck-o:active, .na-ck-o.on { background-image: var(--MAIN_CLUTTER_BAR_BUTTON_O_SELECTED); }
+.na-ck-a:active, .na-ck-a.on { background-image: var(--MAIN_CLUTTER_BAR_BUTTON_A_SELECTED); }
+.na-ck-i:active, .na-ck-i.on { background-image: var(--MAIN_CLUTTER_BAR_BUTTON_I_SELECTED); }
+.na-ck-d:active, .na-ck-d.on { background-image: var(--MAIN_CLUTTER_BAR_BUTTON_D_SELECTED); }
+.na-ck-v:active, .na-ck-v.on { background-image: var(--MAIN_CLUTTER_BAR_BUTTON_V_SELECTED); }
+.na-pp.play { background-image: var(--MAIN_PLAYING_INDICATOR); }
+.na-pp.pause { background-image: var(--MAIN_PAUSED_INDICATOR); }
+.na-pp.stop { background-image: var(--MAIN_STOPPED_INDICATOR); }
+.na-work { background-image: var(--MAIN_NOT_WORKING_INDICATOR); } .na-work.busy { background-image: var(--MAIN_WORKING_INDICATOR); }
+.na-minus { background-image: var(--MINUS_SIGN); } .na-minus.ex { background-image: var(--MINUS_SIGN_EX); }
+.na-lcdhit { cursor: pointer; }
+.na-mono { background-image: var(--MAIN_MONO); } .na-mono.on { background-image: var(--MAIN_MONO_SELECTED); }
+.na-stereo { background-image: var(--MAIN_STEREO); } .na-stereo.on { background-image: var(--MAIN_STEREO_SELECTED); }
+.na-vol { background-image: var(--MAIN_VOLUME_BACKGROUND); }
+.na-bal { background-image: var(--MAIN_BALANCE_BACKGROUND); }
+.na-vol > .na-s, .na-bal > .na-s { top: 1px; width: 14px; height: 11px; background-image: var(--MAIN_VOLUME_THUMB); }
+.na-vol > .na-s.drag { background-image: var(--MAIN_VOLUME_THUMB_SELECTED); }
+.na-bal > .na-s { background-image: var(--MAIN_BALANCE_THUMB); } .na-bal > .na-s.drag { background-image: var(--MAIN_BALANCE_THUMB_ACTIVE); }
+.na-eqb { background-image: var(--MAIN_EQ_BUTTON); } .na-eqb:active { background-image: var(--MAIN_EQ_BUTTON_DEPRESSED); }
+.na-eqb.on { background-image: var(--MAIN_EQ_BUTTON_SELECTED); } .na-eqb.on:active { background-image: var(--MAIN_EQ_BUTTON_DEPRESSED_SELECTED); }
+.na-plb { background-image: var(--MAIN_PLAYLIST_BUTTON); } .na-plb:active { background-image: var(--MAIN_PLAYLIST_BUTTON_DEPRESSED); }
+.na-plb.on { background-image: var(--MAIN_PLAYLIST_BUTTON_SELECTED); } .na-plb.on:active { background-image: var(--MAIN_PLAYLIST_BUTTON_DEPRESSED_SELECTED); }
+.na-pos { background-image: var(--MAIN_POSITION_SLIDER_BACKGROUND); }
+.na-pos > .na-s { top: 0; width: 29px; height: 10px; background-image: var(--MAIN_POSITION_SLIDER_THUMB); }
+.na-pos > .na-s.drag { background-image: var(--MAIN_POSITION_SLIDER_THUMB_SELECTED); }
+.na-prev { background-image: var(--MAIN_PREVIOUS_BUTTON); } .na-prev:active { background-image: var(--MAIN_PREVIOUS_BUTTON_ACTIVE); }
+.na-play { background-image: var(--MAIN_PLAY_BUTTON); } .na-play:active { background-image: var(--MAIN_PLAY_BUTTON_ACTIVE); }
+.na-pause { background-image: var(--MAIN_PAUSE_BUTTON); } .na-pause:active { background-image: var(--MAIN_PAUSE_BUTTON_ACTIVE); }
+.na-stop { background-image: var(--MAIN_STOP_BUTTON); } .na-stop:active { background-image: var(--MAIN_STOP_BUTTON_ACTIVE); }
+.na-next { background-image: var(--MAIN_NEXT_BUTTON); } .na-next:active { background-image: var(--MAIN_NEXT_BUTTON_ACTIVE); }
+.na-eject { background-image: var(--MAIN_EJECT_BUTTON); } .na-eject:active { background-image: var(--MAIN_EJECT_BUTTON_ACTIVE); }
+.na-shuf { background-image: var(--MAIN_SHUFFLE_BUTTON); } .na-shuf:active { background-image: var(--MAIN_SHUFFLE_BUTTON_DEPRESSED); }
+.na-shuf.on { background-image: var(--MAIN_SHUFFLE_BUTTON_SELECTED); } .na-shuf.on:active { background-image: var(--MAIN_SHUFFLE_BUTTON_SELECTED_DEPRESSED); }
+.na-rep { background-image: var(--MAIN_REPEAT_BUTTON); } .na-rep:active { background-image: var(--MAIN_REPEAT_BUTTON_DEPRESSED); }
+.na-rep.on { background-image: var(--MAIN_REPEAT_BUTTON_SELECTED); } .na-rep.on:active { background-image: var(--MAIN_REPEAT_BUTTON_SELECTED_DEPRESSED); }
+.na-spos { background-image: var(--MAIN_SHADE_POSITION_BACKGROUND); }
+.na-spos > .na-s { top: 0; width: 3px; height: 7px; background-image: var(--MAIN_SHADE_POSITION_THUMB); }
+.na-spos > .na-s.l { background-image: var(--MAIN_SHADE_POSITION_THUMB_LEFT); } .na-spos > .na-s.r { background-image: var(--MAIN_SHADE_POSITION_THUMB_RIGHT); }
+.na-hit { cursor: default; }
+
+/* ---- equalizer ---- */
+.na-eq { width: 275px; height: 116px; background-image: var(--EQ_WINDOW_BACKGROUND); }
+.na-eqtb { background-image: var(--EQ_TITLE_BAR); } .na-focused .na-eq.sel .na-eqtb { background-image: var(--EQ_TITLE_BAR_SELECTED); }
+.na-eqcls { background-image: var(--EQ_CLOSE_BUTTON); } .na-eqcls:active { background-image: var(--EQ_CLOSE_BUTTON_ACTIVE); }
+.na-on { background-image: var(--EQ_ON_BUTTON); } .na-on:active { background-image: var(--EQ_ON_BUTTON_DEPRESSED); }
+.na-on.on { background-image: var(--EQ_ON_BUTTON_SELECTED); } .na-on.on:active { background-image: var(--EQ_ON_BUTTON_SELECTED_DEPRESSED); }
+.na-auto { background-image: var(--EQ_AUTO_BUTTON); } .na-auto:active { background-image: var(--EQ_AUTO_BUTTON_DEPRESSED); }
+.na-auto.on { background-image: var(--EQ_AUTO_BUTTON_SELECTED); } .na-auto.on:active { background-image: var(--EQ_AUTO_BUTTON_SELECTED_DEPRESSED); }
+.na-presets { background-image: var(--EQ_PRESETS_BUTTON); } .na-presets:active { background-image: var(--EQ_PRESETS_BUTTON_SELECTED); }
+.na-band { background-image: var(--EQ_SLIDER_BACKGROUND); }
+.na-band > .na-s { left: 1px; width: 11px; height: 11px; background-image: var(--EQ_SLIDER_THUMB); }
+.na-band > .na-s.drag { background-image: var(--EQ_SLIDER_THUMB_SELECTED); }
+
+/* ---- playlist editor ---- */
+.na-pl { width: 275px; display: flex; flex-direction: column; }
+.na-pl-row { display: flex; flex: none; position: relative; }
+.na-pl-top { height: 20px; }
+.na-pl-top > div { height: 20px; background-repeat: repeat-x; }
+.na-pl-tl { width: 25px; background-image: var(--PLAYLIST_TOP_LEFT_CORNER); }
+.na-pl-tf { flex: 1; background-image: var(--PLAYLIST_TOP_TILE); }
+.na-pl-tt { width: 100px; background-image: var(--PLAYLIST_TITLE_BAR); }
+.na-pl-tr { width: 25px; background-image: var(--PLAYLIST_TOP_RIGHT_CORNER); }
+.na-focused .na-pl.sel .na-pl-tl { background-image: var(--PLAYLIST_TOP_LEFT_SELECTED); }
+.na-focused .na-pl.sel .na-pl-tf { background-image: var(--PLAYLIST_TOP_TILE_SELECTED); }
+.na-focused .na-pl.sel .na-pl-tt { background-image: var(--PLAYLIST_TITLE_BAR_SELECTED); }
+.na-focused .na-pl.sel .na-pl-tr { background-image: var(--PLAYLIST_TOP_RIGHT_CORNER_SELECTED); }
+.na-pl-top > .na-s { height: 9px; }
+.na-pl-cls:active { background-image: var(--PLAYLIST_CLOSE_SELECTED); }
+.na-pl-shd:active { background-image: var(--PLAYLIST_COLLAPSE_SELECTED); }
+.na-pl-mid { flex: 1; min-height: 0; }
+.na-pl-l { width: 12px; flex: none; background: var(--PLAYLIST_LEFT_TILE) repeat-y; }
+.na-pl-r { width: 20px; flex: none; position: relative; background: var(--PLAYLIST_RIGHT_TILE) repeat-y; }
+.na-pl-c { flex: 1; min-width: 0; position: relative; display: flex; flex-direction: column; background: var(--pl-bg); }
+.na-pl-handle { left: 5px; width: 8px; height: 18px; background-image: var(--PLAYLIST_SCROLL_HANDLE); }
+.na-pl-handle.drag { background-image: var(--PLAYLIST_SCROLL_HANDLE_SELECTED); }
+.na-list { flex: 1; overflow-y: auto; overflow-x: hidden; outline: none; scrollbar-width: none; padding: 1px 0; font: 9px/13px var(--pl-font); letter-spacing: .3px; }
+.na-list::-webkit-scrollbar { display: none; }
+.na-row { display: flex; height: 13px; padding: 0 3px 0 2px; color: var(--pl-normal); white-space: nowrap; cursor: default; }
+.na-row.sel { background: var(--pl-selbg); }
+.na-row.cur { color: var(--pl-current); }
+.na-row.over { box-shadow: inset 0 1px var(--pl-current); }
 .na-name { flex: 1; overflow: hidden; text-overflow: ellipsis; }
-.na-dur { color: #5f80ab; }
-.na-row.cur .na-dur, .na-row.cur .na-idx { color: #31d7e8; }
-.na-empty { padding: 14px 10px; color: #5f80ab; white-space: normal; }
-.na-pbar { display: flex; align-items: center; gap: 3px; padding: 4px 6px; border-top: 1px solid #1f3a6e; }
-.na-pbtn { padding: 2px 6px; background: linear-gradient(#15306a, #0a1a40); color: #9fd3ff; border: 1px solid #2d5aa8; font: bold 10px Consolas, monospace; letter-spacing: .06em; cursor: pointer; }
-.na-pbtn:hover { color: #fff; border-color: #31d7e8; }
-.na-total { flex: 1; text-align: right; color: #31d7e8; font-size: 11px; padding-right: 4px; }
-.na-pgrip { height: 6px; cursor: ns-resize; background: repeating-linear-gradient(90deg, #1f3a6e 0 2px, transparent 2px 4px); }
-.na-mini { background: #050a16; color: #9fd3ff; border: 1px solid #2d5aa8; font: 10px Consolas, monospace; height: 18px; }
-.na-stage { position: relative; height: 315px; background: #000; overflow: hidden; }
+.na-dur { padding-left: 4px; }
+.na-empty { padding: 6px 4px; color: var(--pl-normal); white-space: normal; font: 9px/12px var(--pl-font); opacity: .8; }
+.na-find { display: flex; flex: none; gap: 2px; padding: 1px; border-bottom: 1px solid var(--pl-normal); }
+.na-find input { flex: 1; min-width: 0; height: 11px; padding: 0 2px; background: var(--pl-bg); color: var(--pl-current); border: 0; font: 9px var(--pl-font); outline: none; user-select: text; }
+.na-pl-bot { height: 38px; }
+.na-pl-bl { width: 125px; flex: none; position: relative; background-image: var(--PLAYLIST_BOTTOM_LEFT_CORNER); }
+.na-pl-bf { flex: 1; background: var(--PLAYLIST_BOTTOM_TILE) repeat-x; }
+.na-pl-br { width: 150px; flex: none; position: relative; background-image: var(--PLAYLIST_BOTTOM_RIGHT_CORNER); }
+.na-pl-grip { cursor: ns-resize; }
+.na-pmenu { position: absolute; z-index: 5; width: 25px; }
+.na-pmenu > .na-s { left: 3px; width: 22px; height: 18px; }
+.na-pmenu > .na-bar { left: 0; width: 3px; bottom: 0; }
+.na-shade-pl { display: none; position: relative; height: 14px; flex: none; }
+.na-pl.shade > .na-pl-row { display: none; }
+.na-pl.shade > .na-shade-pl { display: flex; }
+.na-shade-pl > .l { width: 25px; background-image: var(--PLAYLIST_SHADE_BACKGROUND_LEFT); }
+.na-shade-pl > .f { flex: 1; background: var(--PLAYLIST_SHADE_BACKGROUND) repeat-x; }
+.na-shade-pl > .r { width: 50px; background-image: var(--PLAYLIST_SHADE_BACKGROUND_RIGHT); }
+.na-focused .na-pl.sel .na-shade-pl > .r { background-image: var(--PLAYLIST_SHADE_BACKGROUND_RIGHT_SELECTED); }
+.na-pl-exp:active { background-image: var(--PLAYLIST_EXPAND_SELECTED); }
+
+/* ---- generic skinned frames (video, web, library) ---- */
+.na-gen { display: grid; grid-template-columns: calc(11px * var(--z)) minmax(0, 1fr) calc(8px * var(--z)); grid-template-rows: calc(20px * var(--z)) minmax(0, 1fr) calc(14px * var(--z)); }
+.na-gen .gp { background-repeat: no-repeat; background-size: 100% 100%; image-rendering: pixelated; }
+.na-gen-top { grid-column: 1 / 4; display: flex; position: relative; }
+.na-gen-top > .gp { width: calc(25px * var(--z)); flex: none; }
+.na-gen-top > .gf { flex: 1; background-repeat: repeat-x; background-size: calc(25px * var(--z)) 100%; }
+.na-gen-top > .gc { flex: none; display: flex; justify-content: center; background-repeat: repeat-x; background-size: calc(25px * var(--z)) 100%; }
+.na-gen-top canvas { height: calc(7px * var(--z)); margin-top: calc(4px * var(--z)); }
+.na-gen .g-tl { background-image: var(--GEN_TOP_LEFT); } .na-gen .g-tle { background-image: var(--GEN_TOP_LEFT_END); }
+.na-gen .gf { background-image: var(--GEN_TOP_LEFT_RIGHT_FILL); } .na-gen .gc { background-image: var(--GEN_TOP_CENTER_FILL); }
+.na-gen .g-tre { background-image: var(--GEN_TOP_RIGHT_END); } .na-gen .g-tr { background-image: var(--GEN_TOP_RIGHT); }
+.na-focused .na-gen.sel .g-tl { background-image: var(--GEN_TOP_LEFT_SELECTED); } .na-focused .na-gen.sel .g-tle { background-image: var(--GEN_TOP_LEFT_END_SELECTED); }
+.na-focused .na-gen.sel .gf { background-image: var(--GEN_TOP_LEFT_RIGHT_FILL_SELECTED); } .na-focused .na-gen.sel .gc { background-image: var(--GEN_TOP_CENTER_FILL_SELECTED); }
+.na-focused .na-gen.sel .g-tre { background-image: var(--GEN_TOP_RIGHT_END_SELECTED); } .na-focused .na-gen.sel .g-tr { background-image: var(--GEN_TOP_RIGHT_SELECTED); }
+.na-gen-close { position: absolute; right: calc(2px * var(--z)); top: calc(3px * var(--z)); width: calc(9px * var(--z)); height: calc(9px * var(--z)); background-size: 100% 100%; image-rendering: pixelated; }
+.na-gen-close:active { background-image: var(--GEN_CLOSE_SELECTED); }
+.na-gen-tools { position: absolute; right: calc(14px * var(--z)); top: calc(2px * var(--z)); display: flex; gap: 2px; }
+.na-gen .g-ml { background: var(--GEN_MIDDLE_LEFT) repeat-y; background-size: 100% calc(29px * var(--z)); }
+.na-gen .g-mr { background: var(--GEN_MIDDLE_RIGHT) repeat-y; background-size: 100% calc(29px * var(--z)); }
+.na-gen-bot { grid-column: 1 / 4; display: flex; background: var(--GEN_BOTTOM_FILL) repeat-x; background-size: calc(25px * var(--z)) 100%; }
+.na-gen-bot > .gp { width: calc(125px * var(--z)); flex: none; }
+.na-gen-bot > .g-bl { background-image: var(--GEN_BOTTOM_LEFT); margin-right: auto; } .na-gen-bot > .g-br { background-image: var(--GEN_BOTTOM_RIGHT); }
+.na-gen-body { position: relative; min-width: 0; min-height: 0; background: #000; overflow: hidden; }
+.na-tbtn { height: calc(9px * var(--z)); padding: 0 4px; background: var(--pl-bg); color: var(--pl-normal); border: 1px solid var(--pl-normal); font: bold 9px/1 Consolas, monospace; cursor: pointer; }
+.na-tbtn:hover { color: var(--pl-current); border-color: var(--pl-current); }
+.na-mini { height: calc(9px * var(--z)); background: var(--pl-bg); color: var(--pl-normal); border: 1px solid var(--pl-normal); font: 9px Consolas, monospace; }
+.na-stage { position: relative; height: 300px; background: #000; overflow: hidden; }
 .na-stage video.na-media { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: contain; background: transparent; }
 .na-drop { position: absolute; inset: 0; background: #02050e; }
 .na-stage:fullscreen { height: 100%; }
 .na-webbody { position: relative; height: 330px; }
+
+/* ---- Media Library (colours follow the skin's playlist colours, like Winamp's) ---- */
+.na-ml { display: flex; height: 380px; background: var(--pl-bg); color: var(--pl-normal); font: 11px/1.3 var(--pl-font); }
+.na-ml ::selection { background: var(--pl-selbg); }
+.na-ml-tree { width: 150px; flex: none; overflow: auto; border-right: 1px solid color-mix(in srgb, var(--pl-normal) 35%, transparent); padding: 3px 0; }
+.na-ml-node { padding: 1px 4px 1px calc(6px + var(--d, 0) * 12px); white-space: nowrap; cursor: default; overflow: hidden; text-overflow: ellipsis; }
+.na-ml-node.head { font-weight: bold; margin-top: 4px; }
+.na-ml-node:hover { color: var(--pl-current); }
+.na-ml-node.on { background: var(--pl-selbg); color: var(--pl-current); }
+.na-ml-main { flex: 1; min-width: 0; display: flex; flex-direction: column; }
+.na-ml-bar { display: flex; gap: 4px; align-items: center; padding: 4px; flex: none; }
+.na-ml-bar input { flex: 1; min-width: 0; padding: 1px 4px; background: var(--pl-bg); color: var(--pl-current); border: 1px solid color-mix(in srgb, var(--pl-normal) 55%, transparent); font: inherit; outline: none; user-select: text; }
+.na-ml-btn { padding: 1px 7px; background: var(--pl-bg); color: var(--pl-normal); border: 1px solid color-mix(in srgb, var(--pl-normal) 55%, transparent); font: bold 10px var(--pl-font); cursor: pointer; white-space: nowrap; }
+.na-ml-btn:hover { color: var(--pl-current); border-color: var(--pl-current); }
+.na-ml-btn:disabled { opacity: .45; cursor: default; }
+.na-ml-panes { display: flex; height: 96px; flex: none; gap: 4px; padding: 0 4px 4px; }
+.na-ml-pane { flex: 1; min-width: 0; overflow: auto; border: 1px solid color-mix(in srgb, var(--pl-normal) 35%, transparent); }
+.na-ml-pane > div { padding: 0 4px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; cursor: default; }
+.na-ml-pane > div.hd { position: sticky; top: 0; background: color-mix(in srgb, var(--pl-normal) 18%, var(--pl-bg)); font-weight: bold; }
+.na-ml-pane > div.on { background: var(--pl-selbg); color: var(--pl-current); }
+.na-ml-table { flex: 1; min-height: 0; overflow: auto; margin: 0 4px; border: 1px solid color-mix(in srgb, var(--pl-normal) 35%, transparent); }
+.na-ml-table table { width: 100%; border-collapse: collapse; table-layout: fixed; }
+.na-ml-table th { position: sticky; top: 0; text-align: left; padding: 1px 4px; background: color-mix(in srgb, var(--pl-normal) 18%, var(--pl-bg)); font-weight: bold; cursor: pointer; white-space: nowrap; overflow: hidden; }
+.na-ml-table td { padding: 0 4px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.na-ml-table tr.on td { background: var(--pl-selbg); color: var(--pl-current); }
+.na-ml-table tr.playing td { color: var(--pl-current); }
+.na-ml-foot { display: flex; gap: 4px; align-items: center; padding: 4px; flex: none; }
+.na-ml-foot .n { margin-left: auto; opacity: .8; }
+.na-ml-info { padding: 12px; overflow: auto; }
+.na-ml-info h3 { margin: 0 0 6px; color: var(--pl-current); font-size: 13px; }
+.na-ml-info a { color: var(--pl-current); }

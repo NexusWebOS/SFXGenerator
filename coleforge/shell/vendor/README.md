@@ -8,3 +8,9 @@ Copied unmodified from npm so ColeForge works offline. Each folder keeps the pro
 | `hls/` | [hls.js](https://github.com/video-dev/hls.js) | 1.7.3 | Apache-2.0 | NightAmp: HLS (.m3u8) video and radio streams |
 
 To update: `npm pack <name>@<version>`, then copy the files listed above from the package's `dist/`.
+
+Also used, but kept inside our own files rather than in this folder:
+
+| File | From | Licence | What |
+| --- | --- | --- | --- |
+| `js/nightamp-skin.js` | [Webamp](https://github.com/captbaritone/webamp) `skinSprites.ts` (Copyright (c) 2015 Jordan Eldredge) | MIT (notice in the file) | The Winamp 2 skin sprite coordinates NightAmp uses to read .wsz skins |

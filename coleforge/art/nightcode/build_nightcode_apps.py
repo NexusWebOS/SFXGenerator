@@ -8,8 +8,6 @@ start-up splash screens. Writes into coleforge/shell/assets/art/nightapps/:
   winnight/<button>.png           32x32 WinNight toolbar buttons
   winnight/types/<type>.png       16x16 file-type icons for the archive list
   nightbrowser/<button>.png       16x16 NightBrowser toolbar buttons
-  nightamp/cbuttons.png           NightAmp transport buttons (normal row, pressed row)
-  nightamp/numbers.png            NightAmp LED digits (0-9, blank, minus; 9x13 each)
   <app>-splash.png                560x315 start-up splash screens
 A 4x preview sheet goes next to this script (apps-preview.png).
 """
@@ -395,55 +393,6 @@ NB = {"back": nb_back, "forward": nb_forward, "reload": nb_reload, "home": nb_ho
       "private": nb_private, "find": nb_find, "camera": nb_camera, "menu": nb_menu, "plus": nb_plus, "stop": nb_stop}
 
 
-# ---------------------------------------------------------------- NightAmp sprites
-def cbuttons():
-    """Transport buttons: prev, play, pause, stop, next (23x18) and eject (22x16); normal row then pressed."""
-    sheet = Image.new("RGBA", (136, 36), T)
-    glyphs = {
-        "prev": lambda d, o: (d.rectangle((7 + o, 5 + o, 8 + o, 12 + o), fill=C1), d.polygon([(15 + o, 5 + o), (15 + o, 12 + o), (9 + o, 8 + o)], fill=C1)),
-        "play": lambda d, o: d.polygon([(9 + o, 4 + o), (9 + o, 13 + o), (15 + o, 8 + o)], fill=C1),
-        "pause": lambda d, o: (d.rectangle((8 + o, 5 + o, 9 + o, 12 + o), fill=C1), d.rectangle((13 + o, 5 + o, 14 + o, 12 + o), fill=C1)),
-        "stop": lambda d, o: d.rectangle((8 + o, 5 + o, 14 + o, 12 + o), fill=C1),
-        "next": lambda d, o: (d.polygon([(7 + o, 5 + o), (7 + o, 12 + o), (13 + o, 8 + o)], fill=C1), d.rectangle((14 + o, 5 + o, 15 + o, 12 + o), fill=C1)),
-        "eject": lambda d, o: (d.polygon([(11 + o, 3 + o), (16 + o, 8 + o), (6 + o, 8 + o)], fill=C1), d.rectangle((6 + o, 10 + o, 16 + o, 11 + o), fill=C1)),
-    }
-    x = 0
-    for name, draw in glyphs.items():
-        w, h = (22, 16) if name == "eject" else (23, 18)
-        for row, pressed in ((0, False), (18, True)):
-            b = Image.new("RGBA", (w, h), T)
-            bd = ImageDraw.Draw(b)
-            paint(b, rect((0, 0, w - 1, h - 1)), [N1, N2, N3] if pressed else [S1, S2, S3], mode="v" if not pressed else "up")
-            bd.rectangle((0, 0, w - 1, h - 1), outline=K)
-            if not pressed:
-                bd.line([(1, 1), (w - 2, 1)], fill=W)
-            else:
-                bd.line([(1, 1), (w - 2, 1)], fill=N1)
-            bd.rectangle((3, 2, w - 4, h - 3), fill=N1 if not pressed else K)
-            draw(bd, 1 if pressed else 0)
-            sheet.alpha_composite(b, (x, row))
-        x += w
-    return sheet
-
-
-SEG = {  # seven-segment map: a top, b top-right, c bottom-right, d bottom, e bottom-left, f top-left, g middle
-    "0": "abcdef", "1": "bc", "2": "abged", "3": "abgcd", "4": "fgbc", "5": "afgcd", "6": "afgedc",
-    "7": "abc", "8": "abcdefg", "9": "abcdfg", " ": "", "-": "g",
-}
-
-
-def numbers():
-    sheet = Image.new("RGBA", (9 * 12, 13), (4, 8, 22, 255))
-    d = ImageDraw.Draw(sheet)
-    segs = {"a": (2, 0, 6, 1), "f": (0, 2, 1, 5), "b": (7, 2, 8, 5), "g": (2, 6, 6, 6),
-            "e": (0, 7, 1, 10), "c": (7, 7, 8, 10), "d": (2, 11, 6, 12)}
-    for i, ch in enumerate("0123456789 -"):
-        ox = i * 9
-        for s, (x0, y0, x1, y1) in segs.items():
-            d.rectangle((ox + x0, y0, ox + x1, y1), fill=C1 if s in SEG[ch] else N2)
-    return sheet
-
-
 # ---------------------------------------------------------------- splash screens
 def font(name, size):
     return ImageFont.truetype(str(FONTS / name), size)
@@ -522,17 +471,13 @@ def main():
             check(im, f"{folder}/{name}")
             im.save(OUT / folder / f"{name}.png")
             drawn[f"{folder}/{name}"] = im
-    cb, nums = cbuttons(), numbers()
-    check(cb, "cbuttons"); check(nums, "numbers")
-    cb.save(OUT / "nightamp" / "cbuttons.png")
-    nums.save(OUT / "nightamp" / "numbers.png")
 
     mark = logo()
     splash(apps["winnight"], "WinNight", "ARCHIVER  //  NIGHTCODE", ["ZIP · RAR · 7Z · TAR · GZ · XZ · ISO", "AES-256 locked archives, test & repair", "v1.0"], (30, 120, 255), mark).convert("RGB").save(OUT / "winnight-splash.png", optimize=True)
-    splash(apps["nightamp"], "NightAmp", "PLAYS EVERYTHING AFTER DARK", ["MP3 FLAC OPUS AAC OGG WAV MIDI", "MP4 WEBM MKV HLS video · radio · browser", "v1.0"], (49, 215, 232), mark).convert("RGB").save(OUT / "nightamp-splash.png", optimize=True)
+    splash(apps["nightamp"], "NightAmp", "PLAYS EVERYTHING AFTER DARK", ["MP3 FLAC OPUS AAC OGG WAV MIDI · MP4 WEBM MKV HLS", "Winamp skins · media library · radio", "v2.0"], (49, 215, 232), mark).convert("RGB").save(OUT / "nightamp-splash.png", optimize=True)
     splash(apps["nightbrowser"], "NightBrowser", "BROWSE BEYOND THE LIGHT", ["NightShield tracker blocking", "Private tabs · HTTPS upgrade · speed dial", "v1.0"], (30, 120, 255), mark).convert("RGB").save(OUT / "nightbrowser-splash.png", optimize=True)
 
-    # 4x preview: program icons, toolbar, file types, browser buttons, NightAmp sprites.
+    # 4x preview: program icons, toolbar, file types, browser buttons.
     sheet = Image.new("RGBA", (380, 150), (4, 8, 26, 255))
     x = 4
     for im in apps.values():
@@ -545,8 +490,6 @@ def main():
         sheet.alpha_composite(drawn[f"winnight/types/{name}"], (x, 80)); x += 20
     for name in NB:
         sheet.alpha_composite(drawn[f"nightbrowser/{name}"], (x, 80)); x += 20
-    sheet.alpha_composite(cb, (4, 102))
-    sheet.alpha_composite(nums, (150, 104))
     sheet.resize((sheet.width * 4, sheet.height * 4), Image.NEAREST).save(HERE / "apps-preview.png")
     print("wrote NightCode program art to", OUT.relative_to(HERE.parent.parent.parent))
 

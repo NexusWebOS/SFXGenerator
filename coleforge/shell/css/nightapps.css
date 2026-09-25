@@ -294,3 +294,27 @@ body.theme-nc .nb-btn:hover { border-color: var(--nc-cyan); box-shadow: 0 0 6px 
 
 /* ---- NightCode Net (the website's NightCode-DOS terminal, css in js/nightcode-net/) ---- */
 .win-body > .ncn { height: 100%; min-height: 0; --nt-size: 15px; }
+
+/* ---- NightOps ---- */
+.nops-wrap { position: absolute; inset: 0; display: flex; flex-direction: column; }
+.nops { flex: 1; min-height: 0; overflow: auto; }
+.nops h3 { margin: 2px 0 10px; }
+.nops h4 { margin: 14px 0 6px; }
+.nops-status { flex: none; padding: 3px 8px; min-height: 18px; font-size: 12px; border-top: 1px solid var(--nx-line, #2c4d8a); }
+.nops-bar { display: flex; flex-wrap: wrap; gap: 6px; align-items: center; margin: 0 0 8px; }
+.nops-kv { border-collapse: collapse; margin-bottom: 12px; }
+.nops-kv th { text-align: left; padding: 3px 14px 3px 0; white-space: nowrap; vertical-align: top; }
+.nops-kv td { padding: 3px 0; }
+.nops-table { width: 100%; border-collapse: collapse; font-size: 13px; }
+.nops-table th { text-align: left; padding: 3px 6px; border-bottom: 1px solid var(--nx-line, #2c4d8a); }
+.nops-table td { padding: 3px 6px; border-bottom: 1px solid rgba(127, 127, 127, .15); vertical-align: top; }
+.nops-table tr.clickable:hover td { background: rgba(49, 215, 232, .12); }
+.nops-tag { display: inline-block; margin-left: 6px; padding: 0 5px; font-size: 11px; border: 1px solid currentColor; border-radius: 3px; opacity: .85; }
+.nops-tag.ok { color: #3cff9e; } .nops-tag.bad { color: #ff5c8a; }
+.nops-crumb { padding: 0 1px; text-decoration: underline; }
+.nops-code { margin: 0; padding: 8px 10px; max-height: none; overflow: auto; font: 12px/1.45 Consolas, "Share Tech Mono", monospace; white-space: pre; background: rgba(0, 0, 0, .35); border: 1px solid var(--nx-line, #2c4d8a); user-select: text; }
+.nops-img { max-width: 100%; image-rendering: auto; }
+.nops-cards { display: grid; grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)); gap: 8px; }
+.nops-card { padding: 8px 10px; border: 1px solid var(--nx-line, #2c4d8a); display: flex; flex-direction: column; gap: 4px; }
+.nops-card .nops-bar { margin: 4px 0 0; }
+.nops-err { padding: 10px; border: 1px solid #ff5c8a; }

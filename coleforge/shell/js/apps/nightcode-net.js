@@ -12,6 +12,8 @@
 
   async function loadConfig(force) {
     const saved = CF.store.get(CFG_KEY, null);
+    // On the website's desktop the site's own settings are already on the page.
+    if (window.NIGHTCODE_CONFIG?.supabaseUrl && !saved?.custom) return window.NIGHTCODE_CONFIG;
     if (saved?.custom && !force) return saved;
     try {
       const ctl = new AbortController();

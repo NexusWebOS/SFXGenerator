@@ -6,11 +6,12 @@
 const http = require("http");
 const crypto = require("crypto");
 
-function createMock({ autoconfirm = true, tokenTtl = 3600 } = {}) {
+function createMock({ autoconfirm = true, tokenTtl = 3600, sysops = [] } = {}) {
   const ANON = "mock-anon-key";
   const users = new Map();      // id -> { id, email, password, confirmed, meta }
   const profiles = new Map();   // id -> nc_profiles row
   const posts = [];
+  const desktop = new Map();    // uid -> Map(key -> { value, updated_at })
   const tokens = new Map();     // access -> { uid, exp }
   const refreshes = new Map();  // refresh -> uid
   let postSeq = 0;
@@ -34,7 +35,7 @@ function createMock({ autoconfirm = true, tokenTtl = 3600 } = {}) {
     let uname = (meta.username || "").trim() || "user_" + uid.slice(0, 8);
     if (!/^[A-Za-z0-9_]{3,16}$/.test(uname)) throw { status: 422, msg: "Usernames are 3-16 letters, numbers or underscores." };
     if ([...profiles.values()].some((p) => p.username.toLowerCase() === uname.toLowerCase())) throw { status: 422, msg: "That username is taken." };
-    profiles.set(uid, { id: uid, username: uname, display_name: meta.display_name || uname, bio: "", role: "user", created_at: new Date().toISOString(), last_seen: null });
+    profiles.set(uid, { id: uid, username: uname, display_name: meta.display_name || uname, bio: "", role: sysops.map((s) => s.toLowerCase()).includes(uname.toLowerCase()) ? "sysop" : "user", created_at: new Date().toISOString(), last_seen: null });
   }
   const pub = (p) => ({ username: p.username, display_name: p.display_name, bio: p.bio, role: p.role, created_at: p.created_at, last_seen: p.last_seen });
 
@@ -96,6 +97,27 @@ function createMock({ autoconfirm = true, tokenTtl = 3600 } = {}) {
       if (p === "/rest/v1/rpc/nc_username_available") return send(200, /^[A-Za-z0-9_]{3,16}$/.test(data.name) && ![...profiles.values()].some((y) => y.username.toLowerCase() === String(data.name).toLowerCase()));
       if (!uid) return send(401, { message: "JWT expired", code: "PGRST301" });
       if (p === "/rest/v1/rpc/nc_touch") { profiles.get(uid).last_seen = new Date().toISOString(); return send(204); }
+      if (p === "/rest/v1/rpc/nc_stats") return send(200, [{ members: profiles.size, posts: posts.length, online: [...profiles.values()].filter((y) => y.last_seen && Date.now() - Date.parse(y.last_seen) < 300000).length }]);
+      if (p === "/rest/v1/nc_desktop") {
+        const mine = desktop.get(uid) || new Map();
+        desktop.set(uid, mine);
+        if (req.method === "GET") return send(200, [...mine.entries()].map(([key, v]) => ({ key, value: v.value, updated_at: v.updated_at })));
+        if (req.method === "POST") {
+          if (!/merge-duplicates/.test(req.headers.prefer || "")) return send(409, { message: "duplicate key" });
+          for (const r of [].concat(data)) {
+            if (!/^cf\.[A-Za-z0-9_.-]{1,80}$/.test(r.key) || typeof r.value !== "string" || r.value.length > 5242880) return send(400, { message: "violates check constraint", code: "23514" });
+            if (r.user_id && r.user_id !== uid) return send(403, { message: "row-level security", code: "42501" });
+            mine.set(r.key, { value: r.value, updated_at: new Date().toISOString() });
+          }
+          return send(201);
+        }
+        if (req.method === "DELETE") {
+          const m = /^in\.\((.*)\)$/.exec(u.searchParams.get("key") || "");
+          if (!m) return send(400, { message: "bad filter" });
+          m[1].split(",").map((s) => s.replace(/^"|"$/g, "")).forEach((k) => mine.delete(k));
+          return send(204);
+        }
+      }
       if (p === "/rest/v1/rpc/nc_who") return send(200, [...profiles.values()].filter((y) => y.last_seen && Date.now() - Date.parse(y.last_seen) < 300000).map((y) => ({ username: y.username, role: y.role, last_seen: y.last_seen })));
       /* ---------- tables ---------- */
       const eq = (k) => { const v = u.searchParams.get(k); return v && v.startsWith("eq.") ? v.slice(3) : null; };
@@ -134,12 +156,12 @@ function createMock({ autoconfirm = true, tokenTtl = 3600 } = {}) {
       return send(404, { message: `no route ${req.method} ${p}` });
     } catch (e) { return send(e.status || 500, { msg: e.msg || String(e) }); }
   });
-  return { server, ANON, users, profiles, posts, tokens, log, confirmAll() { users.forEach((x) => { x.confirmed = true; }); } };
+  return { server, ANON, users, profiles, posts, tokens, log, desktop, setRole(username, role) { [...profiles.values()].find((x) => x.username.toLowerCase() === username.toLowerCase()).role = role; }, confirmAll() { users.forEach((x) => { x.confirmed = true; }); } };
 }
 
 module.exports = { createMock };
 if (require.main === module) {
-  const m = createMock({ autoconfirm: process.env.MOCK_CONFIRM !== "1" });
+  const m = createMock({ autoconfirm: process.env.MOCK_CONFIRM !== "1", sysops: (process.env.MOCK_SYSOPS || "").split(",").filter(Boolean) });
   const port = +process.argv[2] || 54321;
   m.server.listen(port, "127.0.0.1", () => console.log(`mock Supabase on http://127.0.0.1:${port}  anon key: ${m.ANON}`));
 }

@@ -130,6 +130,8 @@
         return { type: p.get("type") || "magiclink", session: s };
       },
       refresh,
+      // A fresh access token (refreshed if needed), for calling NightCode's own server functions.
+      accessToken: token,
 
       /* ---------- NightCode Net data ---------- */
       usernameAvailable(name) { return raw("/rest/v1/rpc/nc_username_available", { method: "POST", body: { name } }); },
@@ -141,7 +143,19 @@
       posts(board = "main", limit = 15) { return call(`/rest/v1/nc_board?board=eq.${q(board)}&order=created_at.desc&limit=${Math.min(100, limit | 0 || 15)}&select=id,board,body,created_at,username`); },
       async post(board, body) { return (await call("/rest/v1/nc_posts", { method: "POST", body: { board, body }, headers: { Prefer: "return=representation" } }))[0]; },
       deletePost(id) { return call(`/rest/v1/nc_posts?id=eq.${q(id)}`, { method: "DELETE", headers: { Prefer: "return=representation" } }); },
-      boards() { return call("/rest/v1/nc_posts?select=board&order=board&limit=1000"); },
+      stats() { return call("/rest/v1/rpc/nc_stats", { method: "POST", body: {} }).then((r) => (Array.isArray(r) ? r[0] : r)); },
+
+      /* ---------- the cloud desktop (nc_desktop) ---------- */
+      desktopList() { return call("/rest/v1/nc_desktop?select=key,updated_at,value"); },
+      desktopSave(rows) {
+        return call("/rest/v1/nc_desktop?on_conflict=user_id,key", { method: "POST", body: rows.map((r) => ({ key: r.key, value: r.value })), headers: { Prefer: "resolution=merge-duplicates,return=minimal" } });
+      },
+      desktopDelete(keys) { return keys.length ? call(`/rest/v1/nc_desktop?key=in.(${keys.map((k) => `"${k}"`).map(q).join(",")})`, { method: "DELETE" }) : Promise.resolve(); },
+
+      /* ---------- sign in with GitHub (Supabase OAuth) ---------- */
+      oauthUrl(provider = "github", back = redirectTo) {
+        return `${base}/auth/v1/authorize?provider=${q(provider)}${back ? `&redirect_to=${q(back)}` : ""}`;
+      },
     };
     return api;
   }

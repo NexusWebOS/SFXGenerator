@@ -3,7 +3,8 @@
 // NightCode-DOS: the text-mode terminal of NightCode Net. It boots like an MS-DOS PC (BIOS POST,
 // CONFIG.SYS, AUTOEXEC.BAT), logs you in to NightCode Net and gives you a command shell with a
 // message board, WHO, FINGER, profiles and a code-rain screen.
-//   NightTerminal.mount(element, { api, config, host: "web" | "coleforge", onExit })
+//   NightTerminal.mount(element, { api, config, host: "web" | "coleforge", onExit, launch, skipBoot })
+// launch(target, arg) starts the graphical side: "desktop" (WIN), "web" (WEB url), "ops" (OPS).
 // Shared by nightcode.coletechsystems.com and ColeForge.exe (shell/js/nightcode-net/).
 (function (root) {
   const VERSION = "6.66";
@@ -58,6 +59,7 @@
     ["BOARD [name]", "read a message board (BOARDS lists them)"], ["POST [text]", "post to the board you're reading"], ["DEL id", "delete your post"],
     ["WHO", "who's online"], ["FINGER user", "look someone up"], ["WHOAMI", "your account"], ["PROFILE", "show or edit your profile"],
     ["PASSWD", "change your password"], ["COLOR [scheme]", "night, green, amber, white"], ["MATRIX", "code rain (any key stops it)"],
+    ["WIN", "start the NightCode desktop"], ["WEB [address]", "open NightBrowser"], ["OPS", "NightOps: Supabase, GitHub, Netlify"],
     ["VER / DATE / TIME", "system info"], ["ECHO text", "print text"], ["LOGOUT", "sign out"], ["REBOOT", "restart the machine"],
   ];
   const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
@@ -72,7 +74,7 @@
   };
   const stamp = (t) => { const d = new Date(t); return `${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}-${String(d.getFullYear()).slice(2)} ${String(d.getHours()).padStart(2, "0")}:${String(d.getMinutes()).padStart(2, "0")}`; };
 
-  function mount(el, { api = null, config = {}, host = "web", onExit = null, fast = false } = {}) {
+  function mount(el, { api = null, config = {}, host = "web", onExit = null, fast = false, launch = null, skipBoot = false } = {}) {
     el.classList.add("nt");
     el.innerHTML = "";
     const scr = document.createElement("div"); scr.className = "nt-screen";
@@ -264,7 +266,7 @@
         try { const p = await api.profile(); if (p) return p; } catch (e) { if (e.status !== 401) print(`NETLINK: ${e.message}`, "nt-warn"); }
       }
       print("NIGHTCODE NET // SECURE TERMINAL", "nt-hi");
-      print("Type your username, or NEW to make an account, RESET if you forgot your password, GUEST to look around.", "nt-dim");
+      print(`Type your username, or NEW to make an account,${host === "web" ? " GITHUB to sign in with GitHub," : ""} RESET if you forgot your password, GUEST to look around.`, "nt-dim");
       print("");
       for (;;) {
         let who;
@@ -274,7 +276,14 @@
         if (up === "GUEST") return null;
         if (up === "NEW" || up === "REGISTER") { const p = await register(); if (p) return p; continue; }
         if (up === "RESET") { await reset(); continue; }
-        if (up === "HELP") { print("Usernames and email addresses both work. NEW makes an account, RESET mails a reset link, GUEST skips sign-in.", "nt-dim"); continue; }
+        if (up === "GITHUB") {
+          if (!api) { print("NETLINK is not configured.", "nt-err"); continue; }
+          if (host !== "web") { print("GitHub sign-in happens on nightcode.coletechsystems.com. Sign in there once, then use your username here.", "nt-warn"); continue; }
+          print("Handing you to GitHub...", "nt-dim");
+          location.href = api.oauthUrl("github", config.siteUrl || location.origin + "/");
+          await new Promise(() => {});
+        }
+        if (up === "HELP") { print("Usernames and email addresses both work. NEW makes an account, GITHUB signs in with GitHub, RESET mails a reset link, GUEST skips sign-in.", "nt-dim"); continue; }
         if (!api) { print("NETLINK is not configured. Type GUEST.", "nt-err"); continue; }
         let pw;
         try { pw = await ask("password: ", { mask: true, history: false }); } catch (e) { if (e.restart) throw e; continue; }
@@ -352,7 +361,7 @@
 
     /* ---------- the shell ---------- */
     let me = null;
-    const COMMANDS = ["HELP", "CLS", "DIR", "TYPE", "BOARD", "BOARDS", "POST", "DEL", "WHO", "FINGER", "WHOAMI", "PROFILE", "PASSWD", "COLOR", "MATRIX", "VER", "DATE", "TIME", "ECHO", "LOGOUT", "LOGIN", "REBOOT", "EXIT"];
+    const COMMANDS = ["WIN", "WEB", "OPS", "HELP", "CLS", "DIR", "TYPE", "BOARD", "BOARDS", "POST", "DEL", "WHO", "FINGER", "WHOAMI", "PROFILE", "PASSWD", "COLOR", "MATRIX", "VER", "DATE", "TIME", "ECHO", "LOGOUT", "LOGIN", "REBOOT", "EXIT"];
     // Restarting from inside a command: let the command finish first.
     const later = (fn) => { setTimeout(fn, 0); };
     const needNet = () => { if (!me) { print("Sign in first: type LOGIN.", "nt-err"); return false; } return true; };
@@ -395,6 +404,7 @@
         case "LOGOUT":
           if (!me) return print("You're not signed in.");
           await api.signOut(); me = null; stopHeartbeat();
+          try { localStorage.removeItem("nightcode.profile"); } catch { /* blocked */ }
           print("SIGNED OFF. NO CARRIER", "nt-warn");
           return later(() => restart(true));
         case "EXIT":
@@ -483,6 +493,23 @@
           return print(gone?.length ? `DELETED #${id}.` : `#${id} isn't yours to delete (or doesn't exist).`, gone?.length ? "nt-ok" : "nt-err");
         }
         case "PASSWD": if (!needNet()) return; await newPassword(); return;
+        case "WIN": case "WINDOWS": case "DESKTOP": case "START":
+          if (!launch) return print("The desktop isn't available here.", "nt-err");
+          print("Starting NightCode Windows...", "nt-hi");
+          return launch("desktop");
+        case "WEB": case "BROWSE": case "BROWSER": {
+          if (!launch) return print("NightBrowser isn't available here.", "nt-err");
+          let u = arg.trim();
+          const looksLikeHost = /^[^\s/]+\.[^\s]+$/.test(u);
+          if (u && !/^[a-z]+:\/\//i.test(u)) u = looksLikeHost ? "https://" + u : "https://duckduckgo.com/?q=" + encodeURIComponent(u);
+          print(`Starting NightBrowser${u ? ` at ${u}` : ""}...`, "nt-hi");
+          return launch("web", u);
+        }
+        case "OPS":
+          if (!launch) return print("NightOps isn't available here.", "nt-err");
+          if (!needNet()) return;
+          print("Starting NightOps...", "nt-hi");
+          return launch("ops");
         default:
           print("Bad command or file name", "nt-err");
       }
@@ -505,6 +532,7 @@
       try { me = await login(); } catch (e) { if (e.restart) return; me = null; }
       if (gen !== generation || !alive) return;
       if (me) {
+        storeSet("nightcode.profile", { username: me.username, display_name: me.display_name, role: me.role });
         startHeartbeat();
         print("");
         print(`Welcome to NightCode Net, ${me.display_name || me.username}.`, "nt-hi");
@@ -513,7 +541,7 @@
           print(`${who.length} on the line. Newest on MAIN: ${posts[0] ? `#${posts[0].id} by ${posts[0].username}, ${ago(posts[0].created_at)}` : "nothing yet"}.`, "nt-dim");
         } catch { /* heartbeat will tell */ }
       } else print("GUEST MODE: DIR, TYPE, MATRIX and HELP work. LOGIN to join the board.", "nt-warn");
-      print("Type HELP for commands.", "nt-dim");
+      print(launch ? "Type WIN for the NightCode desktop, WEB to browse, HELP for commands." : "Type HELP for commands.", "nt-dim");
       print("");
       for (;;) {
         if (gen !== generation || !alive) return;
@@ -532,7 +560,7 @@
     }
 
     api?.onChange?.((s) => { if (!s && me) { me = null; stopHeartbeat(); } });
-    restart();
+    restart(skipBoot);
     return {
       el, print, run, restart,
       destroy() { alive = false; generation++; stopHeartbeat(); stopRain(); if (pending) { const p = pending; pending = null; p.reject(Object.assign(new Error("closed"), { cancelled: true, restart: true })); } el.innerHTML = ""; },

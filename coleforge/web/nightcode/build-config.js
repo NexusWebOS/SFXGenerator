@@ -22,3 +22,21 @@ const cfg = { supabaseUrl: url, supabaseAnonKey: anonKey, siteUrl };
 fs.writeFileSync(path.join(__dirname, "config.js"), `window.NIGHTCODE_CONFIG = ${JSON.stringify(cfg, null, 2)};\n`);
 fs.writeFileSync(path.join(__dirname, "config.json"), JSON.stringify(cfg, null, 2) + "\n");
 console.log(`NightCode: config written (${url || "no backend"}).`);
+
+// The NightCode desktop (WIN at the DOS prompt) is the ColeForge shell, copied in at build time so the
+// website and ColeForge.exe run the same code. It gets the site's config and the NightCode host script,
+// which logs you on with your NightCode account and saves the desktop to your Supabase project.
+const shell = path.join(__dirname, "../../shell");
+const desk = path.join(__dirname, "desktop");
+if (fs.existsSync(shell)) {
+  fs.rmSync(desk, { recursive: true, force: true });
+  fs.cpSync(shell, desk, { recursive: true });
+  const indexFile = path.join(desk, "index.html");
+  let html = fs.readFileSync(indexFile, "utf8");
+  const first = '<script src="js/icons.js"></script>';
+  if (!html.includes(first)) { console.error("desktop/index.html: can't find where the scripts start"); process.exit(1); }
+  html = html.replace(first, `<script src="../config.js"></script>\n  <script src="js/nightcode-host.js"></script>\n  ${first}`)
+    .replace("<title>Windows – ColeForge Edition</title>", "<title>NightCode Windows</title>");
+  fs.writeFileSync(indexFile, html);
+  console.log("NightCode: desktop copied to desktop/.");
+} else console.warn("NightCode: ../../shell isn't here; the site has no desktop (WIN).");

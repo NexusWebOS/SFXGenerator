@@ -118,6 +118,9 @@ const memory = () => { const m = new Map(); return { getItem: (k) => (m.has(k) ?
   assert.match(sql, /grant update \(display_name, bio\) on public\.nc_profiles to authenticated/);
   assert.doesNotMatch(sql, /to anon[^;]*nc_posts|nc_posts[^;]*to anon/, "anon can't touch posts");
   assert.match(sql, /security_invoker = true/, "the board view respects RLS");
+  const sql2 = fs.readFileSync(path.join(WEB, "supabase/migrations/20260925010000_nightcode_desktop.sql"), "utf8");
+  assert.match(sql2, /alter table public\.nc_desktop enable row level security/);
+  assert.strictEqual((sql2.match(/user_id = auth\.uid\(\)/g) || []).length >= 4, true, "every nc_desktop policy is limited to your own rows");
   ok("migration: RLS on every table, column grants, Nexus II guard");
 
   /* ---------- Netlify config step ---------- */
@@ -137,6 +140,66 @@ const memory = () => { const m = new Map(); return { getItem: (k) => (m.has(k) ?
   assert.notStrictEqual(res.status, 0);
   fs.rmSync(tmp, { recursive: true, force: true });
   ok("build-config: writes config.js/json, refuses the service_role key and odd URLs");
+
+  /* ---------- the cloud desktop and NightOps ---------- */
+  const mock3 = createMock({ sysops: ["Boss"] });
+  await new Promise((r3) => mock3.server.listen(0, "127.0.0.1", r3));
+  const url3 = `http://127.0.0.1:${mock3.server.address().port}`;
+  const boss = NightCodeAPI.create({ url: url3, anonKey: mock3.ANON, storage: memory() });
+  const pleb = NightCodeAPI.create({ url: url3, anonKey: mock3.ANON, storage: memory() });
+  await boss.signUp({ email: "boss@example.com", password: "password123", username: "Boss" });
+  await pleb.signUp({ email: "pleb@example.com", password: "password123", username: "Pleb" });
+  await boss.desktopSave([{ key: "cf.settings", value: '{"user":"Boss"}' }, { key: "cf.vfs", value: "[]" }]);
+  await boss.desktopSave([{ key: "cf.settings", value: '{"user":"Boss","clock24":true}' }]);
+  assert.deepStrictEqual((await boss.desktopList()).map((r) => [r.key, r.value]).sort(), [["cf.settings", '{"user":"Boss","clock24":true}'], ["cf.vfs", "[]"]]);
+  assert.deepStrictEqual(await pleb.desktopList(), [], "each member sees only their own desktop");
+  await boss.desktopDelete(["cf.vfs"]);
+  assert.deepStrictEqual((await boss.desktopList()).map((r) => r.key), ["cf.settings"]);
+  assert.deepStrictEqual(await boss.stats(), { members: 2, posts: 0, online: 0 });
+  assert.match(boss.oauthUrl("github", "https://nightcode.coletechsystems.com/"), /\/auth\/v1\/authorize\?provider=github&redirect_to=https%3A%2F%2Fnightcode/);
+  ok("cloud desktop: save, update, delete, private per member; stats; GitHub sign-in URL");
+
+  process.env.NIGHTCODE_SUPABASE_URL = url3;
+  process.env.NIGHTCODE_SUPABASE_ANON_KEY = mock3.ANON;
+  process.env.GITHUB_TOKEN = "fake"; process.env.NETLIFY_API_TOKEN = "fake";
+  require("./fake-upstreams.js").install();
+  const { pathToFileURL } = require("url");
+  const opsFn = (await import(pathToFileURL(path.join(WEB, "netlify/functions/ops.mjs")).href + "?t=" + Date.now())).default;
+  const callOps = async (who, body, origin = "https://nightcode.coletechsystems.com") => {
+    const headers = { "Content-Type": "application/json", Origin: origin };
+    if (who) headers.Authorization = `Bearer ${await who.accessToken()}`;
+    const r = await opsFn(new Request("https://nightcode.coletechsystems.com/api/ops", { method: "POST", headers, body: JSON.stringify(body) }));
+    return { status: r.status, cors: r.headers.get("access-control-allow-origin"), body: await r.json() };
+  };
+  assert.strictEqual((await callOps(null, { action: "status" })).status, 401);
+  assert.strictEqual((await callOps(pleb, { action: "status" })).status, 403, "members who aren't sysop are turned away");
+  let o = await callOps(boss, { action: "status" });
+  assert.strictEqual(o.status, 200); assert.deepStrictEqual(o.body.data.github.owner, ["NexusWebOS"]);
+  o = await callOps(boss, { action: "github.repos" });
+  assert.deepStrictEqual(o.body.data.map((r) => r.full_name), ["NexusWebOS/SFXGenerator", "NexusWebOS/NightCode"], "only the configured owner's repos");
+  o = await callOps(boss, { action: "github.contents", repo: "NexusWebOS/SFXGenerator", path: "README.md" });
+  assert.match(Buffer.from(o.body.data.content, "base64").toString(), /fake GitHub/);
+  assert.strictEqual((await callOps(boss, { action: "github.contents", repo: "someone/else", path: "" })).status, 400, "other owners' repos are refused");
+  assert.strictEqual((await callOps(boss, { action: "github.contents", repo: "NexusWebOS/SFXGenerator", path: "../../etc" })).status, 400, "no path tricks");
+  o = await callOps(boss, { action: "netlify.sites" });
+  assert.deepStrictEqual(o.body.data.map((s) => s.name), ["nightcode", "coletechsystems"]);
+  assert.strictEqual((await callOps(boss, { action: "netlify.deploys", site_id: "../x" })).status, 400);
+  o = await callOps(boss, { action: "netlify.build", site_id: "11111111-2222-3333-4444-555555555555" });
+  assert.strictEqual(o.body.data.deploy_id, "d2");
+  assert.strictEqual((await callOps(boss, { action: "status" }, "http://localhost:8098")).cors, "http://localhost:8098", "ColeForge.exe (localhost) may call it");
+  assert.strictEqual((await callOps(boss, { action: "status" }, "https://evil.example")).cors, "https://nightcode.coletechsystems.com");
+  assert.strictEqual((await callOps(boss, { action: "nope" })).status, 400);
+  mock3.server.close();
+  ok("NightOps function: sysop only, owner and path limits, GitHub + Netlify actions, CORS for the site and ColeForge.exe");
+
+  // netlify.toml: the strict CSP on the DOS page must not reach the desktop (two CSPs would both apply).
+  const { parseNetlifyToml, matches } = require("./netlify-dev.js");
+  const conf = parseNetlifyToml(fs.readFileSync(path.join(WEB, "netlify.toml"), "utf8"));
+  const csp = (p) => conf.headers.filter((hd) => matches(hd.for, p) && hd.values["Content-Security-Policy"]).map((hd) => hd.values["Content-Security-Policy"]);
+  assert.strictEqual(csp("/").length, 1); assert.match(csp("/")[0], /script-src 'self';/);
+  assert.strictEqual(csp("/desktop/index.html").length, 1); assert.match(csp("/desktop/index.html")[0], /wasm-unsafe-eval/);
+  for (const secret of ["/supabase/migrations/x.sql", "/netlify/functions/ops.mjs", "/build-config.js", "/SETUP.md"]) assert.ok(conf.redirects.some((rd) => rd.status === 404 && matches(rd.from, secret)), `${secret} isn't published`);
+  ok("netlify.toml: one CSP per page, backend files not published");
 
   /* ---------- ColeForge's copy of the engine is the same ---------- */
   for (const f2 of ["nc-api.js", "nc-terminal.js"]) {

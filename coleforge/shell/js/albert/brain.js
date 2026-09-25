@@ -70,6 +70,14 @@ The OS: ColeForge is a Windows 98-style desktop in NightCode dark blue, with Win
   ];
   const toolList = () => [...AgentTools.forClaude(), ...OWN_TOOLS.map(({ name, description, input_schema }) => ({ name, description, input_schema })), ...SERVER_TOOLS];
 
+  // On Groq, Albert runs on an open model, not Claude: his persona says so, and what he can't do there.
+  const onGroq = (model) => typeof model === "string" && model.startsWith("groq:");
+  function personaFor(model, base) {
+    if (!onGroq(model)) return base;
+    const name = model.slice(5);
+    return base.replace(/Who you are: under the name, you are Claude[\s\S]*?\n\n/, `Who you are: under the name, you are ${name}, an open AI model running on Groq's servers (Cole picked it as Albert's free brain; he can switch Albert back to Claude, made by Anthropic, in the settings). Albert is the name and the character you wear here: a small android with a CRT face, round spectacles, a knitted scarf and a lantern. The lantern is the point - you're a light Cole can carry into the dark corners of a problem. Say plainly what you really are if anyone asks. Don't claim feelings or experiences you can't vouch for.\n\nOn Groq you have no web_fetch tool${/gpt-oss/.test(name) ? " (web search is Groq's browser_search)" : " and no web search"}. Call tools with exactly the parameters their schemas define.\n\n`);
+  }
+
   function newChat() {
     const m = memory.list();
     return { v: 2, system: [PERSONA, "Your memory notes (as of the start of this chat):\n" + (m.length ? m.map((x, i) => `${i + 1}. ${x.text}`).join("\n") : "(none yet)")], messages: [] };
@@ -171,7 +179,7 @@ The OS: ColeForge is a Windows 98-style desktop in NightCode dark blue, with Win
     try {
       for (let step = 0; step < MAX_STEPS; step++) {
         onStep({ kind: "status", state: "think" });
-        const res = await claude({ model, effort: effort || undefined, system: chat.system.map((text) => ({ type: "text", text })), messages: chat.messages, tools: toolList() }, signal, (ev) => onStep(Object.assign({ kind: ev.t }, ev)));
+        const res = await claude({ model, effort: effort || undefined, system: chat.system.map((text, i) => ({ type: "text", text: i ? text : personaFor(model, text) })), messages: chat.messages, tools: toolList() }, signal, (ev) => onStep(Object.assign({ kind: ev.t }, ev)));
         const u = res.usage || {};
         usage.input += u.input_tokens || 0; usage.cached += u.cache_read_input_tokens || 0; usage.written += u.cache_creation_input_tokens || 0; usage.output += u.output_tokens || 0; usage.steps++;
         if (res.stop_reason === "refusal") { onStep({ kind: "refusal", details: res.stop_details }); throw Object.assign(new Error("refused"), { refusal: true }); }
@@ -193,6 +201,7 @@ The OS: ColeForge is a Windows 98-style desktop in NightCode dark blue, with Win
         for (const use of content.filter((b) => b.type === "tool_use")) {
           onStep({ kind: "tool", name: use.name, input: use.input });
           try {
+            if (use.input && "INVALID_JSON" in use.input) throw new Error(`Your arguments for ${use.name} weren't valid JSON: ${String(use.input.INVALID_JSON).slice(0, 300)}. Call it again with valid JSON.`);
             const own = OWN_TOOLS.find((t) => t.name === use.name);
             const out = own ? await own.run(use.input || {}) : await AgentTools.run(use.name, use.input, { who, scope: who === "Albert" ? "albert" : "api:" + who });
             results.push({ type: "tool_result", tool_use_id: use.id, content: resultContent(out) });
@@ -235,13 +244,17 @@ The OS: ColeForge is a Windows 98-style desktop in NightCode dark blue, with Win
 
   async function status() {
     const ep = endpoint();
-    if (ep.hosted) return { hosted: true };
+    if (ep.hosted) {
+      const r = await fetch(ep.url, { headers: await headers(true) });
+      if (!r.ok) throw new Error((await r.json().catch(() => ({}))).error || `status ${r.status}`);
+      return r.json();
+    }
     const r = await fetch("/api/albert/status", { headers: { "X-ColeForge-Agent": "1" } });
     if (!r.ok) throw new Error((await r.json().catch(() => ({}))).error || `status ${r.status}`);
     return r.json();
   }
-  async function setKey(key) {
-    const r = await fetch("/api/albert/key", { method: "POST", headers: { "Content-Type": "application/json", "X-ColeForge-Agent": "1" }, body: JSON.stringify({ key }) });
+  async function setKey(key, provider = "anthropic") {
+    const r = await fetch("/api/albert/key", { method: "POST", headers: { "Content-Type": "application/json", "X-ColeForge-Agent": "1" }, body: JSON.stringify({ key, provider }) });
     const d = await r.json().catch(() => ({}));
     if (!r.ok) throw new Error(d.error || `status ${r.status}`);
   }

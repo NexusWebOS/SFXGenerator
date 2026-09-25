@@ -85,6 +85,9 @@
       let model = CF.store.get(MODEL_KEY, "claude-opus-5");
       let effort = CF.store.get(EFFORT_KEY, "");
       let busy = false, abort = null, pending = [];
+      const brainName = (m) => (m.startsWith("groq:") ? m.slice(5).split("/").pop() + " on Groq" : { "claude-opus-5": "Claude Opus 5", "claude-sonnet-5": "Claude Sonnet 5", "claude-haiku-4-5": "Claude Haiku 4.5" }[m] || m);
+      const footText = () => (model.startsWith("groq:") ? `Running on Groq · ${model.slice(5).split("/").pop()}` : "Powered by Claude");
+      const foot = h("div", { class: "alb-foot muted", title: "Change Albert's brain in Settings…" }, footText());
 
       /* ---------- Albert himself ---------- */
       const sprite = h("canvas", { class: "alb-sprite", width: 64, height: 64, title: "Albert" });
@@ -117,7 +120,7 @@
       const side = h("div", { class: "alb-side" }, h("div", { class: "alb-stage" }, sprite), h("div", { class: "alb-name" }, "ALBERT"), mood,
         h("label", { class: "alb-think" }, "Thinking ", effortSel),
         h("div", { class: "alb-btns" }, btn("New chat", newChat), btn("Memory…", memoryDlg), btn("Settings…", settingsDlg)),
-        h("div", { class: "alb-foot muted" }, "Powered by Claude"));
+        foot);
       const main = h("div", { class: "alb-main" }, log, tray, h("div", { class: "alb-bar" }, attachBtn, picker, input, sendBtn, stopBtn));
       win.body.append(h("div", { class: "alb" }, side, main));
       function btn(label, fn) { const b = h("button", { class: "btn" }, label); b.addEventListener("click", fn); return b; }
@@ -219,6 +222,8 @@
           }
           case "assistant": {
             const nodes = blockNodes(s.content);
+            // Thoughts that aren't part of the reply (open models' reasoning) stay on screen for this session.
+            if (live?.thoughts && !s.content.some((b) => b.type === "thinking")) { live.thoughts.body.textContent = live.thoughts.text; live.thoughts.el.open = false; nodes.unshift(live.thoughts.el); }
             if (live) { cancelAnimationFrame(live.raf); live.el.replaceWith(...nodes); live = null; } else log.append(...nodes);
             scroll(); break;
           }
@@ -251,7 +256,7 @@
         } catch (e) {
           if (live) { live.el.remove(); live = null; }
           if (e.name === "AbortError") chip("Stopped. (I've forgotten that last exchange; ask again if you need it.)", "alb-note");
-          else if (!e.refusal) bubble("albert", md(e.status === 412 ? `I need an Anthropic API key before I can think. Open **Settings…** to add one.` : `Something went wrong: ${e.message}`), "alb-err");
+          else if (!e.refusal) bubble("albert", md(e.status === 412 ? `${e.message.replace(/ Open Albert's settings.*$/, "")}\n\nOpen **Settings…** to add a key (Groq's is free).` : `Something went wrong: ${e.message}`), "alb-err");
         } finally {
           busy = false; sendBtn.hidden = false; stopBtn.hidden = true; attachBtn.disabled = false; abort = null;
           setState("idle"); save(); input.focus();
@@ -279,16 +284,26 @@
       async function settingsDlg() {
         let st = null, err = null;
         try { st = await AlbertBrain.status(); } catch (e) { err = e.message; }
-        const models = st?.models || [{ id: "claude-opus-5", label: "Claude Opus 5" }, { id: "claude-sonnet-5", label: "Claude Sonnet 5" }, { id: "claude-haiku-4-5", label: "Claude Haiku 4.5" }];
+        const models = st?.models?.length ? st.models.slice() : [{ id: "claude-opus-5", label: "Claude Opus 5" }, { id: "claude-sonnet-5", label: "Claude Sonnet 5" }, { id: "claude-haiku-4-5", label: "Claude Haiku 4.5" }];
+        if (!models.some((m) => m.id === model)) models.push({ id: model, label: model.replace(/^groq:/, "") + (model.startsWith("groq:") ? " (Groq)" : "") });
         const NOTES = { "claude-opus-5": " (default, smartest)", "claude-sonnet-5": " (fast and smart)", "claude-haiku-4-5": " (quickest, cheapest)" };
-        const sel = h("select", { class: "field" }, models.map((m) => h("option", { value: m.id, selected: m.id === model }, m.label + (NOTES[m.id] || ""))));
-        const key = h("input", { class: "field", type: "password", placeholder: st?.key ? `set (${st.key.source}, ${st.key.hint})` : "sk-ant-…", autocomplete: "off", style: "width:100%" });
-        const parts = [h("label", { class: "row" }, "Model ", sel)];
-        if (st?.hosted) parts.push(h("p", { class: "muted" }, "On the NightCode website Albert uses the site's Anthropic key (set by the sysop on Netlify) and your NightCode account."));
+        const opt = (m) => h("option", { value: m.id, selected: m.id === model }, m.label + (NOTES[m.id] || ""));
+        const claudeModels = models.filter((m) => !m.id.startsWith("groq:")), groqModels = models.filter((m) => m.id.startsWith("groq:"));
+        const sel = h("select", { class: "field" }, claudeModels.length ? h("optgroup", { label: "Claude (Anthropic) - paid, smartest" }, claudeModels.map(opt)) : null,
+          groqModels.length ? h("optgroup", { label: "Free on Groq - open models" }, groqModels.map(opt)) : null);
+        const keyBox = (provider, cur, ph) => {
+          const input = h("input", { class: "field", type: "password", placeholder: cur ? `set (${cur.source}, ${cur.hint})` : ph, autocomplete: "off", style: "flex:1;min-width:0" });
+          const rm = h("button", { class: "btn", hidden: !cur || /environment/.test(cur.source), onclick: async () => { try { await AlbertBrain.setKey(null, provider); rm.hidden = true; input.placeholder = ph; CF.toast({ title: "Albert", body: "Key removed.", icon: "albert" }); } catch (e) { CF.toast({ title: "Albert", body: e.message, icon: "albert" }); } } }, "Remove");
+          return { input, row: h("div", { class: "row", style: "display:flex;gap:6px" }, input, rm) };
+        };
+        const ak = keyBox("anthropic", st?.key, "sk-ant-…"), gk = keyBox("groq", st?.groq, "gsk_…");
+        const parts = [h("label", { class: "row" }, "Brain ", sel)];
+        if (st?.hosted) parts.push(h("p", { class: "muted" }, `On the NightCode website Albert uses the site's keys, set by the sysop on Netlify (${[st.key && "Anthropic", st.groq && "Groq"].filter(Boolean).join(" and ") || "none yet: ANTHROPIC_API_KEY or GROQ_API_KEY"}), and your NightCode account.`));
         else if (err) parts.push(h("p", { class: "muted" }, `Albert's relay isn't reachable here (${err}). Run ColeForge.exe, or the ColeForge server (node coleforge/server/forgechat-server.js).`));
         else {
-          parts.push(h("p", { style: "margin:10px 0 4px" }, h("b", {}, "Anthropic API key "), st.key ? `— ${st.key.source} (${st.key.hint})` : "— not set"), key,
-            h("p", { class: "muted", style: "margin:4px 0 0" }, "Get one at console.anthropic.com → API Keys. It's kept by ColeForge's server on this PC (~/.coleforge), never in the browser."));
+          parts.push(h("p", { style: "margin:10px 0 4px" }, h("b", {}, "Anthropic API key "), st.key ? `— ${st.key.source} (${st.key.hint})` : "— not set", h("span", { class: "muted" }, " · for Claude, pay as you go: console.anthropic.com → API Keys")), ak.row,
+            h("p", { style: "margin:10px 0 4px" }, h("b", {}, "Groq API key "), st.groq ? `— ${st.groq.source} (${st.groq.hint})` : "— not set", h("span", { class: "muted" }, " · free tier: console.groq.com → API Keys")), gk.row,
+            h("p", { class: "muted", style: "margin:4px 0 0" }, "Keys are kept by ColeForge's server on this PC (~/.coleforge), never in the browser. Groq's free models are quick but less sharp with multi-step jobs, can't read web pages, and only some see pictures."));
           if (st.mcp) {
             const box = h("pre", { class: "alb-mcp" }, [
               `Token:        ${st.mcp.token}`, "",
@@ -301,13 +316,20 @@
             parts.push(h("h4", { style: "margin:14px 0 4px" }, "Your programs and AI agent software"), h("p", { class: "muted", style: "margin:0 0 4px" }, "Your own programs can ask Albert things through the Albert API, and other AI agents can use ColeForge's tools over MCP. Anything that changes something asks you first."), box);
           }
         }
-        const r = await CF.dialog({ title: "Albert settings", icon: "albert", content: h("div", { class: "alb-wide" }, ...parts), buttons: st && !st.hosted && !err ? ["Save", "Clear key", "Cancel"] : ["Save", "Cancel"] });
-        if (r.button === "Cancel" || !r.button) return;
-        model = sel.value; CF.store.set(MODEL_KEY, model);
+        const r = await CF.dialog({ title: "Albert settings", icon: "albert", content: h("div", { class: "alb-wide" }, ...parts), buttons: ["Save", "Cancel"] });
+        if (r.button !== "Save") return;
+        model = sel.value;
         try {
-          if (r.button === "Clear key") { await AlbertBrain.setKey(null); CF.toast({ title: "Albert", body: "API key removed.", icon: "albert" }); }
-          else if (key.value.trim()) { await AlbertBrain.setKey(key.value.trim()); CF.toast({ title: "Albert", body: "API key saved. I'm ready.", icon: "albert" }); }
+          const a = ak.input.value.trim(), g = gk.input.value.trim();
+          if (a) await AlbertBrain.setKey(a, "anthropic");
+          if (g) {
+            await AlbertBrain.setKey(g, "groq");
+            // Only a Groq key: Albert switches to its best free model.
+            if (!model.startsWith("groq:") && !st?.key && !a) model = groqModels[0]?.id || "groq:openai/gpt-oss-120b";
+          }
+          if (a || g) CF.toast({ title: "Albert", body: `Key saved. I'm running on ${brainName(model)}.`, icon: "albert" });
         } catch (e) { CF.dialog({ title: "Albert", icon: "error", message: e.message }); }
+        CF.store.set(MODEL_KEY, model); foot.textContent = footText();
       }
 
       win.on("close", () => { clearInterval(anim); abort?.abort(); });

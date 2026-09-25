@@ -19,7 +19,7 @@ web/nightcode/
   build-config.js                Netlify build: assembles dist/ (the published site): config.js / config.json and the desktop
   netlify.toml                   CSPs, what's published, the function directory
   netlify/functions/ops.mjs      NightOps' GitHub + Netlify access (/api/ops), sysop only
-  netlify/functions/albert.mjs   Albert's Claude turns on the website (/api/albert), official Claude SDK
+  netlify/functions/albert.mjs   Albert's turns on the website (/api/albert): Claude (official SDK) or Groq
   package.json                   the functions' one dependency (@anthropic-ai/sdk)
   sync-shell.js                  copies the DOS engine into ColeForge (shell/js/nightcode-net/)
   supabase/migrations/           run both, in order
@@ -68,6 +68,7 @@ coletechsystems.com's DNS is on Netlify DNS, so everything is done in Netlify.
    | `NETLIFY_API_TOKEN` | a Netlify personal access token | NightOps: sites, deploys, "Trigger deploy" |
    | `NIGHTOPS_GITHUB_OWNER` | optional, default `NexusWebOS` | which account's repos NightOps lists |
    | `ANTHROPIC_API_KEY` | an Anthropic API key (console.anthropic.com) | Albert on the website's desktop |
+   | `GROQ_API_KEY` | optional: a free Groq API key (console.groq.com → API Keys) | Albert on free open models (GPT-OSS, Llama 4, ...) |
    | `ALBERT_ACCESS` | optional: `members` lets every signed-in member use Albert (default: sysop only) | Albert |
 
    The GitHub token: **GitHub > Settings > Developer settings > Fine-grained tokens**, resource owner

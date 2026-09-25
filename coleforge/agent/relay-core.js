@@ -19,6 +19,8 @@
 // If the API rejects one of these extras (400 before any output), the turn is retried once without
 // them and they stay off for this process, so Albert keeps working.
 
+const groq = require("./groq.js");
+
 const MODELS = {
   "claude-opus-5": { label: "Claude Opus 5", thinking: true, effort: true, fallbacks: true, compaction: true, search: "web_search_20260209", fetch: "web_fetch_20260209" },
   "claude-sonnet-5": { label: "Claude Sonnet 5", thinking: true, effort: true, fallbacks: false, compaction: false, search: "web_search_20260209", fetch: "web_fetch_20260209" },
@@ -114,7 +116,7 @@ async function stream(client, body, emit, signal, Anthropic) {
 
 // SDK errors → a status and a sentence for Albert's window. Most specific first.
 function errorOf(e, Anthropic) {
-  if (e instanceof RelayError) return { status: e.status, error: e.message };
+  if (e instanceof RelayError || e instanceof groq.GroqError) return { status: e.status, error: e.message };
   if (Anthropic) {
     if (e instanceof Anthropic.APIUserAbortError) return { status: 499, error: "Stopped." };
     if (e instanceof Anthropic.AuthenticationError) return { status: 401, error: "The Anthropic API key was rejected. Set a working key in Albert's settings." };
@@ -131,9 +133,10 @@ function errorOf(e, Anthropic) {
 // Answers an HTTP-ish request with either one JSON reply or, when body.stream is true, a stream of
 // newline-delimited JSON events ending in { t: "done", message } or { t: "error", status, error }.
 // write(line) sends a chunk; the caller has already sent the headers for the chosen mode.
-async function relay(client, body, Anthropic, { write, signal }) {
+// Models named "groq:..." run on Groq (agent/groq.js) with opts.groqKey; the rest on Claude with client.
+async function relay(client, body, Anthropic, { write, signal, groqKey }) {
   const emit = (ev) => write(JSON.stringify(ev) + "\n");
-  try { emit({ t: "done", message: await stream(client, body, emit, signal, Anthropic) }); }
+  try { emit({ t: "done", message: groq.isGroq(body?.model) ? await groq.stream(groqKey, body, emit, signal) : await stream(client, body, emit, signal, Anthropic) }); }
   catch (e) { const r = errorOf(e, Anthropic); emit({ t: "error", status: r.status, error: r.error }); }
 }
 

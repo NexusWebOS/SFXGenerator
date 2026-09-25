@@ -5,7 +5,8 @@ Windows – ColeForge Edition works with AI agent software. There are four ways 
 ## 1. Albert (built in)
 
 Albert is ColeForge's own agent: Start > Programs > **Albert** (Run: `albert`). He runs on Claude
-(Claude Opus 5 by default; Sonnet 5 and Haiku 4.5 in his settings) and uses the tools below. Anything
+(Claude Opus 5 by default; Sonnet 5 and Haiku 4.5 in his settings), or for free on an open model hosted
+by Groq (see below), and uses the tools below. Anything
 that changes something asks you first (Allow / Always allow / Deny). He keeps a short memory you can read
 and edit (Albert > Memory).
 
@@ -25,6 +26,22 @@ What makes him more than a chat box:
   cache; the window shows how much), and server-side compaction on Claude Opus 5 for very long chats.
   Each chat keeps the system prompt it started with and only appends, so the cache keeps working.
 - **Safe fallbacks.** If the API turns down one of these extras, the turn is retried once without them.
+
+### Free brain: Groq
+
+Albert can also run on Groq's free tier (open models: GPT-OSS 120B / 20B, Llama 4, Kimi K2, Qwen3 and
+whatever else Groq offers; the list comes from Groq live). Get a free key at **console.groq.com → API
+Keys** (`gsk_…`), paste it in Albert > Settings (or set `GROQ_API_KEY`), and pick a model under "Free on
+Groq". With only a Groq key, Albert switches to GPT-OSS 120B by himself. The footer shows which brain is
+running.
+
+- Everything on the desktop works the same: tools, approvals, memory, the scratchpad, the Albert API.
+  Chats stay in one format, so you can switch between Claude and Groq mid-chat.
+- GPT-OSS models show their reasoning as thoughts, take the Thinking level (as `reasoning_effort`) and
+  search the web with Groq's `browser_search`. Llama 4 models can see pictures; the others can't.
+- Not on Groq: web fetch, prompt caching, compaction. Free-tier rate limits are tight (a short wait is
+  retried once), and open models are less reliable with long multi-step jobs than Claude.
+- Code: `agent/groq.js` (Claude format ⇄ OpenAI format, streaming, retries, model list).
 
 - **ColeForge.exe / local server:** add your Anthropic API key in Albert > Settings (or set
   `ANTHROPIC_API_KEY` before starting). It's kept in `~/.coleforge/anthropic-key` (private to your user)
@@ -55,7 +72,7 @@ curl -s http://localhost:8098/api/albert/v1/ask \
 | `message` | what to ask (required) |
 | `from` | your program's name (shown on the desktop and to Albert) |
 | `conversation` | any id: messages with the same id continue one conversation (the newest 20 are kept while the desktop is open); leave it out for a one-off question |
-| `model`, `effort` | optional: `claude-opus-5`, `claude-sonnet-5`, `claude-haiku-4-5`; `low` … `max` |
+| `model`, `effort` | optional: `claude-opus-5`, `claude-sonnet-5`, `claude-haiku-4-5`, or a Groq model such as `groq:openai/gpt-oss-120b`; `low` … `max` |
 
 `GET /api/albert/v1/status` says whether the desktop is open and a key is set. Same token as MCP; answers
 can take a while (up to 10 minutes with approvals), so give your HTTP client a long timeout. Inside
@@ -133,10 +150,10 @@ Claude's web search and web fetch.
 - The MCP endpoint and the Albert API need the token and refuse browser pages from other sites (Origin check); the desktop
   endpoints (`/api/albert`, `/api/agent/*`) need a ColeForge-only header, a same-site Origin, and a
   connection from this PC.
-- Your API key and the agent token live in `~/.coleforge` with owner-only permissions.
+- Your API keys (`anthropic-key`, `groq-key`) and the agent token live in `~/.coleforge` with owner-only permissions.
 - Tools only touch ColeForge (its documents, programs and settings), never your Windows files.
 
 - Albert's scratchpad code can't reach the network, storage or the desktop, and is stopped after 8 seconds.
 
-Tests: `node coleforge/tests/albert.test.js` (mock Claude API in `tests/mock-anthropic.js`, which streams
-like the real one).
+Tests: `node coleforge/tests/albert.test.js` (mock Claude API in `tests/mock-anthropic.js` and mock Groq
+in `tests/mock-groq.js`, both streaming like the real ones).

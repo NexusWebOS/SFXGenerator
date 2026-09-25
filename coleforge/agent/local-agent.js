@@ -5,7 +5,8 @@
 //   POST /api/albert          one Claude turn for Albert (the Claude SDK runs here; the key never
 //                             reaches the browser). Loopback only unless ALBERT_LAN=1.
 //   GET  /api/albert/status   key source, models, MCP details (for Albert's settings)
-//   POST /api/albert/key      save or clear the Anthropic API key ({ key }) in ~/.coleforge
+//   POST /api/albert/key      save or clear an API key in ~/.coleforge: { key } for Anthropic (Claude),
+//                             { provider: "groq", key } for Groq (free open models: GPT-OSS, Llama, ...)
 //   POST /mcp                 Model Context Protocol (Streamable HTTP, JSON responses) so AI agent
 //                             software (Claude Code, Claude Desktop, Codex, ...) can use ColeForge's
 //                             tools. Needs "Authorization: Bearer <token>" (~/.coleforge/agent-token).
@@ -28,21 +29,28 @@ const core = require("./relay-core.js");
 const mcp = require("./mcp.js");
 
 const HOME = process.env.COLEFORGE_HOME || path.join(os.homedir(), ".coleforge");
-const KEY_FILE = path.join(HOME, "anthropic-key");
+const groq = require("./groq.js");
+const PROVIDERS = {
+  anthropic: { file: path.join(HOME, "anthropic-key"), env: "ANTHROPIC_API_KEY", shape: /^sk-ant-[A-Za-z0-9_-]{20,}$/, name: "an Anthropic API key (sk-ant-…)" },
+  groq: { file: path.join(HOME, "groq-key"), env: "GROQ_API_KEY", shape: /^gsk_[A-Za-z0-9_-]{20,}$/, name: "a Groq API key (gsk_…)" },
+};
 const TOKEN_FILE = path.join(HOME, "agent-token");
 const LAN_OK = process.env.ALBERT_LAN === "1";
 
 function ensureHome() { fs.mkdirSync(HOME, { recursive: true, mode: 0o700 }); }
-function readKey() {
-  if (process.env.ANTHROPIC_API_KEY) return { key: process.env.ANTHROPIC_API_KEY, source: "environment (ANTHROPIC_API_KEY)" };
-  try { const k = fs.readFileSync(KEY_FILE, "utf8").trim(); if (k) return { key: k, source: "saved in ColeForge" }; } catch { /* none */ }
+function readKey(provider = "anthropic") {
+  const pr = PROVIDERS[provider];
+  if (process.env[pr.env]) return { key: process.env[pr.env], source: `environment (${pr.env})` };
+  try { const k = fs.readFileSync(pr.file, "utf8").trim(); if (k) return { key: k, source: "saved in ColeForge" }; } catch { /* none */ }
   return { key: null, source: "none" };
 }
-function saveKey(k) {
+function saveKey(k, provider = "anthropic") {
   ensureHome();
-  if (!k) { fs.rmSync(KEY_FILE, { force: true }); return; }
-  fs.writeFileSync(KEY_FILE, k.trim() + "\n", { mode: 0o600 });
+  const file = PROVIDERS[provider].file;
+  if (!k) { fs.rmSync(file, { force: true }); return; }
+  fs.writeFileSync(file, k.trim() + "\n", { mode: 0o600 });
 }
+const hint = (k) => (k.key ? { source: k.source, hint: "…" + k.key.slice(-4) } : null);
 function token() {
   if (process.env.COLEFORGE_AGENT_TOKEN) return process.env.COLEFORGE_AGENT_TOKEN;
   try { const t = fs.readFileSync(TOKEN_FILE, "utf8").trim(); if (t) return t; } catch { /* make one */ }
@@ -121,8 +129,9 @@ async function handle(req, res, url) {
       return send(res, 404, { error: "Unknown agent endpoint." }), true;
     }
     if (p === "/api/albert/status" && req.method === "GET") {
-      const k = readKey();
-      const info = { key: k.key ? { source: k.source, hint: "…" + k.key.slice(-4) } : null, models: Object.entries(core.MODELS).map(([id, m]) => ({ id, label: m.label })), default_model: core.DEFAULT_MODEL, lan: !local };
+      const g = readKey("groq");
+      const info = { key: hint(readKey()), groq: hint(g), default_model: core.DEFAULT_MODEL, lan: !local,
+        models: [...Object.entries(core.MODELS).map(([id, m]) => ({ id, label: m.label, provider: "anthropic", vision: true })), ...await groq.models(g.key)] };
       if (local) {
         info.mcp = { url: `http://localhost:${req.socket.localPort}/mcp`, token: token(), connected_clients: mcp.clients() };
         info.api = { url: `http://localhost:${req.socket.localPort}/api/albert/v1/ask` };
@@ -133,26 +142,31 @@ async function handle(req, res, url) {
     if (p === "/api/albert/key" && req.method === "POST") {
       if (!local) return send(res, 403, { error: "Set the key on the host PC." }), true;
       const b = await readJson(req);
-      if (b.key && !/^sk-ant-[A-Za-z0-9_-]{20,}$/.test(String(b.key).trim())) return send(res, 400, { error: "That doesn't look like an Anthropic API key (sk-ant-…)." }), true;
-      saveKey(b.key || null);
+      const provider = b.provider === "groq" ? "groq" : "anthropic";
+      if (b.key && !PROVIDERS[provider].shape.test(String(b.key).trim())) return send(res, 400, { error: `That doesn't look like ${PROVIDERS[provider].name}.` }), true;
+      saveKey(b.key || null, provider);
       return send(res, 200, { ok: true }), true;
     }
     if (p === "/api/albert" && req.method === "POST") {
       const body = await readJson(req);
-      const k = readKey();
-      if (!k.key) return send(res, 412, { error: "Albert needs an Anthropic API key. Open Albert's settings to add one (console.anthropic.com → API Keys)." }), true;
-      let A;
-      try { A = sdk(); } catch { return send(res, 501, { error: "The Claude SDK isn't installed: run npm install in coleforge/agent." }), true; }
-      const client = new A({ apiKey: k.key, maxRetries: 2, timeout: 600000 });
+      const onGroq = groq.isGroq(body.model);
+      const k = readKey(onGroq ? "groq" : "anthropic");
+      if (!k.key) return send(res, 412, { error: onGroq ? "Albert needs a Groq API key for this model. Open Albert's settings to add one (console.groq.com → API Keys, free)." : "Albert needs an Anthropic API key. Open Albert's settings to add one (console.anthropic.com → API Keys)." }), true;
+      let A = null, client = null;
+      if (!onGroq) {
+        try { A = sdk(); } catch { return send(res, 501, { error: "The Claude SDK isn't installed: run npm install in coleforge/agent." }), true; }
+        client = new A({ apiKey: k.key, maxRetries: 2, timeout: 600000 });
+      }
+      const groqKey = onGroq ? k.key : null;
       if (!body.stream) {
-        try { return send(res, 200, await core.turn(client, body, A)), true; }
+        try { return send(res, 200, onGroq ? await groq.stream(groqKey, body, () => {}) : await core.turn(client, body, A)), true; }
         catch (e) { const r = core.errorOf(e, A); return send(res, r.status, { error: r.error }), true; }
       }
       // Live: newline-delimited JSON events, so Albert's words appear as Claude writes them.
       const ac = new AbortController();
       res.on("close", () => { if (!res.writableFinished) ac.abort(); });
       res.writeHead(200, { "Content-Type": "application/x-ndjson; charset=utf-8", "Cache-Control": "no-store", "X-Accel-Buffering": "no" });
-      await core.relay(client, body, A, { write: (line) => res.write(line), signal: ac.signal });
+      await core.relay(client, body, A, { write: (line) => res.write(line), signal: ac.signal, groqKey });
       res.end();
       return true;
     }
@@ -175,12 +189,12 @@ async function albertApi(req, res, p) {
   if (req.headers.origin && !sameOrigin(req)) return send(res, 403, { error: "Origin not allowed." }), true;
   if (!bearerOk(req)) return send(res, 401, { error: "Missing or wrong bearer token (see ~/.coleforge/agent-token or Albert → Settings)." }, { "WWW-Authenticate": "Bearer" }), true;
   try {
-    if (p === "/api/albert/v1/status" && req.method === "GET") return send(res, 200, { desktop: bridge.connected(), key: !!readKey().key }), true;
+    if (p === "/api/albert/v1/status" && req.method === "GET") return send(res, 200, { desktop: bridge.connected(), key: !!(readKey().key || readKey("groq").key) }), true;
     if (p === "/api/albert/v1/ask" && req.method === "POST") {
       const b = await readJson(req, 1024 * 1024);
       const message = typeof b.message === "string" ? b.message.trim() : "";
       if (!message) return send(res, 400, { error: 'Send { "message": "..." }.' }), true;
-      if (!readKey().key) return send(res, 412, { error: "Albert has no Anthropic API key yet (Albert → Settings)." }), true;
+      if (!readKey().key && !readKey("groq").key) return send(res, 412, { error: "Albert has no API key yet (Albert → Settings: Anthropic, or Groq for free models)." }), true;
       const args = { message: message.slice(0, 20000), conversation: typeof b.conversation === "string" ? b.conversation.slice(0, 80) : "", from: String(b.from || req.headers["user-agent"] || "a program").slice(0, 80), named: typeof b.from === "string" && !!b.from };
       if (typeof b.model === "string") args.model = b.model;
       if (typeof b.effort === "string") args.effort = b.effort;

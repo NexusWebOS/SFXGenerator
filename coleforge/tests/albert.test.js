@@ -2,6 +2,7 @@
 // Albert and ColeForge's agent endpoints, against a mock Claude API (tests/mock-anthropic.js):
 //   - the relay sends what the Claude API expects (model, adaptive thinking with summaries, server-side
 //     fallbacks, prompt caching, effort, compaction, per-model server tools) and streams replies;
+//   - Albert on Groq (free open models): translation to and from the OpenAI format, streaming, retries;
 //   - the Albert API (/api/albert/v1/*) for other programs;
 //   - /api/albert and /api/agent/* only answer the desktop (header, origin, loopback), keys stay server-side;
 //   - MCP over HTTP (token, initialize, tools/list, tools/call through the desktop bridge) and over stdio.
@@ -12,6 +13,8 @@ const os = require("os");
 const path = require("path");
 const { spawn } = require("child_process");
 const { createMockClaude } = require("./mock-anthropic.js");
+const { createMockGroq } = require("./mock-groq.js");
+const groq = require("../agent/groq.js");
 const core = require("../agent/relay-core.js");
 
 let passed = 0;
@@ -84,10 +87,68 @@ const H = { "Content-Type": "application/json", "X-ColeForge-Agent": "1" };
   core._degraded.clear();
   ok("relay: Opus 5 default, thinking summaries, fallbacks, caching, effort, compaction, per-model server tools, caps, streaming, graceful retry, SDK errors");
 
+  /* ---------- Albert on Groq ---------- */
+  const mg = createMockGroq();
+  await new Promise((r) => mg.server.listen(0, "127.0.0.1", r));
+  process.env.GROQ_BASE_URL = `http://127.0.0.1:${mg.server.address().port}/openai/v1`;
+  const pic = { type: "image", source: { type: "base64", media_type: "image/png", data: "iVBORw0KGgo=" } };
+  const history = [
+    { role: "user", content: [{ type: "text", text: "<desktop/>" }, { type: "text", text: "hi" }, pic] },
+    { role: "assistant", content: [{ type: "thinking", thinking: "", signature: "sig" }, { type: "text", text: "Let me look." }, { type: "tool_use", id: "toolu_1", name: "read_document", input: { name: "a.png" } }, { type: "tool_use", id: "toolu_2", name: "list_apps", input: {} }] },
+    { role: "user", content: [{ type: "tool_result", tool_use_id: "toolu_1", content: [{ type: "text", text: "The picture a.png:" }, pic] }, { type: "tool_result", tool_use_id: "toolu_2", content: "[]", is_error: true }] },
+  ];
+  let oa = groq.toOpenAI({ system: [{ type: "text", text: "persona" }, { type: "text", text: "memory" }], messages: history }, "openai/gpt-oss-120b");
+  assert.deepStrictEqual(oa.map((m) => m.role), ["system", "user", "assistant", "tool", "tool"], "tool results follow the calls; thinking dropped");
+  assert.strictEqual(oa[0].content, "persona\n\nmemory");
+  assert.match(oa[1].content, /can't see pictures/, "no pictures for text-only models");
+  assert.deepStrictEqual(oa[2].tool_calls.map((c) => [c.id, c.function.name, c.function.arguments]), [["toolu_1", "read_document", '{"name":"a.png"}'], ["toolu_2", "list_apps", "{}"]]);
+  assert.match(oa[4].content, /^Error: /);
+  oa = groq.toOpenAI({ messages: history }, "meta-llama/llama-4-scout-17b-16e-instruct");
+  assert.deepStrictEqual(oa.map((m) => m.role), ["user", "assistant", "tool", "tool", "user"], "a picture from a tool comes after all tool messages");
+  assert.ok(oa[0].content.some((c) => c.type === "image_url" && c.image_url.url.startsWith("data:image/png;base64,")), "vision models get the picture");
+  assert.deepStrictEqual(groq.toolsFor([{ name: "x", description: "d", input_schema: { type: "object" } }, { type: "web_search_20260209", name: "web_search" }, { type: "web_fetch_20260209", name: "web_fetch" }], "openai/gpt-oss-120b", true).map((t) => t.type === "function" ? t.function.name : t.type), ["x", "browser_search"]);
+
+  const gev = [];
+  let g = await groq.stream(mg.key, { model: "groq:openai/gpt-oss-120b", effort: "max", system: "persona", messages: [{ role: "user", content: "hello Groq" }], tools: [{ type: "web_search_20260209", name: "web_search" }] }, (e) => gev.push(e));
+  assert.strictEqual(g.stop_reason, "end_turn");
+  assert.match(g.content[0].text, /Albert on Groq \(mock\)/);
+  assert.strictEqual(gev.filter((e) => e.t === "text").map((e) => e.d).join(""), g.content[0].text, "text streams");
+  assert.ok(gev.some((e) => e.t === "thinking"), "GPT-OSS reasoning shows as thoughts");
+  assert.deepStrictEqual(g.usage, { input_tokens: 1200, output_tokens: 30, cache_read_input_tokens: 0, cache_creation_input_tokens: 0 });
+  let gq = mg.requests.at(-1);
+  assert.strictEqual(gq.model, "openai/gpt-oss-120b");
+  assert.strictEqual(gq.reasoning_effort, "high", "effort maps to reasoning_effort");
+  assert.deepStrictEqual(gq.tools, [{ type: "browser_search" }]);
+  g = await groq.stream(mg.key, { model: "groq:llama-3.3-70b-versatile", messages: [{ role: "user", content: "please note it" }], tools: [{ name: "write_document", description: "w", input_schema: { type: "object", properties: {} } }, { type: "web_search_20260209", name: "web_search" }] }, () => {});
+  assert.strictEqual(g.stop_reason, "tool_use");
+  const call = g.content.find((b) => b.type === "tool_use");
+  assert.deepStrictEqual([call.name, call.input.name], ["write_document", "groq-note.txt"], "tool call assembled from streamed pieces");
+  assert.match(call.id, /^toolu_[A-Za-z0-9_-]+$/, "ids Claude accepts too, if you switch back mid-chat");
+  gq = mg.requests.at(-1);
+  assert.strictEqual(gq.reasoning_effort, undefined);
+  assert.deepStrictEqual(gq.tools.map((t) => t.type), ["function"], "no browser_search on Llama");
+  const t0 = Date.now();
+  g = await groq.stream(mg.key, { model: "groq:openai/gpt-oss-20b", messages: [{ role: "user", content: "rate limit me" }] }, () => {});
+  assert.ok(Date.now() - t0 >= 900 && g.stop_reason === "end_turn", "waits out a short rate limit once");
+  g = await groq.stream(mg.key, { model: "groq:openai/gpt-oss-20b", messages: [{ role: "user", content: "search the web" }], tools: [{ type: "web_search_20260209", name: "web_search" }] }, () => {});
+  assert.strictEqual(g.stop_reason, "end_turn"); assert.ok(groq._degraded.has("openai/gpt-oss-20b"), "browser_search turned off after Groq refused it");
+  g = await groq.stream(mg.key, { model: "groq:openai/gpt-oss-120b", messages: [{ role: "user", content: "broken tool call" }] }, () => {});
+  assert.strictEqual(g.stop_reason, "end_turn", "a failed tool generation is retried");
+  await assert.rejects(groq.stream("gsk_wrong000000000000000000000", { model: "groq:openai/gpt-oss-120b", messages: [{ role: "user", content: "x" }] }, () => {}), /Groq API key was rejected/);
+  await assert.rejects(groq.stream(null, { model: "groq:openai/gpt-oss-120b", messages: [{ role: "user", content: "x" }] }, () => {}), (e) => e.status === 412);
+  const listed = await groq.models(mg.key);
+  assert.ok(listed.some((m) => m.id === "groq:openai/gpt-oss-120b" && /GPT-OSS 120B/.test(m.label)) && listed.some((m) => m.id === "groq:brand-new-model"), "live list, with Albert's labels");
+  assert.ok(!listed.some((m) => /whisper/.test(m.id)) && !listed.some((m) => m.id === "groq:llama-3.3-70b-versatile"), "only chat models Groq actually has");
+  // Through the shared relay, as the servers use it.
+  const lines = [];
+  await core.relay(null, { model: "groq:openai/gpt-oss-120b", messages: [{ role: "user", content: "hi" }] }, null, { write: (l) => lines.push(JSON.parse(l)), groqKey: mg.key });
+  assert.strictEqual(lines.at(-1).t, "done");
+  ok("Groq: Claude-format chats translated both ways, streaming, reasoning, tool calls, pictures, browser_search, retries, live model list");
+
   /* ---------- the server: /api/albert and friends ---------- */
   const home = fs.mkdtempSync(path.join(os.tmpdir(), "coleforge-home-"));
   const srv = spawn(process.execPath, [path.join(__dirname, "../server/forgechat-server.js"), "--port", String(PORT), "--host", "127.0.0.1"],
-    { env: Object.assign({}, process.env, { COLEFORGE_HOME: home, ANTHROPIC_BASE_URL: mockUrl, ANTHROPIC_API_KEY: "", ZANDRONUM_LAN: "0" }), stdio: ["ignore", "pipe", "pipe"] });
+    { env: Object.assign({}, process.env, { COLEFORGE_HOME: home, ANTHROPIC_BASE_URL: mockUrl, ANTHROPIC_API_KEY: "", GROQ_API_KEY: "", ZANDRONUM_LAN: "0" }), stdio: ["ignore", "pipe", "pipe"] });
   let log = ""; srv.stdout.on("data", (d) => { log += d; }); srv.stderr.on("data", (d) => { log += d; });
   for (let i = 0; i < 50; i++) { try { await fetch(BASE + "/"); break; } catch { await sleep(100); } }
   try {
@@ -115,7 +176,21 @@ const H = { "Content-Type": "application/json", "X-ColeForge-Agent": "1" };
     assert.strictEqual(events.at(-1).t, "done");
     r = await post("/api/albert", { stream: true, messages: [] });
     assert.deepStrictEqual((await r.text()).trim().split("\n").map((l) => JSON.parse(l)).at(-1).t, "error", "errors arrive in the stream");
-    ok("server: /api/albert only for the desktop, key kept private in ~/.coleforge, turns relayed and streamed");
+    // Groq: its own key, its models in the list, turns relayed.
+    const gmsg = { model: "groq:openai/gpt-oss-120b", stream: true, messages: [{ role: "user", content: "hi Groq" }] };
+    r = await post("/api/albert", gmsg);
+    assert.strictEqual(r.status, 412); assert.match((await r.json()).error, /Groq API key/);
+    assert.strictEqual((await post("/api/albert/key", { provider: "groq", key: mock.key })).status, 400, "a Groq key looks like gsk_...");
+    assert.strictEqual((await post("/api/albert/key", { provider: "groq", key: mg.key })).status, 200);
+    assert.strictEqual(fs.readFileSync(path.join(home, "groq-key"), "utf8").trim(), mg.key);
+    const st2 = await (await fetch(BASE + "/api/albert/status", { headers: H })).json();
+    assert.ok(st2.groq?.hint && st2.key?.hint && !JSON.stringify(st2).includes(mg.key));
+    assert.ok(st2.models.some((m) => m.id === "claude-opus-5") && st2.models.some((m) => m.id === "groq:openai/gpt-oss-120b"));
+    r = await post("/api/albert", gmsg);
+    const gl = (await r.text()).trim().split("\n").map((l) => JSON.parse(l));
+    assert.strictEqual(gl.at(-1).t, "done", JSON.stringify(gl.at(-1)));
+    assert.match(gl.at(-1).message.content[0].text, /Albert on Groq/);
+    ok("server: /api/albert only for the desktop, keys kept private in ~/.coleforge, Claude and Groq turns relayed and streamed");
 
     /* ---------- MCP over HTTP ---------- */
     const token = fs.readFileSync(path.join(home, "agent-token"), "utf8").trim();
@@ -229,12 +304,23 @@ const H = { "Content-Type": "application/json", "X-ColeForge-Agent": "1" };
     assert.strictEqual(streamed.body.at(-1).t, "done", JSON.stringify(streamed.body.at(-1)));
     assert.ok(streamed.body.some((e) => e.t === "text"));
     assert.strictEqual(claude2.requests.at(-1).body.max_tokens, 16000, "the site's cap wins");
+    const call2 = async (who, method) => { const r = await fn(new Request("https://nightcode.coletechsystems.com/api/albert", { method, headers: { Authorization: `Bearer ${await who.accessToken()}` } })); return r.json(); };
+    let avail = await call2(boss, "GET");
+    assert.deepStrictEqual([avail.key, avail.groq, avail.models.some((m) => m.id.startsWith("groq:"))], [true, false, false]);
+    assert.strictEqual((await call(boss, { model: "groq:openai/gpt-oss-120b", messages: msgs.messages })).status, 412, "no Groq key on the site");
+    process.env.GROQ_API_KEY = mg.key;
+    avail = await call2(boss, "GET");
+    assert.ok(avail.groq && avail.models.some((m) => m.id === "groq:openai/gpt-oss-120b"));
+    const gr = await call(boss, { model: "groq:openai/gpt-oss-120b", stream: true, messages: msgs.messages });
+    assert.strictEqual(gr.body.at(-1).t, "done", JSON.stringify(gr.body.at(-1)));
+    delete process.env.GROQ_API_KEY;
     process.env.ALBERT_ACCESS = "members";
     assert.strictEqual((await call(pleb, msgs)).status, 200, "ALBERT_ACCESS=members opens it up");
     delete process.env.ALBERT_ACCESS; delete process.env.ANTHROPIC_API_KEY; delete process.env.ANTHROPIC_BASE_URL;
     sb.server.close(); claude2.server.close();
-    ok("website Albert function: members only, sysop by default, site key, relayed (and streamed) through the Claude SDK");
+    ok("website Albert function: members only, sysop by default, site keys, Claude (SDK) and Groq turns, streamed");
   } else console.log("skip - website Albert function (npm install in coleforge/web/nightcode)");
 
+  mg.server.close();
   console.log(`\nall albert tests passed (${passed})`);
 })().catch((e) => { console.error(e); process.exit(1); });

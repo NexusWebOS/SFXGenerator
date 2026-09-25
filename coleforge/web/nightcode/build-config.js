@@ -1,5 +1,6 @@
 "use strict";
-// Netlify build step: writes config.js and config.json from environment variables.
+// Netlify build step: assembles dist/ (the published site) with config.js and config.json written from
+// environment variables.
 //   NIGHTCODE_SUPABASE_URL       https://<ref>.supabase.co
 //   NIGHTCODE_SUPABASE_ANON_KEY  the project's anon (public) key
 //   NIGHTCODE_SITE_URL           optional, defaults to https://nightcode.coletechsystems.com/
@@ -18,16 +19,25 @@ if (/service_role/.test(Buffer.from((anonKey.split(".")[1] || ""), "base64").toS
   process.exit(1);
 }
 if (!url || !anonKey) console.warn("NightCode: NIGHTCODE_SUPABASE_URL / NIGHTCODE_SUPABASE_ANON_KEY aren't set; the site boots in guest mode.");
+// Everything Netlify publishes goes into dist/: the site's own files, the config and the desktop. The
+// backend source, the build scripts and node_modules stay out of it.
+const OUT = path.join(__dirname, "dist");
+fs.rmSync(OUT, { recursive: true, force: true });
+fs.mkdirSync(OUT, { recursive: true });
+for (const f of ["index.html", "404.html", "css", "js", "assets"]) {
+  const src = path.join(__dirname, f);
+  if (fs.existsSync(src)) fs.cpSync(src, path.join(OUT, f), { recursive: true });
+}
 const cfg = { supabaseUrl: url, supabaseAnonKey: anonKey, siteUrl };
-fs.writeFileSync(path.join(__dirname, "config.js"), `window.NIGHTCODE_CONFIG = ${JSON.stringify(cfg, null, 2)};\n`);
-fs.writeFileSync(path.join(__dirname, "config.json"), JSON.stringify(cfg, null, 2) + "\n");
+fs.writeFileSync(path.join(OUT, "config.js"), `window.NIGHTCODE_CONFIG = ${JSON.stringify(cfg, null, 2)};\n`);
+fs.writeFileSync(path.join(OUT, "config.json"), JSON.stringify(cfg, null, 2) + "\n");
 console.log(`NightCode: config written (${url || "no backend"}).`);
 
 // The NightCode desktop (WIN at the DOS prompt) is the ColeForge shell, copied in at build time so the
 // website and ColeForge.exe run the same code. It gets the site's config and the NightCode host script,
 // which logs you on with your NightCode account and saves the desktop to your Supabase project.
 const shell = path.join(__dirname, "../../shell");
-const desk = path.join(__dirname, "desktop");
+const desk = path.join(OUT, "desktop");
 if (fs.existsSync(shell)) {
   fs.rmSync(desk, { recursive: true, force: true });
   fs.cpSync(shell, desk, { recursive: true });
@@ -38,5 +48,5 @@ if (fs.existsSync(shell)) {
   html = html.replace(first, `<script src="../config.js"></script>\n  <script src="js/nightcode-host.js"></script>\n  ${first}`)
     .replace("<title>Windows – ColeForge Edition</title>", "<title>NightCode Windows</title>");
   fs.writeFileSync(indexFile, html);
-  console.log("NightCode: desktop copied to desktop/.");
+  console.log("NightCode: desktop copied to dist/desktop/.");
 } else console.warn("NightCode: ../../shell isn't here; the site has no desktop (WIN).");

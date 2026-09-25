@@ -130,9 +130,9 @@ const memory = () => { const m = new Map(); return { getItem: (k) => (m.has(k) ?
   const jwt = (role) => ["e30", Buffer.from(JSON.stringify({ role })).toString("base64url"), "sig"].join(".");
   let res = run({ NIGHTCODE_SUPABASE_URL: "https://abcdefghijklmnopqrst.supabase.co", NIGHTCODE_SUPABASE_ANON_KEY: jwt("anon") });
   assert.strictEqual(res.status, 0, res.stderr);
-  const cfg = JSON.parse(fs.readFileSync(path.join(tmp, "config.json"), "utf8"));
+  const cfg = JSON.parse(fs.readFileSync(path.join(tmp, "dist", "config.json"), "utf8"));
   assert.strictEqual(cfg.supabaseUrl, "https://abcdefghijklmnopqrst.supabase.co");
-  assert.match(fs.readFileSync(path.join(tmp, "config.js"), "utf8"), /window\.NIGHTCODE_CONFIG = /);
+  assert.match(fs.readFileSync(path.join(tmp, "dist", "config.js"), "utf8"), /window\.NIGHTCODE_CONFIG = /);
   res = run({ NIGHTCODE_SUPABASE_URL: "https://abcdefghijklmnopqrst.supabase.co", NIGHTCODE_SUPABASE_ANON_KEY: jwt("service_role") });
   assert.notStrictEqual(res.status, 0);
   assert.match(res.stderr, /service_role/);

@@ -1,0 +1,8 @@
+{
+  "name": "nightcode-site",
+  "private": true,
+  "description": "nightcode.coletechsystems.com (Netlify). Functions: ops (NightOps), albert (Albert's Claude relay).",
+  "dependencies": {
+    "@anthropic-ai/sdk": "^0.128.0"
+  }
+}

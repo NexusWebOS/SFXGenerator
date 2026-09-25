@@ -4,7 +4,7 @@
 // ColeForge LAN server: serves the ColeForge shell over HTTP and runs the ForgeChat hub
 // (presence, channels, DMs, history, game lobbies, WebRTC call signalling) over WebSocket.
 // It also answers the Forge Game Browser: Zandronum master list, server queries, LAN servers.
-// Dependency-free: only Node's standard library. Usage:
+// Dependency-free: only Node's standard library (Albert's Claude relay in ../agent adds the Claude SDK). Usage:
 //   node coleforge/server/forgechat-server.js [--port 8098] [--host 0.0.0.0]
 
 const http = require("http");
@@ -30,10 +30,19 @@ const MIME = {
   ".wasm": "application/wasm", ".mjs": "text/javascript; charset=utf-8", ".ttf": "font/ttf", ".zip": "application/zip", ".txt": "text/plain; charset=utf-8",
 };
 
+// Albert (Claude) and the MCP server for AI agent software live in ../agent (optional: the Claude SDK
+// is its only dependency, loaded on first use).
+let agent = null;
+try { agent = require("../agent/local-agent.js"); } catch (e) { console.log(`Agent features off (${e.message}).`); }
+
 /* ---------------- static files ---------------- */
 const server = http.createServer((req, res) => {
   let rel;
   try { rel = decodeURIComponent(new URL(req.url, "http://x").pathname); } catch { res.writeHead(400).end(); return; }
+  if (agent && (rel === "/mcp" || rel.startsWith("/api/albert") || rel.startsWith("/api/agent/"))) {
+    agent.handle(req, res, new URL(req.url, "http://x")).catch((e) => { if (!res.headersSent) res.writeHead(500, { "Content-Type": "application/json" }).end(JSON.stringify({ error: e.message })); });
+    return;
+  }
   if (rel.startsWith("/api/zandronum/")) {
     zandronumApi(req, res, new URL(req.url, "http://x")).catch((e) => { if (!res.headersSent) res.writeHead(500, { "Content-Type": "application/json" }).end(JSON.stringify({ error: e.message })); });
     return;

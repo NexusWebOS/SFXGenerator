@@ -9,7 +9,9 @@ const fs = require("fs");
 const path = require("path");
 const { pathToFileURL } = require("url");
 
-const ROOT = path.join(__dirname, "../web/nightcode");
+const WEB = path.join(__dirname, "../web/nightcode");
+// The published folder: dist/ once build-config.js has run.
+const ROOT = fs.existsSync(path.join(WEB, "dist", "index.html")) ? path.join(WEB, "dist") : WEB;
 const MIME = { ".html": "text/html; charset=utf-8", ".js": "text/javascript", ".mjs": "text/javascript", ".css": "text/css", ".json": "application/json", ".png": "image/png", ".jpg": "image/jpeg",
   ".jpeg": "image/jpeg", ".gif": "image/gif", ".svg": "image/svg+xml", ".ico": "image/x-icon", ".ttf": "font/ttf", ".woff2": "font/woff2", ".wav": "audio/wav", ".mp3": "audio/mpeg", ".ogg": "audio/ogg",
   ".wasm": "application/wasm", ".txt": "text/plain; charset=utf-8", ".md": "text/markdown", ".wsz": "application/zip", ".zip": "application/zip", ".webp": "image/webp", ".cur": "image/x-icon", ".ani": "application/octet-stream" };
@@ -42,18 +44,21 @@ async function start(port, { fakeUpstreams = false, connect = process.env.NETLIF
   // A local mock Supabase isn't https://*.supabase.co: let the page's CSP reach it.
   const allowConnect = (headers) => { if (connect && headers["Content-Security-Policy"]) headers["Content-Security-Policy"] = headers["Content-Security-Policy"].replace("connect-src ", `connect-src ${connect} `); };
   if (fakeUpstreams) require("./fake-upstreams.js").install();
-  const conf = parseNetlifyToml(fs.readFileSync(path.join(ROOT, "netlify.toml"), "utf8"));
-  const ops = (await import(pathToFileURL(path.join(ROOT, "netlify/functions/ops.mjs")).href)).default;
+  const conf = parseNetlifyToml(fs.readFileSync(path.join(WEB, "netlify.toml"), "utf8"));
+  const fns = { "/api/ops": (await import(pathToFileURL(path.join(WEB, "netlify/functions/ops.mjs")).href)).default };
+  // Albert's function needs the Claude SDK (npm install in web/nightcode); skip it when it's not there.
+  try { fns["/api/albert"] = (await import(pathToFileURL(path.join(WEB, "netlify/functions/albert.mjs")).href)).default; } catch (e) { console.log(`(no /api/albert: ${e.message.split("\n")[0]})`); }
   const server = http.createServer(async (req, res) => {
     const u = new URL(req.url, "http://localhost");
     let p = decodeURIComponent(u.pathname);
     const headers = {};
     for (const hd of conf.headers) if (matches(hd.for, p)) Object.assign(headers, hd.values);
     allowConnect(headers);
-    if (p === "/api/ops") {
+    if (fns[p]) {
+      const fn = fns[p];
       let body = "";
       for await (const c of req) body += c;
-      const r = await ops(new Request(`http://localhost:${port}${req.url}`, { method: req.method, headers: req.headers, body: ["GET", "HEAD", "OPTIONS"].includes(req.method) ? undefined : body }));
+      const r = await fn(new Request(`http://localhost:${port}${req.url}`, { method: req.method, headers: req.headers, body: ["GET", "HEAD", "OPTIONS"].includes(req.method) ? undefined : body }));
       res.writeHead(r.status, Object.fromEntries(r.headers));
       return res.end(Buffer.from(await r.arrayBuffer()));
     }

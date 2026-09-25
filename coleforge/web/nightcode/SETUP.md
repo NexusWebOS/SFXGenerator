@@ -16,9 +16,11 @@ web/nightcode/
   index.html, css/, js/          NightCode-DOS (no build step, no dependencies)
     js/nc-api.js                 Supabase Auth + REST client
     js/nc-terminal.js            boot, login, shell, WIN / WEB / OPS
-  build-config.js                Netlify build: config.js / config.json, and copies the desktop (../../shell) to desktop/
+  build-config.js                Netlify build: assembles dist/ (the published site): config.js / config.json and the desktop
   netlify.toml                   CSPs, what's published, the function directory
   netlify/functions/ops.mjs      NightOps' GitHub + Netlify access (/api/ops), sysop only
+  netlify/functions/albert.mjs   Albert's Claude turns on the website (/api/albert), official Claude SDK
+  package.json                   the functions' one dependency (@anthropic-ai/sdk)
   sync-shell.js                  copies the DOS engine into ColeForge (shell/js/nightcode-net/)
   supabase/migrations/           run both, in order
   supabase/functions/nightcode-login/   username sign-in
@@ -65,12 +67,16 @@ coletechsystems.com's DNS is on Netlify DNS, so everything is done in Netlify.
    | `GITHUB_TOKEN` | a GitHub fine-grained token, read-only | NightOps: private repos (public ones work without it) |
    | `NETLIFY_API_TOKEN` | a Netlify personal access token | NightOps: sites, deploys, "Trigger deploy" |
    | `NIGHTOPS_GITHUB_OWNER` | optional, default `NexusWebOS` | which account's repos NightOps lists |
+   | `ANTHROPIC_API_KEY` | an Anthropic API key (console.anthropic.com) | Albert on the website's desktop |
+   | `ALBERT_ACCESS` | optional: `members` lets every signed-in member use Albert (default: sysop only) | Albert |
 
    The GitHub token: **GitHub > Settings > Developer settings > Fine-grained tokens**, resource owner
    NexusWebOS, only the repositories you want NightOps to show, permissions Contents: read and Metadata:
    read. Leave out repositories that hold private work data (Nexus II's staff records, for example):
    NightOps would show their files to whoever holds the sysop account.
    The Netlify token: **User settings > Applications > Personal access tokens**.
+   Albert's turns run in a Netlify function, which Netlify stops after about 10 seconds on the free plan
+   (26 s on paid plans); long answers can time out there. ColeForge.exe has no such limit.
    Both stay on Netlify's servers; the browser never sees them.
 3. **Domain management > Add a domain**: `nightcode.coletechsystems.com`. Netlify adds the DNS record
    and the HTTPS certificate.
@@ -106,8 +112,7 @@ NETLIFY_DEV_CONNECT=http://127.0.0.1:54321 NIGHTCODE_SUPABASE_URL=http://127.0.0
 ```
 
 Open http://127.0.0.1:8200/. `netlify-dev.js` serves the site with `netlify.toml`'s headers and runs
-`/api/ops`; `--fake-upstreams` answers GitHub and Netlify with sample data. (`config.js`, `config.json`
-and `desktop/` are build output and git-ignored.)
+`/api/ops`; `--fake-upstreams` answers GitHub and Netlify with sample data. (`dist/` is build output and git-ignored.)
 
 ## Commands
 

@@ -193,7 +193,7 @@
   const PIXEL_ICONS = {
     gamebrowser: "assets/art/gamebrowser/logo.png", legacy: "assets/art/legacy/logo.png",
     netcon: "assets/art/programs/netcon-64.png", diskdude: "assets/art/programs/diskdude-64.png", nightcode: "assets/art/nightcode/logo-128.png",
-    winnight: "assets/art/nightapps/winnight.png", nightamp: "assets/art/nightapps/nightamp.png", nightbrowser: "assets/art/nightapps/nightbrowser.png",
+    winnight: "assets/art/nightapps/winnight.png", nightamp: "assets/art/nightapps/nightamp.png", nightbrowser: "assets/art/nightapps/nightbrowser.png", albert: "assets/art/albert/albert-icon.png",
   };
   // The NightCode theme has its own neon pixel set (art/nightcode/build_nightcode_theme.py).
   const NC_ICONS = new Set(["computer", "documents", "folder", "recycle", "forgeamp", "forgevision", "forgecraft", "browser", "notepad", "control",
@@ -521,7 +521,7 @@
     ["mycomputer", "My Computer", "computer"], ["files", "My Documents", "documents"], ["recycle", "Recycle Bin", "recycle"],
     ["browser", "Forge Browser", "browser"], ["forgechat", "ForgeChat", "forgechat"], ["forgeamp", "ForgeAmp", "forgeamp"],
     ["forgevision", "ForgeVision", "forgevision"], ["forgecraft", "Forgecraft", "forgecraft"], ["arcade", "Forge Arcade", "arcade"],
-    ["gamebrowser", "Game Browser", "gamebrowser"], ["legacy", "Legacy Mode", "legacy"], ["netcon", "Netcon", "netcon"], ["diskdude", "Disk Dude", "diskdude"], ["winnight", "WinNight", "winnight"], ["nightamp", "NightAmp", "nightamp"], ["nightbrowser", "NightBrowser", "nightbrowser"], ["nightcode-net", "NightCode Net", "nightcode"], ["nightops", "NightOps", "network"], ["notepad", "Notepad", "notepad"], ["control", "Control Panel", "control"],
+    ["gamebrowser", "Game Browser", "gamebrowser"], ["legacy", "Legacy Mode", "legacy"], ["netcon", "Netcon", "netcon"], ["diskdude", "Disk Dude", "diskdude"], ["winnight", "WinNight", "winnight"], ["nightamp", "NightAmp", "nightamp"], ["nightbrowser", "NightBrowser", "nightbrowser"], ["nightcode-net", "NightCode Net", "nightcode"], ["albert", "Albert", "albert"], ["nightops", "NightOps", "network"], ["notepad", "Notepad", "notepad"], ["control", "Control Panel", "control"],
   ];
   function buildDesktop() {
     const icons = $("#icons");
@@ -653,7 +653,7 @@
     const r = await CF.dialog({ title: "Run", icon: "run", message: "Type the name of a program, folder, document or Internet resource, and ColeForge will open it for you.", input: "", buttons: ["OK", "Cancel"] });
     if (r.button !== "OK" || !r.value.trim()) return;
     const v = r.value.trim(), lower = v.toLowerCase();
-    const alias = { winrar: "winnight", rar: "winnight", "7z": "winnight", zip: "winnight", winzip: "winnight", winamp: "nightamp", amp: "nightamp", nightbrowse: "nightbrowser", nb: "nightbrowser", nightcode: "nightcode-net", ncnet: "nightcode-net", bbs: "nightcode-net", telnet: "nightcode-net", ops: "nightops", github: "nightops", netlify: "nightops", cmd: "about", winver: "about", mspaint: "forgecraft", paint: "forgecraft", explorer: "files", iexplore: "browser", control: "control", notepad: "notepad", doom: "arcade", quake: "arcade", aim: "forgechat", chat: "forgechat" };
+    const alias = { winrar: "winnight", rar: "winnight", "7z": "winnight", zip: "winnight", winzip: "winnight", winamp: "nightamp", amp: "nightamp", nightbrowse: "nightbrowser", nb: "nightbrowser", nightcode: "nightcode-net", ncnet: "nightcode-net", bbs: "nightcode-net", telnet: "nightcode-net", ops: "nightops", claude: "albert", ai: "albert", agent: "albert", github: "nightops", netlify: "nightops", cmd: "about", winver: "about", mspaint: "forgecraft", paint: "forgecraft", explorer: "files", iexplore: "browser", control: "control", notepad: "notepad", doom: "arcade", quake: "arcade", aim: "forgechat", chat: "forgechat" };
     if (/^https?:\/\/|^www\./.test(lower)) CF.open("browser", { url: v });
     else if (CF.apps[lower]) CF.open(lower);
     else if (alias[lower]) CF.open(alias[lower]);

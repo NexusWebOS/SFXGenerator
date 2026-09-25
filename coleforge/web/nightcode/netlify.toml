@@ -4,7 +4,7 @@
 # See SETUP.md.
 [build]
   command = "node build-config.js"
-  publish = "."
+  publish = "dist"
   functions = "netlify/functions"
 
 [build.environment]

@@ -318,3 +318,40 @@ body.theme-nc .nb-btn:hover { border-color: var(--nc-cyan); box-shadow: 0 0 6px 
 .nops-card { padding: 8px 10px; border: 1px solid var(--nx-line, #2c4d8a); display: flex; flex-direction: column; gap: 4px; }
 .nops-card .nops-bar { margin: 4px 0 0; }
 .nops-err { padding: 10px; border: 1px solid #ff5c8a; }
+
+/* ---- Albert ---- */
+.alb { position: absolute; inset: 0; display: flex; }
+.alb-side { width: 176px; flex: none; display: flex; flex-direction: column; align-items: center; gap: 6px; padding: 12px 8px; border-right: 1px solid var(--nx-line, #2c4d8a);
+  background: radial-gradient(circle at 50% 30%, rgba(49, 215, 232, .16), transparent 60%), var(--nx-window, #06122a); }
+.alb-stage { width: 136px; height: 136px; display: grid; place-items: center; border: 1px solid var(--nx-line, #2c4d8a); background: radial-gradient(circle at 50% 60%, #0b1a3a, #02050e 75%); }
+.alb-sprite { width: 128px; height: 128px; image-rendering: pixelated; }
+.alb-name { font: bold 15px Orbitron, "Share Tech Mono", sans-serif; letter-spacing: .2em; color: var(--nx-accent, #5fb4ff); }
+.alb-mood { min-height: 16px; font: 12px "Share Tech Mono", monospace; color: #31d7e8; text-align: center; }
+.alb-btns { display: flex; flex-direction: column; gap: 5px; width: 100%; margin-top: 8px; }
+.alb-btns .btn { width: 100%; }
+.alb-foot { margin-top: auto; font-size: 11px; }
+.alb-main { flex: 1; min-width: 0; display: flex; flex-direction: column; }
+.alb-log { flex: 1; min-height: 0; overflow-y: auto; padding: 12px 14px; display: flex; flex-direction: column; gap: 8px; background: var(--nx-window, #06122a); user-select: text; }
+.alb-msg { display: flex; gap: 8px; align-items: flex-start; max-width: 88%; }
+.alb-msg.you { align-self: flex-end; }
+.alb-msg.you .alb-text { background: linear-gradient(#1f6fff, #1a5fd8); color: #fff; border-color: #5fb4ff; }
+.alb-face { width: 32px; height: 32px; flex: none; image-rendering: pixelated; border: 1px solid var(--nx-line, #2c4d8a); background: #02050e; }
+.alb-text { padding: 7px 11px; border: 1px solid var(--nx-line, #2c4d8a); background: rgba(12, 28, 62, .85); color: var(--nx-wtext, #e8f1ff); line-height: 1.45; overflow-wrap: anywhere; }
+.alb-text p { margin: 0 0 6px; } .alb-text p:last-child { margin-bottom: 0; }
+.alb-text ul { margin: 2px 0 6px 18px; padding: 0; }
+.alb-text code { font: 12px Consolas, "Share Tech Mono", monospace; background: rgba(0, 0, 0, .35); padding: 0 3px; }
+.alb-text pre { margin: 4px 0; padding: 6px 8px; background: rgba(0, 0, 0, .45); font: 12px/1.4 Consolas, monospace; white-space: pre-wrap; overflow-x: auto; }
+.alb-text a { color: #31d7e8; }
+.alb-msg.alb-err .alb-text { border-color: #ff5c8a; }
+.alb-chip { align-self: flex-start; margin-left: 40px; padding: 2px 8px; font: 12px "Share Tech Mono", monospace; color: #31d7e8; border: 1px dashed rgba(49, 215, 232, .5); }
+.alb-chip.alb-err { color: #ff5c8a; border-color: rgba(255, 92, 138, .6); }
+.alb-chip.alb-wait { animation: alb-pulse 1s ease-in-out infinite; }
+@keyframes alb-pulse { 50% { opacity: .35; } }
+.alb-bar { display: flex; gap: 6px; padding: 8px; border-top: 1px solid var(--nx-line, #2c4d8a); background: var(--nx-face, #0d1a33); }
+.alb-input { flex: 1; resize: none; font: 13px/1.4 "Share Tech Mono", Consolas, monospace; padding: 6px 8px; background: var(--nx-window, #06122a); color: var(--nx-wtext, #e8f1ff); border: 1px solid var(--nx-line, #2c4d8a); outline: none; user-select: text; }
+.alb-input:focus { border-color: #31d7e8; }
+.alb-memlist { max-height: 260px; overflow: auto; margin-bottom: 8px; }
+.alb-memrow { display: flex; gap: 8px; align-items: center; justify-content: space-between; padding: 3px 0; border-bottom: 1px solid rgba(127, 127, 127, .2); }
+.alb-mcp { margin: 0; padding: 8px; font: 11px/1.45 Consolas, monospace; white-space: pre-wrap; word-break: break-all; background: rgba(0, 0, 0, .35); border: 1px solid rgba(127, 127, 127, .35); user-select: text; }
+.dlg:has(.alb-wide) { width: min(660px, 94vw); }
+.alb-wide { flex: 1; min-width: 0; }

@@ -1374,6 +1374,20 @@
         if (a.library && !S.showLib) toggle("showLib");
       }
       win.on("args", handleArgs);
+      // For Albert and other agents (js/albert/tools.js).
+      CF.nightamp = {
+        status: () => ({ playing: engine === "midi" ? midi.playing : !media().paused && !media().ended, track: pl[cur]?.name || null, index: cur, position: Math.round(position()), duration: Math.round(duration()) || null,
+          volume: Math.round(S.vol * 100), shuffle: S.shuffle, repeat: S.repeat, skin: skin?.name || null, playlist: pl.slice(0, 100).map((t, i) => `${i + 1}. ${t.name}`) }),
+        play: () => play(), pause: () => pause(), stop: () => stop(), next: () => next(), previous: () => prev(),
+        volume: (v) => { S.vol = clamp(v / 100); applyVol(); sync(); persist(); },
+        playIndex: (i) => load(i, true),
+        find: (q) => pl.findIndex((t) => t.name.toLowerCase().includes(String(q).toLowerCase())),
+        add: (url, name, now) => addTracks([{ name: name || url, url }], now !== false),
+        skin: (id) => setSkin(id),
+        skins: () => [...NightSkin.BUILTIN.map((b) => b.id), ...userSkins.map((n) => "wsz:" + n)],
+        toggle: (k) => { if (["showEq", "showPl", "showVideo", "showWeb", "showLib", "shuffle", "repeat", "double"].includes(k)) toggle(k); },
+      };
+      win.on("close", () => { delete CF.nightamp; });
       win.on("close", () => { closed = true; cancelAnimationFrame(raf); halt(); stopDrop(); closePopup(); web?.destroy(); ac.close(); persist(); NightSkin.dispose(skin); });
       win.on("focus", () => root.focus({ preventScroll: true }));
 

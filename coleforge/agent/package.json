@@ -1,0 +1,10 @@
+{
+  "name": "coleforge-agent",
+  "private": true,
+  "version": "1.0.0",
+  "description": "Albert (Claude) relay and the ColeForge MCP server for AI agent software",
+  "main": "claude-relay.js",
+  "dependencies": {
+    "@anthropic-ai/sdk": "^0.128.0"
+  }
+}

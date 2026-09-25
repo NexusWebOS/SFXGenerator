@@ -48,6 +48,7 @@ cross-PC ForgeChat, which needs the server.
 | **NightAmp** *(NightCode)* | The media player: a clean-room Winamp 2 that draws itself from **Winamp classic skins (.wsz)**. Drop any of the thousands of community skins on it (or Winamp's own look, from the [Winamp Skin Museum](https://skins.webamp.org/)) and it wears it; three original skins are built in: **NightCode** (default), **ColeForge Classic** (the grey/green look) and **ColeForge Silver** (the silver/blue look). Main window, 10-band equalizer with presets, playlist editor with Winamp's pop-up ADD/REM/SEL/MISC/LIST menus, windowshade, double size, clutter bar (O A I D V), Z/X/C/V/B keys. A **Media Library** (Alt+L) reads ID3/FLAC/Ogg/MP4 tags, sorts by artist and album, keeps its files between sessions and holds saved playlists, internet radio and skins. Plays MP3, AAC/M4A, FLAC, Opus, Vorbis, WAV, WebM audio, **AIFF** (built-in converter), **MIDI and Doom .MUS** (ForgeMIDI); **video** MP4/H.264, WebM/VP9/AV1, MKV, MOV and **HLS .m3u8** with subtitles, speed, picture-in-picture and full screen; **internet radio** and M3U/PLS playlists; a **built-in web & radio browser**; and **NightDrop**, audio-reactive code rain when there's no picture. |
 | **NightBrowser** *(NightCode)* | Forge Browser, cloned and upgraded: NightCode start page with code rain and an editable speed dial, **NightShield** tracker/ad blocking and **HTTPS upgrade** (ColeForge.exe), **private tabs** in their own in-memory session, bookmarks bar, find in page, zoom, mute tab, page screenshot → Forgecraft, "Play in NightAmp" for media links, search engine choice (DuckDuckGo default). |
 | **NightCode Net** *(NightCode)* | The terminal of [nightcode.coletechsystems.com](https://nightcode.coletechsystems.com): boots NightCode-DOS (BIOS POST, CONFIG.SYS, AUTOEXEC.BAT) and logs in to NightCode Net, a Supabase-backed bulletin board with accounts (sign up, activation email, username, email or GitHub sign-in, password reset), message boards, WHO, FINGER, profiles, colour schemes and code rain. On the website, `WIN` boots this whole desktop in the browser, logged on as you and saved to Supabase so it follows you between browsers; `WEB` opens NightBrowser and `OPS` NightOps. The same account works here; the program reads the site's `config.json`. Run `nightcode`. Setup: [web/nightcode/SETUP.md](web/nightcode/SETUP.md). |
+| **Albert** *(ColeForge's agent)* | Your companion, powered by Claude (Claude Opus 5 by default): a chat window with Albert himself, a little CRT-faced android with a lantern. He opens programs, reads and writes your documents, drives NightAmp, opens pages, changes settings, checks NightCode Net and searches the web, asking before anything that changes your stuff. He keeps a memory you can read and edit. The Claude SDK and your API key stay in ColeForge's server (`agent/`), never in the browser. Run `albert`. See [AGENTS.md](AGENTS.md). |
 | **NightOps** *(NightCode)* | Your NightCode Net, Supabase project, GitHub repositories (browse files, read code, latest commits) and Netlify sites (deploy history, trigger a deploy) in one window, for the NightCode Net sysop. GitHub and Netlify tokens stay in the site's Netlify function (`web/nightcode/netlify/functions/ops.mjs`). Run `ops`. |
 | **Netcon** *(NightCode)* | Official ColeForge program: SAMPLE ID badge maker with PNG export, RFID/NFC asset inventory (IDs you type in, no radio reading), lock service/damage log, game ownership and compatibility catalog. |
 | **Disk Dude** *(NightCode)* | Official ColeForge program: detects PS1/PS2/Dreamcast/Xbox/DVD/VCD/music/data discs, verified copy with SHA-256 manifest + ZIP, data-disc burning, Audio CD playback, one-click emulator launch. See [programs/README.md](programs/README.md). |
@@ -62,6 +63,7 @@ coleforge/
   server/zandronum/  Zandronum master/launcher protocol + Huffman codec (ported from Zandronum's source)
   programs/     official NightCode programs (Netcon, Disk Dude), vendored from NexusWebOS/NightCode
   shell/vendor/ libarchive.js (RAR/7z/… for WinNight) and hls.js (HLS for NightAmp), see vendor/README.md
+  agent/        Albert's Claude relay (official Claude SDK) and the MCP server for AI agent software (AGENTS.md)
   web/nightcode/ nightcode.coletechsystems.com (Netlify): NightCode-DOS, the desktop build, NightOps' function,
                 the Supabase migrations and login function
   tests/        ZipKit (WinNight's engine), NightShield, NightAmp (skins, tags) and NightCode Net tests
@@ -128,6 +130,8 @@ Browsers visiting `http://<lan-ip>` may block the camera; use ColeForge.exe on e
   viscolor.txt, pledit.txt) drawn by `art/nightcode/build_nightamp_skins.py`. Each is also exported as a real
   `.wsz` (`NightCode.wsz`, `ColeForge-Classic.wsz`, `ColeForge-Silver.wsz`) that works in Winamp and Webamp.
   Preview: `art/nightcode/nightamp-skins.png`.
+- **Albert** (`shell/assets/art/albert/`): 16-bit sprite sheet (idle, talking, thinking, happy; 4 frames each)
+  and icons, drawn by `art/albert/build_albert.py` in the NightCode palette (preview `art/albert/albert-preview.png`).
 - **NightCode Live** (`shell/js/nightcode-rain.js`): the code rain behind the desktop (30 fps, paused under
   a maximized window) and in the screen saver. `lively/` packages it for Lively Wallpaper.
 - **NightCode art** (`art/nightcode/`): Cole's four NightCode pictures are in `source/`; the skull-chip logo
@@ -179,12 +183,19 @@ Browsers visiting `http://<lan-ip>` may block the camera; use ColeForge.exe on e
 This build uses the Windows name for personal, non-distributed use. Before sharing it
 publicly, rename it and drop Microsoft marks.
 
+## AI agents
+
+ColeForge works with AI agent software: Albert is built in, and while it runs, ColeForge is an MCP server
+(`http://localhost:8098/mcp`) for Claude Code, Claude Desktop, Codex and others. How to connect, the tool
+list and the safety rules: [AGENTS.md](AGENTS.md).
+
 ## Tests
 
 ```
 node coleforge/tests/zipkit.test.js       # WinNight's ZIP/TAR/AES engine against Python, Info-ZIP and pyzipper
 node coleforge/tests/nightshield.test.js  # NightBrowser's tracker blocker and HTTPS upgrade rules
 node coleforge/tests/nightamp.test.js     # NightAmp's skins (.wsz, sheet sizes) and tag reader (mutagen when installed)
+node coleforge/tests/albert.test.js       # Albert's relay (mock Claude API), agent endpoints' guards, MCP over HTTP and stdio
 node coleforge/tests/nightcode.test.js    # NightCode Net + NightOps against a mock Supabase / GitHub / Netlify, migrations, netlify.toml
 node coleforge/server/zandronum/test/zandronum.test.js
 node coleforge/legacy/test/legacy-profiles.test.js

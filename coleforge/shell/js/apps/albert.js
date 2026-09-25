@@ -13,7 +13,7 @@
   const TOOL_WORDS = { system_info: "looking around the desktop", list_apps: "checking the programs", open_app: "opening a program", close_window: "closing a window", list_documents: "looking in My Documents",
     read_document: "reading a document", write_document: "writing a document", delete_document: "tidying My Documents", nightamp: "working NightAmp", open_web: "opening NightBrowser", change_setting: "changing a setting",
     notify: "leaving a note", nightcode_board: "checking NightCode Net", remember: "remembering that", forget: "forgetting that", web_search: "searching the web",
-    web_fetch: "reading a web page", search_documents: "searching My Documents", run_javascript: "working it out in the scratchpad" };
+    web_fetch: "reading a web page", search_documents: "searching My Documents", run_javascript: "working it out in the scratchpad", make_sound: "cooking up a sound" };
 
   // Tiny Markdown: **bold**, *italic*, `code`, ``` blocks, lists, links. Everything else is escaped.
   function md(src) {

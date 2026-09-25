@@ -348,6 +348,11 @@
       const col1 = h("div", { class: "na-col" }, main, eqWin, plWin);
       const col2 = h("div", { class: "na-col2" }, vid.el, webw.el, libw.el);
       const root = h("div", { class: "na loading", tabindex: 0 }, col1, col2);
+      // Until the skin is on, the sprites are invisible: show a panel instead, so nobody clicks hidden
+      // buttons (or thinks the window didn't open) while the skin loads.
+      const boot = h("div", { class: "na-boot" }, h("img", { src: `${ART}nightamp-64.png`, alt: "" }), h("b", {}, "NIGHTAMP"),
+        h("div", { class: "na-boot-bar" }, h("i")), h("span", {}, "loading skin…"));
+      win.dragBy?.(boot);
       win.body.append(root);
       [main, eqWin, plTop, plShadeRow, vid.top, webw.top, libw.top].forEach(t => win.dragBy(t));
       root.addEventListener("click", (e) => {
@@ -391,6 +396,8 @@
           console.error(e);
           if (!quiet) report2(`Couldn't load that skin: ${e.message}`);
           if (id !== "nightcode") return setSkin("nightcode", true);
+          boot.querySelector("span").textContent = "couldn't load the skin";
+          boot.append(h("button", { class: "btn", onclick: () => win.close() }, "Close"));
           return;
         }
         if (closed) { NightSkin.dispose(next); return; }
@@ -399,7 +406,7 @@
         skin = next;
         S.skin = id; persist();
         setTimeout(() => NightSkin.dispose(old), 500);
-        root.classList.remove("loading");
+        root.classList.remove("loading"); boot.remove();
         skinHooks.forEach(fn => fn());
         drawGraph(); renderList(); lastTitle = ""; lastText = "";
         minus.classList.toggle("ex", skin.numbersEx);
@@ -473,8 +480,21 @@
         requestAnimationFrame(updateHandle);
       }
       function fit() {
+        if (root.classList.contains("loading")) { win.el.style.width = "550px"; win.el.style.height = "232px"; return; }
         win.el.style.width = `${root.offsetWidth}px`;
         win.el.style.height = `${root.offsetHeight}px`;
+        // The first time it shows, keep the whole player on screen when it fits.
+        if (placed) return;
+        placed = true;
+        const room = innerHeight - (document.querySelector("#taskbar, .taskbar")?.offsetHeight || 30);
+        const top = parseFloat(win.el.style.top) || 0, hgt = root.offsetHeight;
+        if (top + hgt > room) win.el.style.top = `${Math.max(0, room - hgt)}px`;
+      }
+      // Double size doesn't fit small screens (main + equalizer + playlist): start at normal size there.
+      let placed = false;
+      function fitsDouble() {
+        const room = innerHeight - (document.querySelector("#taskbar, .taskbar")?.offsetHeight || 30);
+        return (116 + (S.showEq ? 116 : 0) + (S.showPl ? S.plHeight : 0)) * 2 <= room;
       }
       function toggle(k) { S[k] = !S[k]; layout(); sync(); persist(); }
       function sync() {
@@ -1394,6 +1414,8 @@
       // Tracks from My Documents and the Media Library are re-linked; local files from last session can't come back.
       pl.forEach(t => { if (t.vfs && CF.vfs.read(t.vfs)) { const v = vfsTrack(t.vfs); t.url = v.url; t.file = v.file; } });
       if (S.ontop) win.setTopmost?.(true);
+      if (S.double && !fitsDouble()) S.double = false;
+      win.body.append(boot);
       applyEq(); applyVol(); layout(); sync(); renderList();
       refreshUserSkins();
       setSkin(S.skin || "nightcode", true).then(() => {

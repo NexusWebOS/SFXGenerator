@@ -208,6 +208,9 @@ def main():
     sheet.alpha_composite(square(mark, 32), (84, 4))
     sheet.resize((sheet.width * 4, sheet.height * 4), Image.NEAREST).save(HERE / "preview.png")
     print("wrote NightCode logo, avatar, 4 wallpapers and program art to", ART.relative_to(HERE.parent.parent.parent))
+    # Netcon's and Disk Dude's icons and logos are redrawn by build_app_brands.py (it has the last word).
+    import build_app_brands
+    build_app_brands.main()
 
 
 if __name__ == "__main__":

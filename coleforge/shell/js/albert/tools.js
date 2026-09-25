@@ -129,6 +129,35 @@
       },
     },
     {
+      name: "make_sound", title: "Make a sound effect", openWorld: false,
+      description: "Make a retro game sound effect with SFX Lab's synthesizer and save it as a .wav in My Documents (and play it). Start from a preset (pickup, laser, explosion, powerup, hit, jump, blip, random) and/or set params: wave (square|saw|sine|noise|triangle); attack, sustain, punch, decay (0-1, envelope; sustain/decay ~0.1-0.5 are short); freq (0-1 start pitch), freqMin (0-1), slide and deltaSlide (-1..1, negative falls); vibDepth, vibSpeed (0-1); arpMod (-1..1) and arpSpeed (0-1) for a pitch jump; duty (0-1), dutySweep (-1..1); repeat (0-1); phaserOffset, phaserSweep (-1..1); lpf (0-1, 1 = off), lpfSweep, lpfRes; hpf, hpfSweep; volume (0-1). The result lists the final params so you can tweak and call again. open_lab opens it in SFX Lab.",
+      write: (a) => a.save !== false,
+      input_schema: obj({
+        name: { type: "string", description: "File name without .wav, e.g. coin_big" },
+        preset: { type: "string", enum: ["pickup", "laser", "explosion", "powerup", "hit", "jump", "blip", "random"] },
+        seed: { type: "integer", description: "Pick a preset variation (same seed, same sound)" },
+        params: { type: "object", description: "Synth settings that override the preset (see description)" },
+        play: { type: "boolean", description: "Play it now (default true)" },
+        save: { type: "boolean", description: "Save to My Documents (default true)" },
+        open_lab: { type: "boolean", description: "Also open it in SFX Lab for Cole to tweak" },
+      }, []),
+      describe: ({ name = "sound" }) => `save the sound effect “${name}.wav” in My Documents`,
+      run: ({ name = "sound", preset, seed, params = {}, play = true, save = true, open_lab = false }) => {
+        const E = window.SFXEngine;
+        if (!E) throw new Error("SFX Lab's synth isn't loaded.");
+        const base = preset ? E.preset(preset, seed ?? ((Math.random() * 2 ** 31) | 0)) : E.defaults();
+        const p = E.clean(Object.assign(base, params));
+        const samples = E.render(p);
+        if (!samples.length) throw new Error("Those settings make silence (try a longer sustain/decay or a higher freqMin).");
+        const file = `${String(name).replace(/\.wav$/i, "").replace(/[\\/:*?"<>|]/g, "_").slice(0, 80) || "sound"}.wav`;
+        if (save && !CF.vfs.writeBytes(file, E.wav(samples), "audio/wav")) throw new Error("My Documents is full.");
+        if (play) E.play(samples);
+        if (open_lab) CF.open("sfxlab", { params: p, name: file.replace(/\.wav$/, "") });
+        let peak = 0; for (const x of samples) peak = Math.max(peak, Math.abs(x));
+        return { saved: save ? file : null, seconds: +(samples.length / E.RATE).toFixed(2), peak: +peak.toFixed(2), params: Object.fromEntries(Object.entries(p).map(([k, v]) => [k, k === "wave" ? E.WAVES[v] : +v.toFixed(3)])) };
+      },
+    },
+    {
       name: "open_web", title: "Open a web page", description: "Open an address in NightBrowser on the desktop, for the person to look at.",
       input_schema: obj({ url: { type: "string", description: "https:// address" } }, ["url"]), openWorld: true,
       run: ({ url }) => { if (!/^https?:\/\//.test(url)) throw new Error("Give a full http(s) address."); CF.open("nightbrowser", { url }); return `Opened ${url} in NightBrowser.`; },

@@ -492,6 +492,9 @@ def main():
         sheet.alpha_composite(drawn[f"nightbrowser/{name}"], (x, 80)); x += 20
     sheet.resize((sheet.width * 4, sheet.height * 4), Image.NEAREST).save(HERE / "apps-preview.png")
     print("wrote NightCode program art to", OUT.relative_to(HERE.parent.parent.parent))
+    # NightAmp's and NightBrowser's icons, logos and splashes are redrawn by build_app_brands.py.
+    import build_app_brands
+    build_app_brands.main()
 
 
 if __name__ == "__main__":

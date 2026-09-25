@@ -176,6 +176,10 @@
     return skin;
   }
 
+  // Decode the default skin while the desktop is idle, so NightAmp opens with it ready.
+  if (typeof document !== "undefined" && typeof addEventListener === "function")
+    addEventListener("load", () => setTimeout(() => (window.requestIdleCallback || setTimeout)(() => readBuiltin("nightcode").catch(() => {})), 5000));
+
   async function load(src) {
     if (src.builtin) {
       const b = BUILTIN.find(x => x.id === src.builtin) || BUILTIN[0];

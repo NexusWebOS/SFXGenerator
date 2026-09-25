@@ -192,8 +192,8 @@
   // 16-bit pixel logos: the Game Browser always, ForgeChat in the Windows 98 theme.
   const PIXEL_ICONS = {
     gamebrowser: "assets/art/gamebrowser/logo.png", legacy: "assets/art/legacy/logo.png",
-    netcon: "assets/art/programs/netcon-64.png", diskdude: "assets/art/programs/diskdude-64.png", nightcode: "assets/art/nightcode/logo-128.png",
-    winnight: "assets/art/nightapps/winnight.png", nightamp: "assets/art/nightapps/nightamp.png", nightbrowser: "assets/art/nightapps/nightbrowser.png", albert: "assets/art/albert/albert-icon.png",
+    netcon: "assets/art/programs/netcon.png", diskdude: "assets/art/programs/diskdude.png", nightcode: "assets/art/nightcode/logo-128.png",
+    winnight: "assets/art/nightapps/winnight.png", nightamp: "assets/art/nightapps/nightamp.png", nightbrowser: "assets/art/nightapps/nightbrowser.png", albert: "assets/art/albert/albert-icon.png", sfxlab: "assets/art/nightapps/sfxlab.png", taskman: "assets/art/nightapps/taskman.png",
   };
   // The NightCode theme has its own neon pixel set (art/nightcode/build_nightcode_theme.py).
   const NC_ICONS = new Set(["computer", "documents", "folder", "recycle", "forgeamp", "forgevision", "forgecraft", "browser", "notepad", "control",
@@ -521,7 +521,7 @@
     ["mycomputer", "My Computer", "computer"], ["files", "My Documents", "documents"], ["recycle", "Recycle Bin", "recycle"],
     ["browser", "Forge Browser", "browser"], ["forgechat", "ForgeChat", "forgechat"], ["forgeamp", "ForgeAmp", "forgeamp"],
     ["forgevision", "ForgeVision", "forgevision"], ["forgecraft", "Forgecraft", "forgecraft"], ["arcade", "Forge Arcade", "arcade"],
-    ["gamebrowser", "Game Browser", "gamebrowser"], ["legacy", "Legacy Mode", "legacy"], ["netcon", "Netcon", "netcon"], ["diskdude", "Disk Dude", "diskdude"], ["winnight", "WinNight", "winnight"], ["nightamp", "NightAmp", "nightamp"], ["nightbrowser", "NightBrowser", "nightbrowser"], ["nightcode-net", "NightCode Net", "nightcode"], ["albert", "Albert", "albert"], ["nightops", "NightOps", "network"], ["notepad", "Notepad", "notepad"], ["control", "Control Panel", "control"],
+    ["gamebrowser", "Game Browser", "gamebrowser"], ["legacy", "Legacy Mode", "legacy"], ["netcon", "Netcon", "netcon"], ["diskdude", "Disk Dude", "diskdude"], ["winnight", "WinNight", "winnight"], ["nightamp", "NightAmp", "nightamp"], ["nightbrowser", "NightBrowser", "nightbrowser"], ["nightcode-net", "NightCode Net", "nightcode"], ["albert", "Albert", "albert"], ["sfxlab", "SFX Lab", "sfxlab"], ["nightops", "NightOps", "network"], ["notepad", "Notepad", "notepad"], ["control", "Control Panel", "control"],
   ];
   function buildDesktop() {
     const icons = $("#icons");
@@ -648,12 +648,13 @@
     if (open && !menu.classList.contains("open")) { buildStart(); CF.sound("menu_popup"); }
     menu.classList.toggle("open", open); btn.classList.toggle("open", open);
   };
+  CF.runDialog = () => runDialog();
   async function runDialog() {
     CF.toggleStart(false);
     const r = await CF.dialog({ title: "Run", icon: "run", message: "Type the name of a program, folder, document or Internet resource, and ColeForge will open it for you.", input: "", buttons: ["OK", "Cancel"] });
     if (r.button !== "OK" || !r.value.trim()) return;
     const v = r.value.trim(), lower = v.toLowerCase();
-    const alias = { winrar: "winnight", rar: "winnight", "7z": "winnight", zip: "winnight", winzip: "winnight", winamp: "nightamp", amp: "nightamp", nightbrowse: "nightbrowser", nb: "nightbrowser", nightcode: "nightcode-net", ncnet: "nightcode-net", bbs: "nightcode-net", telnet: "nightcode-net", ops: "nightops", claude: "albert", ai: "albert", agent: "albert", github: "nightops", netlify: "nightops", cmd: "about", winver: "about", mspaint: "forgecraft", paint: "forgecraft", explorer: "files", iexplore: "browser", control: "control", notepad: "notepad", doom: "arcade", quake: "arcade", aim: "forgechat", chat: "forgechat" };
+    const alias = { winrar: "winnight", rar: "winnight", "7z": "winnight", zip: "winnight", winzip: "winnight", winamp: "nightamp", amp: "nightamp", nightbrowse: "nightbrowser", nb: "nightbrowser", nightcode: "nightcode-net", ncnet: "nightcode-net", bbs: "nightcode-net", telnet: "nightcode-net", ops: "nightops", claude: "albert", ai: "albert", agent: "albert", taskmgr: "taskman", taskman: "taskman", sfx: "sfxlab", sfxr: "sfxlab", bfxr: "sfxlab", github: "nightops", netlify: "nightops", cmd: "about", winver: "about", mspaint: "forgecraft", paint: "forgecraft", explorer: "files", iexplore: "browser", control: "control", notepad: "notepad", doom: "arcade", quake: "arcade", aim: "forgechat", chat: "forgechat" };
     if (/^https?:\/\/|^www\./.test(lower)) CF.open("browser", { url: v });
     else if (CF.apps[lower]) CF.open(lower);
     else if (alias[lower]) CF.open(alias[lower]);
@@ -824,7 +825,8 @@
 
   /* ---------------- keyboard ---------------- */
   addEventListener("keydown", (e) => {
-    if ((e.ctrlKey && e.key === "Escape") || e.key === "Meta" || e.key === "OS") { e.preventDefault(); CF.toggleStart(); }
+    if (e.ctrlKey && e.shiftKey && e.key === "Escape") { e.preventDefault(); CF.toggleStart(false); CF.open("taskman"); }
+    else if ((e.ctrlKey && e.key === "Escape") || e.key === "Meta" || e.key === "OS") { e.preventDefault(); CF.toggleStart(); }
     else if (e.altKey && e.key === "F4") { e.preventDefault(); const w = CF.activeWindow(); w ? w.close() : CF.shutdownDialog(); }
     else if (e.key === "Escape") { CF.closeMenus(); CF.toggleStart(false); }
     else if (e.key === "F5" && !e.target.closest(".win")) { e.preventDefault(); buildDesktop(); }
@@ -886,6 +888,7 @@
       { label: "Minimize All Windows", action: () => { lastMinimized = open; open.forEach(w => w.minimize()); }, disabled: !open.length },
       { label: "Undo Minimize All", action: () => { lastMinimized.forEach(w => CF.windows.includes(w) && w.restore()); lastMinimized = []; }, disabled: !lastMinimized.length },
       "-",
+      { label: "Task Manager", key: "Ctrl+Shift+Esc", action: () => CF.open("taskman") },
       { label: "Properties", action: () => CF.open("control", { tab: "display" }) },
     ]);
   }

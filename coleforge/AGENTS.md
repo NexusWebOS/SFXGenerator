@@ -141,6 +141,7 @@ In browsers that expose `navigator.modelContext`, the desktop registers the same
 | `change_setting` | theme, wallpaper, clock, sounds, screen saver | |
 | `notify` | a desktop notification | |
 | `nightcode_board` | read the NightCode Net board, who's online, or post (as you) | posting |
+| `make_sound` | make a retro sound effect with SFX Lab's synth (preset + settings), play it, save it as .wav, open it in SFX Lab | saving |
 
 Albert also has `remember` / `forget` (his memory), `run_javascript` (his sandboxed scratchpad) and
 Claude's web search and web fetch.

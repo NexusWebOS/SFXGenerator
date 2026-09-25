@@ -32,11 +32,22 @@
     }
   }
   async function runJob(job) {
+    if (job.name === "__albert_ask") return askJob(job);
     const who = clientName(job.client);
     if (!greeted.has(who)) { greeted.add(who); CF.toast({ title: "Agent connected", body: `${who} is using ColeForge's tools. Anything that changes something asks you first.`, icon: "albert" }); }
     let body;
     try { body = { id: job.id, ok: true, result: await AgentTools.run(job.name, job.args, { who, scope: "mcp:" + who }) }; }
     catch (e) { body = { id: job.id, ok: false, error: e.message }; }
+    fetch("/api/agent/result", { method: "POST", headers: Object.assign({ "Content-Type": "application/json" }, H), body: JSON.stringify(body) }).catch(() => {});
+  }
+  // The Albert API (POST /api/albert/v1/ask): a program asks Albert something; he answers from here.
+  async function askJob(job) {
+    const a = job.args || {};
+    const from = a.named ? a.from : clientName(a.from);
+    CF.toast({ title: `${from} asked Albert`, body: String(a.message).slice(0, 140), icon: "albert" });
+    let body;
+    try { body = { id: job.id, ok: true, result: await CF.albert.ask(a.message, { conversation: a.conversation, model: a.model, effort: a.effort, from }) }; }
+    catch (e) { body = { id: job.id, ok: false, error: e.refusal ? "Albert declined to answer that." : e.message }; }
     fetch("/api/agent/result", { method: "POST", headers: Object.assign({ "Content-Type": "application/json" }, H), body: JSON.stringify(body) }).catch(() => {});
   }
   function clientName(ua) {

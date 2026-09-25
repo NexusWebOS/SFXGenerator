@@ -1,6 +1,8 @@
 "use strict";
 // Albert and ColeForge's agent endpoints, against a mock Claude API (tests/mock-anthropic.js):
-//   - the relay sends what the Claude API expects (model, adaptive thinking, server-side fallbacks, tools);
+//   - the relay sends what the Claude API expects (model, adaptive thinking with summaries, server-side
+//     fallbacks, prompt caching, effort, compaction, per-model server tools) and streams replies;
+//   - the Albert API (/api/albert/v1/*) for other programs;
 //   - /api/albert and /api/agent/* only answer the desktop (header, origin, loopback), keys stay server-side;
 //   - MCP over HTTP (token, initialize, tools/list, tools/call through the desktop bridge) and over stdio.
 //   node coleforge/tests/albert.test.js
@@ -30,26 +32,57 @@ const H = { "Content-Type": "application/json", "X-ColeForge-Agent": "1" };
   const r1 = await core.turn(client, { messages: [{ role: "user", content: "hello there" }], system: "You are Albert.", tools: [{ type: "web_search_20260209", name: "web_search", max_uses: 5 }] });
   let q = mock.requests.at(-1);
   assert.strictEqual(q.body.model, "claude-opus-5", "Claude Opus 5 by default");
-  assert.deepStrictEqual(q.body.thinking, { type: "adaptive" });
+  assert.deepStrictEqual(q.body.thinking, { type: "adaptive", display: "summarized" }, "adaptive thinking, with thought summaries");
   assert.strictEqual(q.body.fallbacks, "default", "server-side fallbacks on");
   assert.match(q.headers["anthropic-beta"] || "", /server-side-fallback-2026-07-01/);
-  assert.strictEqual(q.body.max_tokens, 16000);
+  assert.match(q.headers["anthropic-beta"] || "", /compact-2026-01-12/);
+  assert.deepStrictEqual(q.body.context_management, { edits: [{ type: "compact_20260112" }] }, "server-side compaction");
+  assert.deepStrictEqual(q.body.cache_control, { type: "ephemeral" }, "automatic caching of the conversation");
+  assert.deepStrictEqual(q.body.system, [{ type: "text", text: "You are Albert.", cache_control: { type: "ephemeral" } }], "system prompt cached");
+  assert.strictEqual(q.body.output_config, undefined, "effort left to the model unless chosen");
+  assert.strictEqual(q.body.max_tokens, 32000);
   assert.strictEqual(r1.stop_reason, "end_turn");
+  await core.turn(client, { model: "claude-sonnet-5", effort: "max", system: [{ type: "text", text: "persona" }, { type: "text", text: "memory" }], messages: [{ role: "user", content: "hi" }], tools: [{ type: "web_fetch_20260209", name: "web_fetch" }] });
+  q = mock.requests.at(-1);
+  assert.deepStrictEqual(q.body.output_config, { effort: "max" });
+  assert.deepStrictEqual(q.body.system.map((b) => !!b.cache_control), [true, true], "persona and whole system prompt each get a breakpoint");
+  assert.strictEqual(q.body.context_management, undefined, "compaction only where supported");
+  assert.strictEqual(q.body.fallbacks, undefined);
+  assert.strictEqual(q.body.tools[0].type, "web_fetch_20260209");
   await core.turn(client, { model: "claude-haiku-4-5", messages: [{ role: "user", content: "hi" }], tools: [{ type: "web_search_20260209", name: "web_search" }] });
   q = mock.requests.at(-1);
   assert.strictEqual(q.body.model, "claude-haiku-4-5");
   assert.strictEqual(q.body.thinking, undefined, "no adaptive thinking on Haiku 4.5");
   assert.strictEqual(q.body.fallbacks, undefined);
   assert.strictEqual(q.body.tools[0].type, "web_search_20250305", "web search version per model");
+  await core.turn(client, { model: "claude-haiku-4-5", effort: "high", messages: [{ role: "user", content: "hi" }], tools: [{ type: "web_fetch_20260209", name: "web_fetch" }] });
+  q = mock.requests.at(-1);
+  assert.strictEqual(q.body.tools, undefined, "no web fetch on Haiku 4.5");
+  assert.strictEqual(q.body.output_config, undefined, "no effort on Haiku 4.5");
   await core.turn(client, { model: "gpt-4", messages: [{ role: "user", content: "hi" }], max_tokens: 999999 });
   q = mock.requests.at(-1);
   assert.strictEqual(q.body.model, "claude-opus-5", "unknown models fall back to the default");
-  assert.strictEqual(q.body.max_tokens, 16000, "max_tokens is capped");
+  assert.strictEqual(q.body.max_tokens, 32000, "max_tokens is capped");
   await assert.rejects(core.turn(client, { messages: [] }), /non-empty/);
   const bad = new A({ apiKey: "sk-ant-wrong-key-000000000000000000", baseURL: mockUrl, maxRetries: 0 });
   try { await core.turn(bad, { messages: [{ role: "user", content: "x" }] }); assert.fail("should fail"); }
   catch (e) { assert.deepStrictEqual(core.errorOf(e, A).status, 401); assert.match(core.errorOf(e, A).error, /API key was rejected/); }
-  ok("relay: Opus 5 default, adaptive thinking, fallbacks \"default\", per-model web search, caps, SDK error mapping");
+  // Streaming: events as Claude writes, then the whole message.
+  const evs = [];
+  const r2 = await core.stream(client, { messages: [{ role: "user", content: "please note this down" }], tools: [{ name: "write_document", description: "w", input_schema: { type: "object", properties: {} } }] }, (e) => evs.push(e), undefined, A);
+  assert.strictEqual(mock.requests.at(-1).body.stream, true);
+  assert.strictEqual(r2.stop_reason, "tool_use");
+  assert.deepStrictEqual(r2.content.find((b) => b.type === "tool_use").input.name, "albert-note.txt", "tool input assembled from the stream");
+  assert.ok(evs.some((e) => e.t === "thinking" && /think/.test(e.d)), "thought summaries stream");
+  assert.strictEqual(evs.filter((e) => e.t === "text").map((e) => e.d).join(""), "On it.");
+  assert.ok(evs.some((e) => e.t === "block" && e.type === "tool_use" && e.name === "write_document"));
+  // An API that turns the extras down: retried once without them, and they stay off.
+  const r3 = await core.turn(client, { messages: [{ role: "user", content: "reject extras please" }] }, A);
+  assert.strictEqual(r3.stop_reason, "end_turn");
+  assert.strictEqual(mock.requests.at(-1).body.cache_control, undefined);
+  assert.ok(core._degraded.has("extras"));
+  core._degraded.clear();
+  ok("relay: Opus 5 default, thinking summaries, fallbacks, caching, effort, compaction, per-model server tools, caps, streaming, graceful retry, SDK errors");
 
   /* ---------- the server: /api/albert and friends ---------- */
   const home = fs.mkdtempSync(path.join(os.tmpdir(), "coleforge-home-"));
@@ -75,7 +108,14 @@ const H = { "Content-Type": "application/json", "X-ColeForge-Agent": "1" };
     const turn = await r.json();
     assert.strictEqual(r.status, 200, JSON.stringify(turn));
     assert.match(turn.content.find((b) => b.type === "text").text, /hi from the desktop/);
-    ok("server: /api/albert only for the desktop, key kept private in ~/.coleforge, turns relayed");
+    r = await post("/api/albert", { stream: true, messages: [{ role: "user", content: "stream me" }] });
+    assert.match(r.headers.get("content-type"), /ndjson/);
+    const events = (await r.text()).trim().split("\n").map((l) => JSON.parse(l));
+    assert.strictEqual(events.filter((e) => e.t === "text").map((e) => e.d).join(""), events.at(-1).message.content.find((b) => b.type === "text").text);
+    assert.strictEqual(events.at(-1).t, "done");
+    r = await post("/api/albert", { stream: true, messages: [] });
+    assert.deepStrictEqual((await r.text()).trim().split("\n").map((l) => JSON.parse(l)).at(-1).t, "error", "errors arrive in the stream");
+    ok("server: /api/albert only for the desktop, key kept private in ~/.coleforge, turns relayed and streamed");
 
     /* ---------- MCP over HTTP ---------- */
     const token = fs.readFileSync(path.join(home, "agent-token"), "utf8").trim();
@@ -118,6 +158,23 @@ const H = { "Content-Type": "application/json", "X-ColeForge-Agent": "1" };
     assert.strictEqual((await fetch(BASE + "/mcp", { method: "POST", headers: { Authorization: `Bearer ${token}`, Origin: "https://evil.example" }, body: "{}" })).status, 403, "DNS-rebinding guard");
     ok("MCP over HTTP: token, initialize, tools/list and tools/call through the desktop bridge, refusals, batches, origin guard");
 
+    /* ---------- the Albert API for other programs ---------- */
+    const api = (p, body, tok = token, extra = {}) => fetch(BASE + p, { method: body ? "POST" : "GET", headers: Object.assign({ "Content-Type": "application/json", Authorization: `Bearer ${tok}` }, extra), body: body && JSON.stringify(body) });
+    assert.strictEqual((await api("/api/albert/v1/ask", { message: "hi" }, "nope")).status, 401, "token required");
+    assert.strictEqual((await api("/api/albert/v1/ask", { message: "hi" }, token, { Origin: "https://evil.example" })).status, 403, "not from other websites");
+    assert.strictEqual((await api("/api/albert/v1/ask", {})).status, 400);
+    assert.deepStrictEqual(await (await api("/api/albert/v1/status")).json(), { desktop: true, key: true });
+    const asked = (async () => {
+      const { job } = await (await fetch(BASE + "/api/agent/poll", { headers: H })).json();
+      assert.strictEqual(job.name, "__albert_ask");
+      assert.deepStrictEqual([job.args.message, job.args.from, job.args.named, job.args.conversation], ["What's 2+2?", "SFX Generator", true, "level-1"]);
+      await post("/api/agent/result", { id: job.id, ok: true, result: { text: "4.", conversation: "level-1" } });
+    })();
+    r = await api("/api/albert/v1/ask", { message: "What's 2+2?", from: "SFX Generator", conversation: "level-1" });
+    assert.deepStrictEqual(await r.json(), { text: "4.", conversation: "level-1" });
+    await asked;
+    ok("Albert API: bearer token, origin guard, status, questions answered by the desktop's Albert");
+
     /* ---------- MCP over stdio (Claude Desktop, Codex) ---------- */
     const stdio = spawn(process.execPath, [path.join(__dirname, "../agent/mcp-stdio.js"), "--url", BASE + "/mcp"], { env: Object.assign({}, process.env, { COLEFORGE_HOME: home }) });
     const lines = [];
@@ -154,7 +211,11 @@ const H = { "Content-Type": "application/json", "X-ColeForge-Agent": "1" };
     delete process.env.ANTHROPIC_API_KEY;
     const { pathToFileURL } = require("url");
     const fn = (await import(pathToFileURL(path.join(__dirname, "../web/nightcode/netlify/functions/albert.mjs")).href)).default;
-    const call = async (who, body) => { const r = await fn(new Request("https://nightcode.coletechsystems.com/api/albert", { method: "POST", headers: Object.assign({ "Content-Type": "application/json" }, who ? { Authorization: `Bearer ${await who.accessToken()}` } : {}), body: JSON.stringify(body) })); return { status: r.status, body: await r.json() }; };
+    const call = async (who, body) => {
+      const r = await fn(new Request("https://nightcode.coletechsystems.com/api/albert", { method: "POST", headers: Object.assign({ "Content-Type": "application/json" }, who ? { Authorization: `Bearer ${await who.accessToken()}` } : {}), body: JSON.stringify(body) }));
+      const text = await r.text();
+      return { status: r.status, body: /ndjson/.test(r.headers.get("content-type")) ? text.trim().split("\n").map((l) => JSON.parse(l)) : JSON.parse(text) };
+    };
     const msgs = { messages: [{ role: "user", content: "hello from the website" }] };
     assert.strictEqual((await call(null, msgs)).status, 401, "signed-in members only");
     assert.strictEqual((await call(pleb, msgs)).status, 403, "sysop only by default");
@@ -163,12 +224,16 @@ const H = { "Content-Type": "application/json", "X-ColeForge-Agent": "1" };
     const r = await call(boss, msgs);
     assert.strictEqual(r.status, 200, JSON.stringify(r.body));
     assert.match(r.body.content.find((b) => b.type === "text").text, /hello from the website/);
-    assert.ok(claude2.requests.at(-1).body.max_tokens <= 8000, "shorter turns on Netlify");
+    assert.ok(claude2.requests.at(-1).body.max_tokens <= 16000, "shorter turns on Netlify");
+    const streamed = await call(boss, Object.assign({ stream: true, max_tokens: 64000 }, msgs));
+    assert.strictEqual(streamed.body.at(-1).t, "done", JSON.stringify(streamed.body.at(-1)));
+    assert.ok(streamed.body.some((e) => e.t === "text"));
+    assert.strictEqual(claude2.requests.at(-1).body.max_tokens, 16000, "the site's cap wins");
     process.env.ALBERT_ACCESS = "members";
     assert.strictEqual((await call(pleb, msgs)).status, 200, "ALBERT_ACCESS=members opens it up");
     delete process.env.ALBERT_ACCESS; delete process.env.ANTHROPIC_API_KEY; delete process.env.ANTHROPIC_BASE_URL;
     sb.server.close(); claude2.server.close();
-    ok("website Albert function: members only, sysop by default, site key, relayed through the Claude SDK");
+    ok("website Albert function: members only, sysop by default, site key, relayed (and streamed) through the Claude SDK");
   } else console.log("skip - website Albert function (npm install in coleforge/web/nightcode)");
 
   console.log(`\nall albert tests passed (${passed})`);

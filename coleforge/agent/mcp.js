@@ -43,6 +43,7 @@ async function one(msg, ctx) {
       }
       try {
         const r = await ctx.callTool(p.name, p.arguments || {}, p._meta?.client);
+        if (r && r.image && typeof r.image.data === "string") return ok(msg.id, { content: [{ type: "text", text: r.name || "image" }, { type: "image", data: r.image.data, mimeType: r.image.media_type }] });
         const text = typeof r === "string" ? r : JSON.stringify(r, null, 2);
         return ok(msg.id, { content: [{ type: "text", text }], ...(r && typeof r === "object" && !Array.isArray(r) ? { structuredContent: r } : {}) });
       } catch (e) {

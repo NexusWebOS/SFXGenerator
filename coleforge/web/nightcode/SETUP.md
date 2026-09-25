@@ -75,8 +75,10 @@ coletechsystems.com's DNS is on Netlify DNS, so everything is done in Netlify.
    read. Leave out repositories that hold private work data (Nexus II's staff records, for example):
    NightOps would show their files to whoever holds the sysop account.
    The Netlify token: **User settings > Applications > Personal access tokens**.
-   Albert's turns run in a Netlify function, which Netlify stops after about 10 seconds on the free plan
-   (26 s on paid plans); long answers can time out there. ColeForge.exe has no such limit.
+   Albert's turns run in a Netlify function and stream to the page as Claude writes them. Netlify still
+   limits how long a function runs (about 10 seconds on the free plan, 26 s on paid plans), so very long
+   answers or Deep/Deepest thinking can be cut off there; each tool step is its own request. ColeForge.exe
+   has no such limit.
    Both stay on Netlify's servers; the browser never sees them.
 3. **Domain management > Add a domain**: `nightcode.coletechsystems.com`. Netlify adds the DNS record
    and the HTTPS certificate.

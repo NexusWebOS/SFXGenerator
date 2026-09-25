@@ -8,6 +8,7 @@
   const clip = (s, n) => (String(s).length > n ? String(s).slice(0, n) + `\n…[${String(s).length - n} more characters]` : String(s));
   const obj = (properties, required = []) => ({ type: "object", properties, required, additionalProperties: false });
   const docInfo = (d) => ({ name: d.name, type: d.type, size: typeof d.data === "string" ? d.data.length : 0, modified: new Date(d.modified || 0).toISOString() });
+  const IMAGE_TYPES = ["image/png", "image/jpeg", "image/gif", "image/webp"];
   const SETTINGS = { theme: "Desktop theme id", wallpaper: "Wallpaper id", clock24: "24-hour clock (true/false)", soundScheme: "Sound scheme id", screensaver: "Screen saver id", saverMinutes: "Minutes before the screen saver", volume: "System volume 0-1", sounds: "System sounds on (true/false)" };
 
   function nightApi() {
@@ -51,13 +52,38 @@
       run: () => CF.vfs.list().map(docInfo),
     },
     {
-      name: "read_document", title: "Read a document", description: "Read a text document from My Documents. Binary files (music, archives, pictures) are described, not returned.",
-      input_schema: obj({ name: { type: "string" } }, ["name"]),
-      run: ({ name }) => {
+      name: "read_document", title: "Read a document", description: "Read a document from My Documents. Text comes back as text; pictures (PNG, JPEG, GIF, WebP) come back as the image itself so you can look at them. Other binary files (music, archives) are described. For long files pass start_line / max_lines.",
+      input_schema: obj({ name: { type: "string" }, start_line: { type: "integer", description: "First line to return (1-based)" }, max_lines: { type: "integer", description: "How many lines" } }, ["name"]),
+      run: ({ name, start_line, max_lines }) => {
         const d = CF.vfs.read(name);
-        if (!d) throw new Error(`No document called ${name}. Use list_documents.`);
-        if (typeof d.data === "string" && d.data.startsWith("data:")) return `${name} is a binary file (${d.data.slice(5, d.data.indexOf(";"))}, about ${Math.round(d.data.length * 0.75 / 1024)} KB).`;
-        return clip(typeof d.data === "string" ? d.data : JSON.stringify(d.data), 60000);
+        if (!d) throw new Error(`No document called ${name}. Use list_documents or search_documents.`);
+        if (typeof d.data === "string" && d.data.startsWith("data:")) {
+          const mime = d.data.slice(5, d.data.indexOf(";"));
+          const data = d.data.slice(d.data.indexOf(",") + 1);
+          if (IMAGE_TYPES.includes(mime) && data.length <= 5 * 1024 * 1024) return { name, image: { media_type: mime, data } };
+          return `${name} is a binary file (${mime}, about ${Math.round(data.length * 0.75 / 1024)} KB).`;
+        }
+        let text = typeof d.data === "string" ? d.data : JSON.stringify(d.data);
+        if (start_line || max_lines) {
+          const lines = text.split("\n"), from = Math.max(1, start_line | 0 || 1), n = Math.max(1, max_lines | 0 || 200);
+          text = `[lines ${from}-${Math.min(lines.length, from + n - 1)} of ${lines.length}]\n` + lines.slice(from - 1, from - 1 + n).join("\n");
+        }
+        return clip(text, 60000);
+      },
+    },
+    {
+      name: "search_documents", title: "Search My Documents", description: "Find text in My Documents: every line containing the words (case-insensitive), with file names and line numbers. Also matches file names.",
+      input_schema: obj({ query: { type: "string" }, max_results: { type: "integer" } }, ["query"]),
+      run: ({ query, max_results = 40 }) => {
+        const q = String(query).toLowerCase().trim();
+        if (!q) throw new Error("Search for something.");
+        const hits = [], names = [];
+        for (const d of CF.vfs.list()) {
+          if (d.name.toLowerCase().includes(q)) names.push(d.name);
+          if (typeof d.data !== "string" || d.data.startsWith("data:")) continue;
+          d.data.split("\n").forEach((line, i) => { if (hits.length < Math.min(200, max_results) && line.toLowerCase().includes(q)) hits.push({ file: d.name, line: i + 1, text: clip(line.trim(), 200) }); });
+        }
+        return { file_names: names, matches: hits, note: hits.length >= max_results ? "More matches exist; search for something more specific." : undefined };
       },
     },
     {

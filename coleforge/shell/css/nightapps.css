@@ -355,3 +355,19 @@ body.theme-nc .nb-btn:hover { border-color: var(--nc-cyan); box-shadow: 0 0 6px 
 .alb-mcp { margin: 0; padding: 8px; font: 11px/1.45 Consolas, monospace; white-space: pre-wrap; word-break: break-all; background: rgba(0, 0, 0, .35); border: 1px solid rgba(127, 127, 127, .35); user-select: text; }
 .dlg:has(.alb-wide) { width: min(660px, 94vw); }
 .alb-wide { flex: 1; min-width: 0; }
+.alb-think { display: flex; align-items: center; gap: 6px; font: 12px "Share Tech Mono", monospace; color: var(--nx-wtext, #e8f1ff); margin-top: 4px; }
+.alb-effort { flex: 1; min-width: 0; }
+.alb-step { display: flex; flex-direction: column; gap: 8px; }
+.alb-thoughts { align-self: flex-start; margin-left: 40px; max-width: 80%; font: 12px/1.45 "Share Tech Mono", monospace; color: #8fb3e8; border-left: 2px solid rgba(49, 215, 232, .45); padding: 2px 8px; }
+.alb-thoughts summary { cursor: pointer; color: #31d7e8; user-select: none; }
+.alb-thoughts-text { white-space: pre-wrap; margin-top: 4px; max-height: 220px; overflow-y: auto; opacity: .9; }
+.alb-chip.alb-note { color: #ffd166; border-color: rgba(255, 209, 102, .5); }
+.alb-chip.alb-usage { color: #6c86b8; border: none; padding: 0; font-size: 11px; }
+.alb-chip.alb-you { align-self: flex-end; margin-left: 0; }
+.alb-pic { max-width: 220px; max-height: 180px; border: 1px solid #5fb4ff; image-rendering: auto; }
+.alb-tray { display: flex; flex-wrap: wrap; gap: 6px; padding: 6px 8px 0; background: var(--nx-face, #0d1a33); border-top: 1px solid var(--nx-line, #2c4d8a); }
+.alb-att { display: inline-flex; align-items: center; gap: 4px; padding: 2px 4px 2px 2px; font: 12px "Share Tech Mono", monospace; color: var(--nx-wtext, #e8f1ff); border: 1px solid var(--nx-line, #2c4d8a); background: var(--nx-window, #06122a); }
+.alb-att img { width: 28px; height: 28px; object-fit: cover; }
+.alb-x { border: none; background: none; color: #ff5c8a; cursor: pointer; font-size: 14px; padding: 0 2px; }
+.alb-attach { flex: none; width: 38px; min-width: 0; padding: 0; font-size: 16px; }
+.alb-main.alb-drop { outline: 2px dashed #31d7e8; outline-offset: -4px; }

@@ -1,4 +1,5 @@
-// Albert on the NightCode website: one Claude turn for the desktop's Albert (POST /api/albert).
+// Albert on the NightCode website: one Claude turn for the desktop's Albert (POST /api/albert), streamed
+// when the page asks for it ({ stream: true }).
 // The Claude SDK and the Anthropic API key (ANTHROPIC_API_KEY, a Netlify environment variable) stay on
 // the server. Callers must be signed in to NightCode Net; by default only the sysop may use Albert here
 // (each turn costs API credit) - set ALBERT_ACCESS=members to open it to every member.
@@ -30,8 +31,20 @@ export default async (req) => {
   let body;
   try { body = await req.json(); } catch { return reply(400, { error: "Send JSON." }); }
   const client = new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY, maxRetries: 1, timeout: 25000 });
-  try { return reply(200, await core.turn(client, Object.assign({}, body, { max_tokens: Math.min(body.max_tokens || 8000, 8000) }))); }
-  catch (e) { const r = core.errorOf(e, Anthropic); return reply(r.status, { error: r.error }); }
+  body = Object.assign({}, body, { max_cap: 16000 });
+  if (!body.stream) {
+    try { return reply(200, await core.turn(client, body, Anthropic)); }
+    catch (e) { const r = core.errorOf(e, Anthropic); return reply(r.status, { error: r.error }); }
+  }
+  // Streamed: Albert's words reach the page as Claude writes them (newline-delimited JSON events).
+  const enc = new TextEncoder();
+  const out = new ReadableStream({
+    async start(ctrl) {
+      await core.relay(client, body, Anthropic, { write: (line) => ctrl.enqueue(enc.encode(line)), signal: req.signal });
+      ctrl.close();
+    },
+  });
+  return new Response(out, { status: 200, headers: { "Content-Type": "application/x-ndjson; charset=utf-8", "Cache-Control": "no-store", "Access-Control-Allow-Origin": SITE } });
 };
 
 export const config = { path: "/api/albert" };

@@ -291,3 +291,6 @@ body.theme-nc .nb-btn:hover { border-color: var(--nc-cyan); box-shadow: 0 0 6px 
 .na-ml-info { padding: 12px; overflow: auto; }
 .na-ml-info h3 { margin: 0 0 6px; color: var(--pl-current); font-size: 13px; }
 .na-ml-info a { color: var(--pl-current); }
+
+/* ---- NightCode Net (the website's NightCode-DOS terminal, css in js/nightcode-net/) ---- */
+.win-body > .ncn { height: 100%; min-height: 0; --nt-size: 15px; }

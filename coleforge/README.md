@@ -132,9 +132,12 @@ Browsers visiting `http://<lan-ip>` may block the camera; use ColeForge.exe on e
   viscolor.txt, pledit.txt) drawn by `art/nightcode/build_nightamp_skins.py`. Each is also exported as a real
   `.wsz` (`NightCode.wsz`, `ColeForge-Classic.wsz`, `ColeForge-Silver.wsz`) that works in Winamp and Webamp.
   Preview: `art/nightcode/nightamp-skins.png`.
-- **Program brands** (`art/nightcode/build_app_brands.py`): 16-bit icons drawn natively at 64 and 32 px (16/48 reduced)
-  for NightAmp, NightBrowser, Netcon, Disk Dude, SFX Lab and Task Manager; chrome pixel wordmark logos for the first four,
-  NightAmp's and NightBrowser's start-up splashes, and Netcon's and Disk Dude's Windows .ico files. Preview: `art/nightcode/brands-preview.png`.
+- **Program brands** (`art/nightcode/build_app_brands.py`): video-game style 16-bit art for NightAmp (a boombox),
+  NightBrowser (a rocket leaving a planet), Netcon (padlock and keycard), Disk Dude (a hero sprite), SFX Lab (a
+  sound potion) and Task Manager (a heart container with an HP bar): icons drawn natively at 64 and 32 px, SNES-style
+  logo banners (340x85) and title screens (320x180) with their own backdrops, both stored at 2x, a hand-drawn
+  5x7 pixel font for the small print, and Netcon's and Disk Dude's Windows .ico files. The title screens are the
+  programs' start-up splashes. Preview: `art/nightcode/brands-preview.png`.
 - **Albert** (`shell/assets/art/albert/`): 16-bit sprite sheet (idle, talking, thinking, happy; 4 frames each)
   and icons, drawn by `art/albert/build_albert.py` in the NightCode palette (preview `art/albert/albert-preview.png`).
 - **NightCode Live** (`shell/js/nightcode-rain.js`): the code rain behind the desktop (30 fps, paused under

@@ -37,7 +37,7 @@
     window: { w: 560, h: 480 },
     open(win) {
       let tab = "apps";
-      const tabs = h("div", { class: "tm-tabs" }, [["apps", "Applications"], ["perf", "Performance"], ["storage", "Storage"]].map(([id, label]) =>
+      const tabs = h("div", { class: "tm-tabs" }, [["apps", "Applications"], ["perf", "Performance"], ["storage", "Storage"], ["about", "About"]].map(([id, label]) =>
         h("button", { class: "tm-tab", "data-tab": id, onclick: () => { tab = id; paint(); } }, label)));
       const body = h("div", { class: "tm-body" });
       const foot = h("div", { class: "tm-foot" });
@@ -108,9 +108,13 @@
           h("p", { class: "muted" }, "When desktop storage gets full, empty the Recycle Bin, export big files from My Documents, or start a new chat with Albert.")));
       }
 
+      function about() {
+        body.replaceChildren(h("div", { class: "tm-about" }, h("img", { src: "assets/art/nightapps/taskman-title.png", alt: "Task Manager" }),
+          h("p", {}, "Task Manager · ColeForge Edition · Ctrl+Shift+Esc"), h("p", { class: "muted" }, "End Task closes a program even when its own close code fails.")));
+      }
       function paint() {
         tabs.querySelectorAll(".tm-tab").forEach((b) => b.classList.toggle("on", b.dataset.tab === tab));
-        if (tab === "apps") apps(); else if (tab === "perf") perf(); else storage();
+        if (tab === "apps") apps(); else if (tab === "perf") perf(); else if (tab === "about") about(); else storage();
         foot.textContent = footText();
       }
       const footText = () => `Programs: ${CF.windows.length}   ·   Busy: ${Math.round(hist.busy[N - 1])}%   ·   Storage: ${kb(storageUse().total)}`;
@@ -129,6 +133,7 @@
         // The list is only rebuilt when something changed, so clicks and double-clicks on it work.
         const sig = CF.windows.map((w) => w.id + w.el.className).join("|");
         if (tab === "perf" || (tab === "apps" && sig !== lastSig)) paint();
+        else if (tab === "about") { lastSig = sig; return; }
         else foot.textContent = footText();
         lastSig = sig;
       }, 500);

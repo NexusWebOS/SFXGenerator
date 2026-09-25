@@ -4,6 +4,10 @@
   --nx-sel: var(--w98-sel, #1f6fff); --nx-sel-text: var(--w98-sel-text, #fff); --nx-line: var(--w98-shadow, #2c4d8a); --nx-hi: var(--w98-hilite, #5d8fd6); --nx-gray: var(--w98-gray, #8aa3c8); --nx-accent: var(--w98-accent, #5fb4ff); }
 img[src*="art/nightapps/"] { image-rendering: pixelated; }
 .app-splash img[src*="art/nightapps/"] { image-rendering: auto; }
+/* 16-bit title screens (drawn at 320x180, stored at 2x): shown at 640 px, pixels kept crisp */
+.app-splash img[src*="-title.png"], .app-splash img[src*="nightamp-splash"], .app-splash img[src*="nightbrowser-splash"] { max-width: min(640px, 90vw); image-rendering: pixelated; }
+.tm-about { text-align: center; }
+.tm-about img { width: 100%; max-width: 640px; image-rendering: pixelated; box-shadow: 0 0 0 1px #3cff9e; }
 
 /* ================= WinNight ================= */
 .wn { position: absolute; inset: 0; display: flex; flex-direction: column; background: var(--nx-face); color: var(--nx-text); }

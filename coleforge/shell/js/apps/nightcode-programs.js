@@ -28,6 +28,7 @@
       id, name: p.name, icon: id, single: true, desc: `${p.name}: official NightCode program. ${p.tagline.toLowerCase()}.`,
       window: { w: 780, h: 600 },
       open(win) {
+        CF.appSplash({ id, image: art(`${id}-title.png`) });
         const status = h("div", { class: "ncp-status muted" }, CF.host?.programStatus ? "Checking…" : "Runs on Windows through ColeForge.exe (the desktop app).");
         const launchBtn = h("button", { class: "btn ncp-launch", disabled: !CF.host?.runProgram }, h("img", { src: art(`${id}.png`), alt: "" }), ` Launch ${p.name}`);
         launchBtn.addEventListener("click", async () => {

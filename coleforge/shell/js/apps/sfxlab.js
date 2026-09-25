@@ -14,6 +14,7 @@
     window: { w: 900, h: 600 },
     open(win) {
       const E = window.SFXEngine;
+      CF.appSplash({ id: "sfxlab", image: "assets/art/nightapps/sfxlab-title.png" });
       const S = Object.assign({ params: E.preset("pickup", 7), name: "pickup_1", rate: 44100, bits: 16, autoplay: true, history: [], count: {} }, CF.store.get(KEY, {}));
       S.params = E.clean(S.params);
       let samples = new Float32Array(0);

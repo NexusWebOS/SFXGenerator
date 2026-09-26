@@ -1,0 +1,69 @@
+# NightCode OS kit: builds the ColeForge Windows installer and packs everything the USB maker needs, so the
+# spare laptop can be set up from one download (Actions > this run > Artifacts > NightCode-OS-Kit).
+name: NightCode OS kit
+
+on:
+  workflow_dispatch:
+  push:
+    paths:
+      - "coleforge/**"
+      - ".github/workflows/nightcode-os.yml"
+
+jobs:
+  kit:
+    runs-on: windows-latest
+    timeout-minutes: 40
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+
+      - name: Build the ColeForge installer (NSIS, x64)
+        working-directory: coleforge/desktop
+        shell: pwsh
+        run: |
+          npm install --no-audit --no-fund
+          npm run copy-app
+          npx electron-builder --win nsis --x64 --publish never
+          Get-ChildItem dist -Filter "ColeForge-*.exe" | Format-Table Name, Length
+
+      - name: Pack the NightCode OS kit
+        shell: pwsh
+        run: |
+          $kit = Join-Path $env:RUNNER_TEMP "NightCode-OS-Kit"
+          New-Item -ItemType Directory -Force -Path $kit | Out-Null
+          Copy-Item -Recurse -Force coleforge/os/windows/* $kit
+          $nc = Join-Path $kit "NightCode"
+          New-Item -ItemType Directory -Force -Path "$nc/coleforge/core/windows", "$nc/installers", "$nc/art" | Out-Null
+          Copy-Item -Force coleforge/core/windows/*.ps1 "$nc/coleforge/core/windows"
+          Copy-Item -Force coleforge/shell/assets/art/wallpapers/nightcode.png "$nc/art"
+          Copy-Item -Force (Get-ChildItem coleforge/desktop/dist -Filter "ColeForge-*.exe" | Select-Object -First 1).FullName "$nc/installers"
+          "KIT=$kit" | Out-File -Append -Encoding utf8 $env:GITHUB_ENV
+
+      - name: Check the scripts and a dry run of the USB maker
+        shell: pwsh
+        run: |
+          $bad = 0
+          Get-ChildItem $env:KIT -Recurse -Filter *.ps1 | ForEach-Object {
+            $errs = $null
+            [void][System.Management.Automation.Language.Parser]::ParseFile($_.FullName, [ref]$null, [ref]$errs)
+            if ($errs) { $bad++; $errs | ForEach-Object { Write-Host "::error file=$($_.Extent.File),line=$($_.Extent.StartLineNumber)::$($_.Message)" } }
+          }
+          if ($bad) { throw "$bad script(s) don't parse" }
+          $out = Join-Path $env:RUNNER_TEMP "usb-dry-run"
+          & (Join-Path $env:KIT "Make-NightCodeUSB.ps1") -ExistingUsb $out -UserName "Cole" -Password (ConvertTo-SecureString "test-only" -AsPlainText -Force)
+          [xml]$x = Get-Content -Raw (Join-Path $out "autounattend.xml")
+          $payload = Join-Path $out 'sources\$OEM$\$1\NightCode'
+          foreach ($f in "firstboot.ps1", "nightcode-tweaks.ps1", "nightcode.json", "coleforge\core\windows\install-coleforge.ps1", "art\nightcode.png") {
+            if (-not (Test-Path (Join-Path $payload $f))) { throw "missing from the USB payload: $f" }
+          }
+          if (-not (Get-ChildItem (Join-Path $payload "installers") -Filter "ColeForge-*.exe")) { throw "no installer in the USB payload" }
+          Write-Host "Dry run OK: autounattend.xml parses and the NightCode payload is complete."
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: NightCode-OS-Kit
+          path: ${{ env.KIT }}
+          retention-days: 30

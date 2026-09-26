@@ -87,7 +87,12 @@ Pillow needed). See [../../programs/README.md](../../programs/README.md).
 Copy `doom2.wad` or `freedoom2.wad` into that folder, restart ColeForge, and Zandronum shows up in
 Forge Arcade, ForgeChat lobbies and the Forge Game Browser.
 
-## 3. Bootable USB for the spare laptop (Windows To Go)
+## 3. NightCode OS: a laptop that boots into ColeForge
+
+For a dedicated machine, use **[`os/windows`](../../os/windows/README.md)**: one script makes a Windows 11 install
+USB that sets the laptop up hands-free and restarts it straight into ColeForge (branding, account, apps and all).
+
+## 3b. Bootable USB (Windows To Go)
 
 This makes a USB drive that boots a full, portable Windows install. Put ColeForge on it and
 you get a ColeForge stick you can boot from the BIOS on any PC.

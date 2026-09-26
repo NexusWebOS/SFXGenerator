@@ -191,6 +191,13 @@ Browsers visiting `http://<lan-ip>` may block the camera; use ColeForge.exe on e
 This build uses the Windows name for personal, non-distributed use. Before sharing it
 publicly, rename it and drop Microsoft marks.
 
+## NightCode OS (the spare-laptop install)
+
+`os/windows/` turns a laptop into a NightCode machine: `Make-NightCodeUSB.ps1` writes a Windows 11 install USB
+(official ISO + an answer file + the NightCode first-boot setup) that installs hands-free and boots straight into
+ColeForge. The ready-to-use kit, with the ColeForge installer, is built by GitHub Actions (**NightCode OS kit**).
+See [os/windows/README.md](os/windows/README.md).
+
 ## AI agents
 
 ColeForge works with AI agent software: Albert is built in, and while it runs, ColeForge is an MCP server

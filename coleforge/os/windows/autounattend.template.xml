@@ -1,0 +1,92 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+  NightCode OS: Windows 11 answer file (template).
+
+  Make-NightCodeUSB.ps1 fills in the {{...}} values and writes this to the root of the install USB as
+  autounattend.xml. Windows Setup then runs almost hands-free:
+    - the only question is where to install (pick the laptop's drive; Setup never wipes a disk by itself)
+    - a local account (no Microsoft account screen), computer name NIGHTCODE, your time zone and language
+    - on first sign-in, C:\NightCode\firstboot.ps1 installs ColeForge and makes it the shell
+  Setup copies the USB's sources\$OEM$\$1\NightCode folder to C:\NightCode.
+-->
+<unattend xmlns="urn:schemas-microsoft-com:unattend" xmlns:wcm="http://schemas.microsoft.com/WMIConfig/2002/State" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+  <settings pass="windowsPE">
+    <component name="Microsoft-Windows-International-Core-WinPE" processorArchitecture="amd64" publicKeyToken="31bf3856ad364e35" language="neutral" versionScope="nonSxS">
+      <SetupUILanguage>
+        <UILanguage>en-US</UILanguage>
+      </SetupUILanguage>
+      <InputLocale>{{KEYBOARD}}</InputLocale>
+      <SystemLocale>{{LOCALE}}</SystemLocale>
+      <UILanguage>en-US</UILanguage>
+      <UserLocale>{{LOCALE}}</UserLocale>
+    </component>
+    <component name="Microsoft-Windows-Setup" processorArchitecture="amd64" publicKeyToken="31bf3856ad364e35" language="neutral" versionScope="nonSxS">
+      <UserData>
+        <AcceptEula>true</AcceptEula>
+      </UserData>
+      <!--{{HARDWARE_CHECK_BYPASS}}-->
+    </component>
+  </settings>
+  <settings pass="specialize">
+    <component name="Microsoft-Windows-Shell-Setup" processorArchitecture="amd64" publicKeyToken="31bf3856ad364e35" language="neutral" versionScope="nonSxS">
+      <ComputerName>{{COMPUTER_NAME}}</ComputerName>
+      <TimeZone>{{TIME_ZONE}}</TimeZone>
+      <RegisteredOwner>{{USER_NAME}}</RegisteredOwner>
+      <RegisteredOrganization>NightCode</RegisteredOrganization>
+    </component>
+  </settings>
+  <settings pass="oobeSystem">
+    <component name="Microsoft-Windows-International-Core" processorArchitecture="amd64" publicKeyToken="31bf3856ad364e35" language="neutral" versionScope="nonSxS">
+      <InputLocale>{{KEYBOARD}}</InputLocale>
+      <SystemLocale>{{LOCALE}}</SystemLocale>
+      <UILanguage>en-US</UILanguage>
+      <UserLocale>{{LOCALE}}</UserLocale>
+    </component>
+    <component name="Microsoft-Windows-Shell-Setup" processorArchitecture="amd64" publicKeyToken="31bf3856ad364e35" language="neutral" versionScope="nonSxS">
+      <OOBE>
+        <HideEULAPage>true</HideEULAPage>
+        <HideOEMRegistrationScreen>true</HideOEMRegistrationScreen>
+        <HideOnlineAccountScreens>true</HideOnlineAccountScreens>
+        <HideWirelessSetupInOOBE>false</HideWirelessSetupInOOBE>
+        <ProtectYourPC>3</ProtectYourPC>
+      </OOBE>
+      <UserAccounts>
+        <LocalAccounts>
+          <LocalAccount wcm:action="add">
+            <Name>{{USER_NAME}}</Name>
+            <DisplayName>{{USER_NAME}}</DisplayName>
+            <Group>Administrators</Group>
+            <Password>
+              <Value>{{PASSWORD}}</Value>
+              <PlainText>true</PlainText>
+            </Password>
+          </LocalAccount>
+        </LocalAccounts>
+      </UserAccounts>
+      <!-- Signs in by itself so first-time setup can finish without you; firstboot.ps1 turns this off
+           again (and wipes the stored password) unless you asked for automatic sign-in. -->
+      <AutoLogon>
+        <Enabled>true</Enabled>
+        <LogonCount>{{AUTOLOGON_COUNT}}</LogonCount>
+        <Username>{{USER_NAME}}</Username>
+        <Password>
+          <Value>{{PASSWORD}}</Value>
+          <PlainText>true</PlainText>
+        </Password>
+      </AutoLogon>
+      <FirstLogonCommands>
+        <SynchronousCommand wcm:action="add">
+          <Order>1</Order>
+          <Description>Bring the NightCode folder over from the USB if Setup didn't</Description>
+          <CommandLine>powershell -NoProfile -ExecutionPolicy Bypass -Command "if (-not (Test-Path 'C:\NightCode\firstboot.ps1')) { $s = Get-PSDrive -PSProvider FileSystem | ForEach-Object { Join-Path $_.Root 'sources\$OEM$\$1\NightCode' } | Where-Object { Test-Path (Join-Path $_ 'firstboot.ps1') } | Select-Object -First 1; if ($s) { Copy-Item -Recurse -Force $s 'C:\NightCode' } }"</CommandLine>
+        </SynchronousCommand>
+        <SynchronousCommand wcm:action="add">
+          <Order>2</Order>
+          <Description>NightCode OS first-time setup</Description>
+          <CommandLine>powershell -NoProfile -ExecutionPolicy Bypass -File C:\NightCode\firstboot.ps1</CommandLine>
+          <RequiresUserInput>false</RequiresUserInput>
+        </SynchronousCommand>
+      </FirstLogonCommands>
+    </component>
+  </settings>
+</unattend>

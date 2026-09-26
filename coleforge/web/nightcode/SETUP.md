@@ -52,6 +52,15 @@ web/nightcode/
 **Project Settings > API Keys** has the `anon` `public` key Netlify needs. Never put the `service_role`
 key in the site; the build refuses it.
 
+## Fastest: deploy from GitHub Actions
+
+`.github/workflows/nightcode-web.yml` builds and deploys the site and its functions to Netlify on every push
+(or Actions > NightCode website > Run workflow). Add two repository secrets on GitHub (Settings > Secrets and
+variables > Actions): `NETLIFY_AUTH_TOKEN` (Netlify > User settings > Applications > Personal access tokens) and
+`NIGHTCODE_SUPABASE_ANON_KEY`. It creates the Netlify site `nightcode-coletech` if needed, attaches
+nightcode.coletechsystems.com, and prints the live URL. Then point DNS at it: CNAME `nightcode` →
+`nightcode-coletech.netlify.app` at your DNS host.
+
 ## 2. Netlify
 
 coletechsystems.com's DNS is on Netlify DNS, so everything is done in Netlify.

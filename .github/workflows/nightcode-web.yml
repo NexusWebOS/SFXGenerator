@@ -57,11 +57,13 @@ jobs:
 
       - name: Check the Supabase database
         run: |
-          code=$(curl -s -o /tmp/sb.json -w '%{http_code}' "$NIGHTCODE_SUPABASE_URL/rest/v1/nc_profiles?select=username&limit=1" \
-            -H "apikey: $NIGHTCODE_SUPABASE_ANON_KEY" -H "Authorization: Bearer $NIGHTCODE_SUPABASE_ANON_KEY")
+          # nc_profiles is closed to anon on purpose, so ask the one function anon may call.
+          code=$(curl -s -o /tmp/sb.json -w '%{http_code}' -X POST "$NIGHTCODE_SUPABASE_URL/rest/v1/rpc/nc_username_available" \
+            -H "apikey: $NIGHTCODE_SUPABASE_ANON_KEY" -H "Authorization: Bearer $NIGHTCODE_SUPABASE_ANON_KEY" \
+            -H "Content-Type: application/json" -d '{"name":"nc_deploy_check"}')
           if [ "$code" = "200" ]; then echo "Supabase: NightCode tables are there."
-          elif [ "$code" = "401" ]; then echo "::error::Supabase rejected NIGHTCODE_SUPABASE_ANON_KEY (use the anon public key)."; exit 1
-          else echo "::warning::Supabase answered $code for nc_profiles: run both SQL migrations in coleforge/web/nightcode/supabase/migrations (see SETUP.md). $(head -c 200 /tmp/sb.json)"; fi
+          elif [ "$code" = "401" ]; then echo "::error::Supabase rejected NIGHTCODE_SUPABASE_ANON_KEY (use the anon public key). $(head -c 200 /tmp/sb.json)"; exit 1
+          else echo "::warning::Supabase answered $code for nc_username_available: run both SQL migrations in coleforge/web/nightcode/supabase/migrations (see SETUP.md). $(head -c 200 /tmp/sb.json)"; fi
 
       - name: Find or create the Netlify site
         run: |

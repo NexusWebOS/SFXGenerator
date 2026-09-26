@@ -2,9 +2,11 @@
 
 // ColeForge desktop host (Electron). Runs the ColeForge shell as a normal app window, or as the
 // full-screen Windows shell replacement when started with --shell (see core/windows/).
-//   ColeForge.exe            windowed
-//   ColeForge.exe --shell    full-screen replacement for explorer.exe
-//   ColeForge.exe --kiosk    full-screen, no exit shortcuts (bootable kiosk builds)
+//   ColeForge.exe               windowed app (F11: full screen)
+//   ColeForge.exe --fullscreen  full-screen app on top of Windows' own desktop (NightCode OS's default):
+//                               Windows keeps its taskbar, Wi-Fi and Settings underneath
+//   ColeForge.exe --shell       full-screen replacement for explorer.exe
+//   ColeForge.exe --kiosk       full-screen, no exit shortcuts (bootable kiosk builds)
 
 const { app, BrowserWindow, ipcMain, shell, session, Menu } = require("electron");
 const path = require("path");
@@ -14,6 +16,11 @@ const { spawn, exec } = require("child_process");
 
 const SHELL_MODE = process.argv.includes("--shell");
 const KIOSK = process.argv.includes("--kiosk");
+const FULL = process.argv.includes("--fullscreen");
+
+// One NightCode at a time: launching it again brings the running one to the front.
+if (!app.requestSingleInstanceLock()) app.exit(0);
+app.on("second-instance", () => { if (win) { if (win.isMinimized()) win.restore(); win.show(); win.focus(); } });
 const PORT = 8098;
 // Packaged builds carry shell/ and server/ under app/; a source checkout uses the sibling folders.
 const APP_ROOT = fs.existsSync(path.join(__dirname, "app", "shell")) ? path.join(__dirname, "app") : path.join(__dirname, "..");
@@ -39,12 +46,16 @@ function startLanServer() {
 function createWindow() {
   win = new BrowserWindow({
     width: 1366, height: 800, minWidth: 800, minHeight: 600,
-    fullscreen: SHELL_MODE || KIOSK, kiosk: KIOSK, frame: !(SHELL_MODE || KIOSK), autoHideMenuBar: true,
-    backgroundColor: "#02060f", title: "Windows – ColeForge Edition",
+    fullscreen: SHELL_MODE || KIOSK || FULL, kiosk: KIOSK, frame: !(SHELL_MODE || KIOSK), autoHideMenuBar: true,
+    backgroundColor: "#02060f", title: "NightCode – Windows ColeForge Edition",
     webPreferences: { preload: path.join(__dirname, "preload.js"), contextIsolation: true, nodeIntegration: false, webviewTag: true, sandbox: false },
   });
   Menu.setApplicationMenu(null);
   win.loadURL(`http://localhost:${PORT}/`);
+  // F11 switches between full screen and a window (not in kiosk builds).
+  if (!KIOSK) win.webContents.on("before-input-event", (e, input) => {
+    if (input.type === "keyDown" && input.key === "F11" && !input.control && !input.alt) { e.preventDefault(); win.setFullScreen(!win.isFullScreen()); }
+  });
   win.webContents.setWindowOpenHandler(({ url }) => { shell.openExternal(url); return { action: "deny" }; });
   if (SHELL_MODE || KIOSK) win.on("close", (e) => { if (!app.isQuitting) e.preventDefault(); });
 }
@@ -67,10 +78,20 @@ ipcMain.handle("forge:shieldReset", (_e, id) => shield.reset(id));
 
 /* ---------------- host bridge ---------------- */
 ipcMain.handle("forge:openExternal", (_e, url) => { if (/^https?:\/\//.test(url)) shell.openExternal(url); });
+// Windows' own network and settings panels (NightCode's tray opens the Wi-Fi picker with these).
+const WIN_PANELS = { wifi: "ms-availablenetworks:", network: "ms-settings:network-status", wifiSettings: "ms-settings:network-wifi", bluetooth: "ms-settings:bluetooth", display: "ms-settings:display", sound: "ms-settings:sound", updates: "ms-settings:windowsupdate" };
+ipcMain.handle("forge:openPanel", (_e, id) => {
+  if (process.platform !== "win32" || !WIN_PANELS[id]) return false;
+  shell.openExternal(WIN_PANELS[id]);
+  return true;
+});
+ipcMain.handle("forge:mode", () => (KIOSK ? "kiosk" : SHELL_MODE ? "shell" : FULL ? "fullscreen" : "window"));
 
 ipcMain.handle("forge:power", (_e, action) => {
   app.isQuitting = true;
-  if (!SHELL_MODE && !KIOSK) return app.quit();
+  // "exit" closes NightCode (back to Windows). In a plain window, Shut Down does the same; full screen
+  // (NightCode OS), the shell and kiosk builds really shut down / restart the computer.
+  if (action === "exit" || !(SHELL_MODE || KIOSK || FULL)) return app.quit();
   const cmds = process.platform === "win32"
     ? { shutdown: "shutdown /s /t 0", restart: "shutdown /r /t 0", logoff: "shutdown /l" }
     : { shutdown: "systemctl poweroff", restart: "systemctl reboot", logoff: "loginctl terminate-session self" };

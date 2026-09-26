@@ -3,7 +3,9 @@
   FirstLogonCommands), from C:\NightCode:
 
     1. installs ColeForge (installers\ColeForge-*.exe, silently, for this user)
-    2. makes ColeForge the shell, with the NightCode sounds and wallpaper (core\windows\install-coleforge.ps1)
+    2. mode "app" (default): NightCode starts full screen at every sign-in, on top of Windows' own desktop
+       (Windows keeps its taskbar, Wi-Fi and Settings underneath); mode "shell": ColeForge replaces
+       explorer.exe. Either way with the NightCode sounds and wallpaper (core\windows\install-coleforge.ps1)
     3. applies the NightCode OS branding and privacy settings (nightcode-tweaks.ps1)
     4. optionally installs Python and builds Netcon / Disk Dude, and fetches the game engines
     5. removes the password Setup left behind, then restarts straight into NightCode
@@ -29,7 +31,7 @@ New-Item -ItemType Directory -Force -Path (Join-Path $Root "logs") | Out-Null
 Start-Transcript -Path (Join-Path $Root "logs\firstboot.log") -Append | Out-Null
 try { $Host.UI.RawUI.WindowTitle = "NightCode OS setup" } catch { }
 
-$config = @{ autoLogon = $false; python = $true; games = $false; scheme = "NightCode" }
+$config = @{ autoLogon = $false; python = $true; games = $false; scheme = "NightCode"; mode = "app" }
 $cfgFile = Join-Path $Root "nightcode.json"
 if (Test-Path $cfgFile) {
   (Get-Content $cfgFile -Raw | ConvertFrom-Json).PSObject.Properties | ForEach-Object { $config[$_.Name] = $_.Value }
@@ -96,8 +98,21 @@ try {
     if (-not (Test-Path $exe)) { throw "The installer finished (exit $($p.ExitCode)) but ColeForge.exe isn't at $exe." }
   }
 
-  Step "Making ColeForge the desktop (shell, sounds, wallpaper)" {
-    & (Join-Path $Root "coleforge\core\windows\install-coleforge.ps1") -ExePath $exe -Scheme $config.scheme
+  if ($config.mode -eq "shell") {
+    Step "Making NightCode the Windows shell (sounds, wallpaper)" {
+      & (Join-Path $Root "coleforge\core\windows\install-coleforge.ps1") -ExePath $exe -Scheme $config.scheme
+    }
+  } else {
+    Step "Starting NightCode full screen at every sign-in (sounds, wallpaper)" {
+      & (Join-Path $Root "coleforge\core\windows\install-coleforge.ps1") -ExePath $exe -Scheme $config.scheme -ThemeOnly
+      $run = "HKCU:\Software\Microsoft\Windows\CurrentVersion\Run"
+      if (-not (Test-Path $run)) { New-Item -Path $run -Force | Out-Null }
+      Set-ItemProperty -Path $run -Name "NightCode" -Value "`"$exe`" --fullscreen"
+      # A desktop shortcut too, for when you close it.
+      $lnk = Join-Path ([Environment]::GetFolderPath("Desktop")) "NightCode.lnk"
+      $ws = New-Object -ComObject WScript.Shell
+      $sc = $ws.CreateShortcut($lnk); $sc.TargetPath = $exe; $sc.Arguments = "--fullscreen"; $sc.WorkingDirectory = (Split-Path $exe); $sc.Save()
+    }
   }
 
   Step "NightCode OS branding and settings" {
@@ -154,7 +169,8 @@ if ($failed) {
 }
 Set-Content -Path (Join-Path $Root "logs\firstboot.done") -Value (Get-Date -Format s)
 Write-Host "  NightCode OS is ready." -ForegroundColor Cyan
-Write-Host "  Escape hatch, if you ever need Windows' own desktop: Ctrl+Shift+Esc > Run new task > explorer.exe" -ForegroundColor DarkGray
+if ($config.mode -eq "shell") { Write-Host "  Escape hatch, if you ever need Windows' own desktop: Ctrl+Shift+Esc > Run new task > explorer.exe" -ForegroundColor DarkGray }
+else { Write-Host "  NightCode opens full screen at sign-in. F11 makes it a window; the Windows key shows Windows' taskbar." -ForegroundColor DarkGray }
 Stop-Transcript | Out-Null
 if (-not $NoRestart) {
   Write-Host "  Restarting into NightCode in 15 seconds..." -ForegroundColor White

@@ -2,7 +2,8 @@
   NightCode OS: make the install USB for the spare laptop.
 
   Turns the official Windows 11 ISO into a USB stick that installs Windows 11 almost hands-free and comes
-  up in ColeForge (NightCode) as the desktop. Run it on your main PC, in an elevated PowerShell:
+  up in NightCode: by default NightCode starts full screen at every sign-in as an app, with Windows' own
+  desktop (taskbar, Wi-Fi, Settings) intact underneath; -ShellMode makes it replace explorer.exe instead. Run it on your main PC, in an elevated PowerShell:
 
     Set-ExecutionPolicy -Scope Process Bypass
     .\Make-NightCodeUSB.ps1                                   # finds the ISO, asks which USB stick to erase
@@ -13,6 +14,7 @@
     -UserName Cole          the laptop's account (you're asked for its password)
     -ComputerName NIGHTCODE
     -AutoLogon              keep signing in by itself after setup (a spare laptop at home); off by default
+    -ShellMode              make NightCode the Windows shell (no Explorer, taskbar or Windows Wi-Fi menu)
     -NoPython               don't install Python / build Netcon and Disk Dude on first boot
     -Games                  also fetch the Forge Arcade game engines on first boot
     -SkipHardwareCheck      let Setup install on a laptop without TPM 2.0 / Secure Boot / a supported CPU
@@ -35,6 +37,7 @@ param(
   [string]$ComputerName = "NIGHTCODE",
   [string]$Installer = "",
   [switch]$AutoLogon,
+  [switch]$ShellMode,
   [switch]$NoPython,
   [switch]$Games,
   [switch]$SkipHardwareCheck,
@@ -94,7 +97,7 @@ function Write-Payload([string]$usbRoot) {
   New-Item -ItemType Directory -Force -Path (Join-Path $dest "art"), (Join-Path $dest "installers") | Out-Null
   if ($wallpaper) { Copy-Item -Force $wallpaper (Join-Path $dest "art\nightcode.png") }
   if ((Split-Path $Installer) -ne (Join-Path $dest "installers")) { Copy-Item -Force $Installer (Join-Path $dest "installers") }
-  $cfg = [ordered]@{ autoLogon = [bool]$AutoLogon; python = (-not $NoPython); games = [bool]$Games; scheme = "NightCode"; made = (Get-Date -Format s) }
+  $cfg = [ordered]@{ autoLogon = [bool]$AutoLogon; python = (-not $NoPython); games = [bool]$Games; scheme = "NightCode"; mode = $(if ($ShellMode) { "shell" } else { "app" }); made = (Get-Date -Format s) }
   $cfg | ConvertTo-Json | Set-Content -Encoding UTF8 (Join-Path $dest "nightcode.json")
 
   # The answer file, from the template.
@@ -202,4 +205,4 @@ Say "NightCode OS installer USB is ready ($usb)." "Green"
 Say "Next, on the spare laptop:" "White"
 Say "  1. Plug the USB in, power on and open the boot menu (F12 / F9 / F11 / Esc, depending on the maker); pick the USB (UEFI)." "White"
 Say "  2. Windows Setup asks one thing: where to install. Pick the laptop's drive (delete its old partitions for a clean install)." "White"
-Say "  3. Connect to Wi-Fi when asked. Everything else is automatic: it signs in, installs ColeForge and restarts into NightCode." "White"
+Say "  3. Connect to Wi-Fi when asked. Everything else is automatic: it signs in, installs NightCode and restarts into it." "White"

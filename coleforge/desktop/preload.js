@@ -8,6 +8,8 @@ contextBridge.exposeInMainWorld("forgeHost", {
   platform: process.platform,
   power: (action) => ipcRenderer.invoke("forge:power", action),
   openExternal: (url) => ipcRenderer.invoke("forge:openExternal", url),
+  openPanel: (id) => ipcRenderer.invoke("forge:openPanel", id),
+  mode: () => ipcRenderer.invoke("forge:mode"),
   sysInfo: () => ipcRenderer.invoke("forge:sysInfo"),
   launchGame: (spec) => ipcRenderer.invoke("forge:launchGame", spec),
   legacyEngines: () => ipcRenderer.invoke("forge:legacyEngines"),

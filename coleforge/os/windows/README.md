@@ -1,8 +1,16 @@
 # NightCode OS (Windows 11 edition)
 
-Turns a spare laptop into a NightCode machine: it installs Windows 11 almost hands-free from a USB stick and comes
-up in **ColeForge** as the desktop. Windows keeps its kernel and drivers underneath (Wi-Fi, GPU, sleep, Windows
-Update), so everything ColeForge has works, including Netcon, Disk Dude, the Forge Arcade engines and Albert.
+Turns a spare laptop into a NightCode machine: it installs Windows 11 almost hands-free from a USB stick and signs
+in straight to **NightCode**, the ColeForge app, full screen. Windows keeps running underneath (Wi-Fi, GPU, sleep,
+Windows Update, its taskbar and Settings), so everything NightCode has works, including Netcon, Disk Dude, the
+Forge Arcade engines and Albert.
+
+Two modes:
+
+- **App mode (default):** NightCode is an ordinary app that opens full screen at every sign-in. Windows' desktop
+  is still there behind it, so Wi-Fi, Bluetooth, printers and every other Windows program just work.
+- **Shell mode (`-ShellMode`):** ColeForge *replaces* Windows' desktop (explorer.exe). Purer, but Windows'
+  own Wi-Fi flyout, Start menu and taskbar are gone; only pick it if you know you want that.
 
 ## What you need
 
@@ -30,6 +38,7 @@ takes 10-20 minutes.
 | Option | |
 | --- | --- |
 | `-UserName Cole` | the laptop account (default Cole) |
+| `-ShellMode` | make ColeForge the Windows shell instead of a full-screen app (see the two modes above) |
 | `-ComputerName NIGHTCODE` | the laptop's name |
 | `-AutoLogon` | keep signing in by itself (a laptop that stays home); off by default |
 | `-Games` | also download the Forge Arcade game engines on first boot |
@@ -46,7 +55,8 @@ takes 10-20 minutes.
    a laptop that shipped with Windows activates once it's online.)
 3. When asked, **connect to Wi-Fi**. From then on it's automatic: it creates your account, signs in, and runs
    the NightCode setup (a console window with the NightCode logo):
-   - installs ColeForge and makes it the desktop, with the NightCode sounds and wallpaper
+   - installs ColeForge, sets NightCode to open full screen at every sign-in (plus a **NightCode** desktop
+     shortcut), with the NightCode sounds and wallpaper
    - sets the NightCode lock screen, account picture, "NightCode OS" in System > About and the boot menu,
      dark mode, and turns off Windows tips, suggested apps and ads
    - installs Python and builds Netcon and Disk Dude (and the game engines with `-Games`)
@@ -56,8 +66,16 @@ Total: about 30-45 minutes, mostly Windows Setup.
 
 ## Living with it
 
-- **Windows' own desktop, if you need it:** Ctrl+Shift+Esc > *Run new task* > `explorer.exe`.
-- **Back to normal Windows for this account:** run `C:\NightCode\coleforge\core\windows\uninstall-coleforge.ps1`.
+- **F11** switches NightCode between full screen and a normal window. The **Windows key** brings up Windows'
+  Start menu and taskbar on top of it; the NightCode window is on the taskbar like any other app.
+- **Wi-Fi:** click the network icon in NightCode's tray; it opens Windows' Wi-Fi list.
+- **Start > Shut Down** really shuts down (or restarts) the laptop; pick **Close NightCode (back to Windows)**
+  there to just leave NightCode.
+- **Closed NightCode?** Double-click **NightCode** on the desktop. Launching it twice just brings the open one
+  to the front.
+- **Stop it opening at sign-in:** Task Manager > *Startup apps* > NightCode > Disable.
+- **Shell mode only:** Windows' own desktop is Ctrl+Shift+Esc > *Run new task* > `explorer.exe`, and
+  `C:\NightCode\coleforge\core\windows\uninstall-coleforge.ps1` puts Windows' desktop back for good.
 - **Run the NightCode setup again** (e.g. it was offline): `powershell -ExecutionPolicy Bypass -File C:\NightCode\firstboot.ps1`.
   Its log is `C:\NightCode\logs\firstboot.log`.
 - **Updates:** Windows Update keeps drivers and security up to date. Install a newer ColeForge by running its

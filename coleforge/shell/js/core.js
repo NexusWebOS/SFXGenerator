@@ -670,11 +670,13 @@
     const clock = h("span", { id: "clock", class: "clickable" });
     tray.replaceChildren(chat, net, vol, clock);
     chat.addEventListener("click", () => CF.open("forgechat"));
-    const updateNet = () => { net.firstChild.classList.toggle("off", !navigator.onLine); net.title = navigator.onLine ? "Connected" : "Not connected"; };
+    const updateNet = () => { net.firstChild.classList.toggle("off", !navigator.onLine); net.title = (navigator.onLine ? "Connected" : "Not connected") + (CF.host?.openPanel ? " (click for Wi-Fi)" : ""); };
     addEventListener("online", () => { updateNet(); CF.toast({ title: "Network", body: "You're connected.", icon: "network" }); });
     addEventListener("offline", () => { updateNet(); CF.toast({ title: "Network", body: "Network cable unplugged / Wi‑Fi lost.", icon: "warning" }); });
     updateNet();
-    net.addEventListener("click", () => CF.open("mycomputer"));
+    // On Windows (ColeForge.exe) the network icon opens Windows' own Wi-Fi picker.
+    net.addEventListener("click", async () => { if (!(CF.host?.openPanel && await CF.host.openPanel("wifi").catch(() => false))) CF.open("mycomputer"); });
+
     vol.addEventListener("click", (e) => {
       const slider = h("input", { type: "range", min: 0, max: 1, step: 0.05, value: settings.volume, style: "width:150px" });
       slider.addEventListener("input", () => { settings.volume = +slider.value; CF.saveSettings(); CF.emit("volume", settings.volume); });
@@ -696,6 +698,8 @@
   CF.shutdownDialog = async () => {
     const choice = h("select", { class: "field", style: "width:100%" },
       h("option", { value: "shutdown" }, "Shut down"), h("option", { value: "restart" }, "Restart"), h("option", { value: "logoff" }, `Log off ${settings.user}`));
+    // ColeForge.exe running as an app on top of Windows (not as the shell): offer a way back to Windows.
+    host?.mode?.().then((m) => { if (m === "fullscreen" || m === "window") choice.append(h("option", { value: "exit" }, "Close NightCode (back to Windows)")); }).catch(() => {});
     const veil = h("div", { id: "shutdown" });
     const done = (go) => { veil.remove(); if (go) power(choice.value); };
     veil.append(h("div", { class: "dlg" }, h("div", { class: "win active" },
@@ -710,6 +714,7 @@
   async function power(action) {
     if (action === "logoff" && window.CF_POWER_HOOK?.("logoff")) return;
     if (action === "logoff") return logOff();
+    if (action === "exit") return host?.power?.("exit");
     for (const w of CF.windows.slice()) await w.close(true);
     CF.sound("shutdown");
     document.body.classList.add("busy");

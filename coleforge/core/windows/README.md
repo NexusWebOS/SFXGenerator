@@ -49,6 +49,11 @@ Sign out and back in: you land in ColeForge instead of Explorer. The script is p
 
 **Escape hatch:** Ctrl+Shift+Esc → File → Run new task → `explorer.exe`.
 
+**Or keep Explorer and run NightCode as a full-screen app** (what the NightCode OS USB does by default):
+`.\install-coleforge.ps1 -ThemeOnly`, then start `ColeForge.exe --fullscreen` (add it to
+`HKCU\...\CurrentVersion\Run` to open it at sign-in). F11 toggles full screen; the tray's network icon
+opens Windows' Wi-Fi list.
+
 What the installer sets up:
 
 | Piece | Where |

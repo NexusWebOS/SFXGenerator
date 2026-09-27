@@ -69,6 +69,9 @@
     file: svg(`<path d="M10 4h20l10 10v30H10z" fill="#fff" stroke="#6f7c96"/><path d="M30 4v10h10" fill="#dbe6f5" stroke="#6f7c96"/><g stroke="#9cc8ff"><path d="M15 22h20M15 27h20M15 32h14"/></g>`),
     image: svg(`<rect x="4" y="8" width="40" height="32" rx="3" fill="#fff" stroke="#6f7c96"/><rect x="8" y="12" width="32" height="24" fill="#bfe3ff"/><circle cx="16" cy="19" r="3.5" fill="#ffd34d"/><path d="M8 36l10-11 7 7 5-5 10 9z" fill="#2d7fff"/>`),
     run: svg(`<rect x="5" y="8" width="38" height="32" rx="3" fill="#1b2130" stroke="#8d98ab"/><path d="M11 18l6 5-6 5M20 30h12" stroke="#7fd0ff" stroke-width="2.5" fill="none" stroke-linecap="round"/>`),
+    clouddrive: svg(`<path d="M13 30a8 8 0 0 1 1-16 11 11 0 0 1 21 3 7 7 0 0 1 0 13z" fill="url(#gGlass)" stroke="#dbeeff" stroke-width="1.5"/>${shine(15, 12, 18, 7, 4)}
+      <rect x="8" y="30" width="32" height="12" rx="2" fill="url(#gSteel)" stroke="#39414f"/><circle cx="34" cy="36" r="2" fill="#39e07a"/><path d="M12 36h14" stroke="#39414f" stroke-width="2"/>
+      <path d="M24 20v8m-4-4 4 4 4-4" fill="none" stroke="#fff" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/>`),
     shutdown: svg(`<circle cx="24" cy="26" r="15" fill="none" stroke="#ff6b5b" stroke-width="4" stroke-dasharray="72 22" transform="rotate(-72 24 26)"/><path d="M24 6v18" stroke="#ff6b5b" stroke-width="4" stroke-linecap="round"/>`),
   };
 

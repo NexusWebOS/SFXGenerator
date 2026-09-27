@@ -518,7 +518,7 @@
 
   /* ---------------- desktop ---------------- */
   const DESK_ITEMS = [
-    ["mycomputer", "My Computer", "computer"], ["files", "My Documents", "documents"], ["recycle", "Recycle Bin", "recycle"],
+    ["mycomputer", "My Computer", "computer"], ["files", "My Documents", "documents"], ["recycle", "Recycle Bin", "recycle"], ["gdrive", "Google Drive", "clouddrive"],
     ["browser", "Forge Browser", "browser"], ["forgechat", "ForgeChat", "forgechat"], ["forgeamp", "ForgeAmp", "forgeamp"],
     ["forgevision", "ForgeVision", "forgevision"], ["forgecraft", "Forgecraft", "forgecraft"], ["arcade", "Forge Arcade", "arcade"],
     ["gamebrowser", "Game Browser", "gamebrowser"], ["legacy", "Legacy Mode", "legacy"], ["netcon", "Netcon", "netcon"], ["diskdude", "Disk Dude", "diskdude"], ["winnight", "WinNight", "winnight"], ["nightamp", "NightAmp", "nightamp"], ["nightbrowser", "NightBrowser", "nightbrowser"], ["nightcode-net", "NightCode Net", "nightcode"], ["albert", "Albert", "albert"], ["sfxlab", "SFX Lab", "sfxlab"], ["nightops", "NightOps", "network"], ["notepad", "Notepad", "notepad"], ["control", "Control Panel", "control"],
@@ -632,7 +632,7 @@
           item("notepad", "Notepad", null, "notepad"),
           h("div", { class: "sm-sep" }), allPrograms),
         h("div", { class: "sm-right" },
-          item("files", "My Documents", null, "documents"), item("mycomputer", "My Computer", null, "computer"), item("recycle", "Recycle Bin", null, "recycle"),
+          item("files", "My Documents", null, "documents"), item("mycomputer", "My Computer", null, "computer"), item("gdrive", "Google Drive", null, "clouddrive"), item("recycle", "Recycle Bin", null, "recycle"),
           h("div", { class: "sm-sep" }),
           item("control", "Control Panel", null, "control"), item("about", "About ColeForge", null, "info"),
           h("div", { class: "sm-sep" }),

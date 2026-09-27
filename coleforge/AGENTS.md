@@ -136,6 +136,8 @@ In browsers that expose `navigator.modelContext`, the desktop registers the same
 | `list_documents`, `read_document` | My Documents (pictures come back as images; long text by line range) | |
 | `search_documents` | find text (and file names) across My Documents, with line numbers | |
 | `write_document`, `delete_document` | create / overwrite / append a text document; move one to the Recycle Bin | yes |
+| `drive_list`, `drive_read` | files in the NightCode folder of Google Drive; read a text file there (NightCode app on the PC, via Google Drive for desktop) | |
+| `drive_write` | create or replace a text file in Google Drive's NightCode folder | yes |
 | `nightamp` | status, play, pause, stop, next, previous, volume, play a track, add a URL, change skin, Media Library | |
 | `open_web` | open a page in NightBrowser | |
 | `change_setting` | theme, wallpaper, clock, sounds, screen saver | |

@@ -107,6 +107,33 @@
       run: ({ name }) => { if (!CF.vfs.read(name)) throw new Error(`No document called ${name}.`); CF.vfs.remove(name); return `${name} is in the Recycle Bin.`; },
     },
     {
+      name: "drive_list", title: "List Google Drive files", description: "Files and folders in the NightCode folder of the user's Google Drive (only in the NightCode app on their PC, through Google Drive for desktop). path is a folder inside it, e.g. \"\" or \"Game ideas\".",
+      input_schema: obj({ path: { type: "string", description: "Folder inside NightCode; empty for the top" } }),
+      run: async ({ path = "" }) => {
+        if (!CF.drive) throw new Error("Google Drive isn't available here.");
+        const st = await CF.drive.status();
+        if (!st.connected) throw new Error(`Google Drive isn't connected: ${st.why} (the Google Drive program can set it up).`);
+        return (await CF.drive.list(path)).entries.map((e) => ({ name: e.name, folder: e.dir, size: e.size, modified: new Date(e.modified).toISOString() }));
+      },
+    },
+    {
+      name: "drive_read", title: "Read a Google Drive file", description: "Read a text file from the NightCode folder in Google Drive (path like \"notes.txt\" or \"Game ideas/boss.md\").",
+      input_schema: obj({ path: { type: "string" } }, ["path"]),
+      run: async ({ path }) => clip(await CF.drive.readText(path), 60000),
+    },
+    {
+      name: "drive_write", title: "Save to Google Drive", description: "Create or replace a text file in the NightCode folder of Google Drive (folders are made as needed). It syncs to Google Drive on the web and the user's phone.", write: true,
+      input_schema: obj({ path: { type: "string", description: "e.g. Game ideas/level-3.md" }, text: { type: "string" } }, ["path", "text"]),
+      describe: ({ path, text = "" }) => `save “${path}” to Google Drive (${text.length} characters)`,
+      preview: ({ text = "" }) => clip(text, 600),
+      run: async ({ path, text }) => {
+        if (!/^[^\\:*?"<>|]{1,200}$/.test(path) || path.split("/").includes("..")) throw new Error("That isn't a valid path.");
+        await CF.drive.write(path, text);
+        CF.emit("drive");
+        return `Saved ${path} to Google Drive (${text.length} characters).`;
+      },
+    },
+    {
       name: "nightamp", title: "Control NightAmp", description: "Control the NightAmp media player: status (what's playing, playlist), play, pause (toggles), stop, next, previous, volume (value 0-100), play_track (value = playlist number or part of a title), add_url (value = stream or file address; plays it), skin (value = nightcode, classic, silver or a saved skin), library (open the Media Library). NightAmp opens if needed.",
       input_schema: obj({ action: { type: "string", enum: ["status", "play", "pause", "stop", "next", "previous", "volume", "play_track", "add_url", "skin", "library"] }, value: { type: ["string", "number"] } }, ["action"]),
       run: async ({ action, value }) => {

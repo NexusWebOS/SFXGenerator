@@ -359,3 +359,10 @@ body.theme-98 .lg-then-head { background: var(--w98-title); color: var(--w98-tit
 .ncp-status { font-size: 12px; word-break: break-all; }
 .ncp-foot { display: flex; align-items: center; gap: 8px; padding: 6px 18px; font-size: 11px; color: #9bb4c5; border-top: 1px solid #16223b; }
 .ncp-foot img { width: 24px; height: 24px; }
+
+/* Google Drive */
+.drv-crumbs { display: flex; align-items: center; gap: 4px; padding: 5px 8px; border-bottom: 1px solid rgba(127,160,220,.35); font-size: 12px; white-space: nowrap; overflow: hidden; }
+.drv-crumbs img { width: 16px; height: 16px; }
+.drv-crumbs .clickable:hover { text-decoration: underline; }
+.drv-setup p, .drv-setup ol { margin: 6px 0; line-height: 1.45; }
+.drv-setup ol { padding-left: 20px; }

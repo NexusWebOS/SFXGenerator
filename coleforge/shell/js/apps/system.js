@@ -30,7 +30,7 @@
         h("div", { class: "exp-panel" }, h("div", { class: "exp-ph" }, "System Tasks"),
           link("View system information", () => CF.open("about")), link("Change display settings", () => CF.open("control", { tab: "display" })), link("Sound settings", () => CF.open("control", { tab: "sounds" }))),
         h("div", { class: "exp-panel" }, h("div", { class: "exp-ph" }, "Other Places"),
-          link("My Documents", () => CF.open("files")), link("Recycle Bin", () => CF.open("recycle")), link("ForgeChat Network", () => CF.open("forgechat"))));
+          link("My Documents", () => CF.open("files")), link("Google Drive", () => CF.open("gdrive")), link("Recycle Bin", () => CF.open("recycle")), link("ForgeChat Network", () => CF.open("forgechat"))));
       function link(text, fn) { const a = h("div", { class: "exp-link clickable" }, text); a.addEventListener("click", fn); return a; }
 
       async function render() {
@@ -46,6 +46,8 @@
           ["volume", "Display", `${screen.width}×${screen.height} @ ${devicePixelRatio}x`],
           ["info", "Battery", battery ? `${Math.round(battery.level * 100)}% ${battery.charging ? "(charging)" : "(on battery)"}` : "No battery / not reported"],
         ];
+        let driveState = "Not connected";
+        try { const st = CF.drive && await CF.drive.status(); if (st?.connected) driveState = st.folder; } catch (e) { driveState = e.hosted ? "In the NightCode app" : "Not connected"; }
         let hostInfo = null;
         if (CF.host && CF.host.sysInfo) { try { hostInfo = await CF.host.sysInfo(); } catch { hostInfo = null; } }
         main.replaceChildren(
@@ -53,6 +55,7 @@
           h("div", { class: "exp-grid" },
             drive("documents", "My Documents", () => CF.open("files"), `${CF.vfs.list().length} files`),
             drive("recycle", "Recycle Bin", () => CF.open("recycle"), `${CF.vfs.bin().length} items`),
+            drive("clouddrive", "Google Drive (NightCode)", () => CF.open("gdrive"), driveState),
             drive("computer", "Local Storage (C:)", null, est ? `${fmtBytes(est.usage)} used of ${fmtBytes(est.quota)}` : "—"),
             ...(hostInfo?.drives || []).map(d => drive("computer", d.name, null, d.detail))),
           h("div", { class: "exp-h" }, "Hardware"),

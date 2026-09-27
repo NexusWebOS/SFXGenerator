@@ -14,6 +14,7 @@ const os = require("os");
 const crypto = require("crypto");
 const P = require("../shell/js/forgechat-protocol.js");
 const Zan = require("./zandronum/client.js");
+const drive = require("./drive.js"); // NightCode's folder in Google Drive (via Google Drive for desktop)
 
 const args = process.argv.slice(2);
 const arg = (name, fallback) => { const i = args.indexOf("--" + name); return i >= 0 ? args[i + 1] : fallback; };
@@ -43,6 +44,7 @@ const server = http.createServer((req, res) => {
     agent.handle(req, res, new URL(req.url, "http://x")).catch((e) => { if (!res.headersSent) res.writeHead(500, { "Content-Type": "application/json" }).end(JSON.stringify({ error: e.message })); });
     return;
   }
+  if (rel.startsWith("/api/drive/")) { drive.handle(req, res, new URL(req.url, "http://x")); return; }
   if (rel.startsWith("/api/zandronum/")) {
     zandronumApi(req, res, new URL(req.url, "http://x")).catch((e) => { if (!res.headersSent) res.writeHead(500, { "Content-Type": "application/json" }).end(JSON.stringify({ error: e.message })); });
     return;

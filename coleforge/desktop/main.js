@@ -172,6 +172,38 @@ ipcMain.handle("forge:legacyOpen", (_e, dir) => {
   return shell.openPath(target);
 });
 
+/* ---------------- Free Games shelf (freegames.js) ---------------- */
+// Everything NightCode downloads lives in a NightCode folder on your desktop (NIGHTCODE_HOME overrides it):
+//   Desktop\NightCode\Games\<game>, Games\_Engines\ScummVM, Games\_Saves\<game>
+const nightcodeHome = () => process.env.NIGHTCODE_HOME || path.join(app.getPath("desktop"), "NightCode");
+let freeGames = null;
+const shelf = () => (freeGames ||= require("./freegames.js").createFreeGames({ home: nightcodeHome() }));
+ipcMain.handle("forge:freeGames", () => shelf().list());
+ipcMain.handle("forge:freeGameInstall", async (e, id) => {
+  let last = 0;
+  const send = (p) => { const now = Date.now(); if (p.phase !== "download" || now - last > 150) { last = now; if (!e.sender.isDestroyed()) e.sender.send("forge:freeGameProgress", p); } };
+  try { return await shelf().install(String(id), send); }
+  catch (err) { send({ id, phase: "error", error: err.message }); throw err; }
+});
+ipcMain.handle("forge:freeGameRemove", (_e, id) => shelf().uninstall(String(id)));
+ipcMain.handle("forge:freeGamePlay", (_e, id) => {
+  const spec = shelf().launchSpec(String(id));
+  if (spec.arcade) {
+    // Freedoom plays in Forge Arcade; point it at Zandronum when core/windows/get-zandronum.ps1 installed it.
+    const zan = findExe(path.join(process.env.LOCALAPPDATA || app.getPath("userData"), "ColeForge", "games", "zandronum"), ["zandronum.exe", "zandronum"]);
+    return Object.assign(spec, { zandronum: zan });
+  }
+  const child = spawn(spec.exe, spec.args, { cwd: spec.cwd, detached: true, stdio: "ignore" });
+  child.on("error", () => {});
+  child.unref();
+  return { started: true };
+});
+ipcMain.handle("forge:openNightCodeFolder", (_e, which) => {
+  const target = which === "games" ? shelf().gamesDir : nightcodeHome();
+  fs.mkdirSync(target, { recursive: true });
+  return shell.openPath(target);
+});
+
 /* ---------------- NightCode programs: Netcon + Disk Dude ---------------- */
 // Official ColeForge programs from NexusWebOS/NightCode (programs/retro-tools). Runs a built .exe when
 // there is one (core/windows/build-nightcode-programs.ps1), otherwise the Python source via "py -3".

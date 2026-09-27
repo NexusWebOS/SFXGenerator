@@ -518,7 +518,7 @@
 
   /* ---------------- desktop ---------------- */
   const DESK_ITEMS = [
-    ["mycomputer", "My Computer", "computer"], ["files", "My Documents", "documents"], ["recycle", "Recycle Bin", "recycle"], ["gdrive", "Google Drive", "clouddrive"],
+    ["mycomputer", "My Computer", "computer"], ["files", "My Documents", "documents"], ["recycle", "Recycle Bin", "recycle"], ["gdrive", "Google Drive", "clouddrive"], ["freegames", "Free Games", "arcade"],
     ["browser", "Forge Browser", "browser"], ["forgechat", "ForgeChat", "forgechat"], ["forgeamp", "ForgeAmp", "forgeamp"],
     ["forgevision", "ForgeVision", "forgevision"], ["forgecraft", "Forgecraft", "forgecraft"], ["arcade", "Forge Arcade", "arcade"],
     ["gamebrowser", "Game Browser", "gamebrowser"], ["legacy", "Legacy Mode", "legacy"], ["netcon", "Netcon", "netcon"], ["diskdude", "Disk Dude", "diskdude"], ["winnight", "WinNight", "winnight"], ["nightamp", "NightAmp", "nightamp"], ["nightbrowser", "NightBrowser", "nightbrowser"], ["nightcode-net", "NightCode Net", "nightcode"], ["albert", "Albert", "albert"], ["sfxlab", "SFX Lab", "sfxlab"], ["nightops", "NightOps", "network"], ["notepad", "Notepad", "notepad"], ["control", "Control Panel", "control"],

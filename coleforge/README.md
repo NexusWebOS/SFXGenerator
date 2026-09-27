@@ -43,6 +43,7 @@ cross-PC ForgeChat, which needs the server.
 | **Forgecraft** | Paint meets Photoshop: layers (opacity, 16 blend modes, reorder, merge, flatten), soft/hard brushes, pencil, eraser, line/rect/ellipse, flood fill, eyedropper, text, move; filters (grayscale, invert, sepia, brightness/contrast, hue/saturation, blur, sharpen, emboss, edge, posterize, Forge Glow); resize/canvas/flip/rotate; 25-step undo; zoom; export PNG/JPEG/WebP; set as wallpaper or avatar. |
 | **ForgeChat** | AIM × Discord × Messenger: buddy list with online/away/busy and **away messages with auto-responses**, channels, DMs, typing indicators, unread badges, emoji & smileys, **GIFs**, pictures, **file sharing** (8 MB), **voice clips**, **webcam snapshots**, **1:1 voice/video calls with screen share** (WebRTC), avatars, `/away` `/back` `/me` `/host`. |
 | **Forge Arcade + LAN lobbies** | DOOM Legacy – ColeForge Edition (your own source port), **Zandronum**, Doom/Doom II, Freedoom, Quake, Duke Nukem 3D. Host a lobby in ForgeChat, friends join and ready up, the host hits Start and everyone's game launches pointed at the host. Zandronum lobbies start a real server on the host and show its live map/players. |
+| **Free Games** | A shelf of classic PC games **their makers released for free**: *Beneath a Steel Sky*, *Flight of the Amazon Queen*, *Lure of the Temptress*, *Drascula*, *DreamWeb*, *God of Thunder*, *The Griffon Legend*, *Nippon Safes*, *Out of Order*, *Mystery House* and **Freedoom**. One click downloads from the official source (ScummVM's freeware library, the Freedoom project), checks a pinned SHA-256, unpacks into **Desktop\NightCode\Games** and plays: adventures in ScummVM (fetched once), Freedoom in Forge Arcade. Saves go to `Games\_Saves`. No abandonware sites. Catalog and installer: `desktop/freegames.js`. |
 | **Legacy Mode** | 90's games on modern hardware: **DOSBox – ColeForge Edition** (DOSBox Staging with era presets from an IBM XT to a Pentium MMX + Voodoo, IPX LAN play) for DOS games, and complete Windows 98 SE PCs in **86Box**, including **Voodoo3 Mode** (Pentium II 450, 440BX, 3dfx Voodoo3 3000 AGP) and a Voodoo2 SLI rig. Generates the configs, creates the disk, launches the emulator. See [legacy/README.md](legacy/README.md). |
 | **Forge Game Browser** | A 16-bit, GameSpy-style Zandronum server browser: internet servers from the Zandronum master, LAN servers found automatically from their broadcasts, favourites and ForgeChat lobbies. Sort by ping/players, filter, see every player's score/ping/team, WADs, limits and skill; double-click to join (password prompt included), host your own server, or **Share** a server into ForgeChat as a one-click Join card. |
 | **WinNight** *(NightCode)* | The archiver: a big-button archive manager with its own 16-bit toolbar and splash. Opens ZIP, **RAR (v4/v5)**, **7-Zip**, TAR, GZ/TGZ, XZ, BZIP2, ZSTD, ISO, CAB and more; creates ZIP, TAR, TAR.GZ/XZ/BZ2/ZST. **Lock** archives with **AES-256** (WinZip AE-2, opens in WinRAR/7-Zip/Windows), Add, Extract To (My Documents or this PC), Test (CRC-32 + AES authentication), View (text, pictures, hex; music/video go to NightAmp), Delete, Rename, New folder, Find (names and text inside files), Info, comments, **Repair** (rebuilds a ZIP from its local headers), Convert between formats, and **self-extracting archives** as a single .html file. Engine: `shell/js/zipkit.js`. |
@@ -192,6 +193,18 @@ Browsers visiting `http://<lan-ip>` may block the camera; use ColeForge.exe on e
 This build uses the Windows name for personal, non-distributed use. Before sharing it
 publicly, rename it and drop Microsoft marks.
 
+## NightCode on your PC (a folder on your desktop)
+
+`desktop/Setup-NightCode.ps1` sets NightCode up in **Desktop\NightCode**: it installs Git and Node.js if needed,
+clones the source into `NightCode\source`, builds the installer, installs the app into `NightCode\App` and adds a
+`NightCode` shortcut; Free Games land in `NightCode\Games`. Run it again to update.
+
+```powershell
+Set-ExecutionPolicy -Scope Process Bypass
+irm https://raw.githubusercontent.com/NexusWebOS/SFXGenerator/main/coleforge/desktop/Setup-NightCode.ps1 -OutFile Setup-NightCode.ps1
+.\Setup-NightCode.ps1
+```
+
 ## NightCode OS (the spare-laptop install)
 
 `os/windows/` turns a laptop into a NightCode machine: `Make-NightCodeUSB.ps1` writes a Windows 11 install USB
@@ -213,6 +226,7 @@ node coleforge/tests/zipkit.test.js       # WinNight's ZIP/TAR/AES engine agains
 node coleforge/tests/nightshield.test.js  # NightBrowser's tracker blocker and HTTPS upgrade rules
 node coleforge/tests/nightamp.test.js     # NightAmp's skins (.wsz, sheet sizes) and tag reader (mutagen when installed)
 node coleforge/tests/sfx.test.js          # SFX Lab's synth: presets, clamped settings, .wav output
+node coleforge/tests/freegames.test.js    # Free Games: catalog rules, the unzipper, install/verify/play/remove against a local server
 node coleforge/tests/drive.test.js        # Google Drive folder API: reads/writes, header/origin guard, nothing outside the NightCode folder
 node coleforge/tests/albert.test.js       # Albert's relay (streaming mock Claude API and Groq), agent endpoints' guards, Albert API, MCP over HTTP and stdio
 node coleforge/tests/nightcode.test.js    # NightCode Net + NightOps against a mock Supabase / GitHub / Netlify, migrations, netlify.toml

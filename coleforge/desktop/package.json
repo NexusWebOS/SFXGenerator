@@ -23,6 +23,8 @@
       "main.js",
       "preload.js",
       "nightshield.js",
+      "freegames.js",
+      "unzip.js",
       "app/**/*"
     ],
     "asarUnpack": [

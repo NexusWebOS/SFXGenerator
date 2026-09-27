@@ -119,6 +119,13 @@
   // Forge Game Browser: join a queried server ({address, iwad, pwads, name}).
   CF.joinServer = (server, { password, joinPassword } = {}) => run("zandronum", "join", { address: server.address, iwad: server.iwad, files: (server.pwads || []).filter(p => !p.optional).map(p => p.name), name: server.name, password, joinPassword });
   CF.hostServer = (opts) => run("zandronum", "host", opts);
+  // Free Games: start a single-player game here, optionally pointing it at installed data / an engine first.
+  CF.playArcade = (id, { dataPath, exePath } = {}) => {
+    if (!GAMES[id]) return;
+    const all = config(), cur = all[id] || {};
+    if (dataPath || (exePath && !cur.exePath)) { all[id] = Object.assign({}, cur, dataPath ? { dataPath } : {}, exePath && !cur.exePath ? { exePath } : {}); CF.store.set(cfgKey, all); }
+    run(id, "solo");
+  };
 
   CF.register({
     id: "arcade", name: "Forge Arcade", icon: "arcade", single: true, desc: "Launch DOOM Legacy, Zandronum, Quake and Duke Nukem 3D and LAN lobbies.",
@@ -127,7 +134,8 @@
       const grid = h("div", { class: "arc-grid" });
       win.body.append(h("div", { class: "arc" }, h("div", { class: "arc-head" }, h("img", { src: CF.icon("arcade"), alt: "" }), h("div", {}, h("b", {}, "Forge Arcade"), h("div", { class: "muted" }, "Classic shooters, modern LAN. Host a lobby in ForgeChat and everyone launches together.")),
         h("div", { class: "arc-legacy" }, h("button", { class: "btn", onclick: () => CF.open("legacy") }, h("img", { src: "assets/art/legacy/logo.png", alt: "", style: "width:16px;height:16px;image-rendering:pixelated;vertical-align:middle" }), " Legacy Mode (90's games)"),
-          h("button", { class: "btn flat", onclick: () => CF.open("legacy", { voodoo3: true }) }, "Voodoo3 Mode"))), grid));
+          h("button", { class: "btn flat", onclick: () => CF.open("legacy", { voodoo3: true }) }, "Voodoo3 Mode"),
+          h("button", { class: "btn flat", onclick: () => CF.open("freegames") }, "Free Games"))), grid));
       function render() {
         grid.replaceChildren(...Object.keys(GAMES).map(id => {
           const g = gameConf(id);

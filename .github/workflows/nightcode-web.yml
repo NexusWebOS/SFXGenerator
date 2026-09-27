@@ -10,6 +10,8 @@ name: NightCode website
 on:
   workflow_dispatch:
   push:
+    # Only main goes live (each Netlify deploy uses credits); run it by hand for anything else.
+    branches: [main]
     paths:
       - "coleforge/web/nightcode/**"
       - "coleforge/shell/**"
